@@ -97,7 +97,7 @@ const main = async () => {
     throw Error("No host env var");
   }
   app.listen(PORT, () => {
-    console.log(`server started on http://localhost:${PORT}`);
+    console.log(`Auth server started on http://localhost:${PORT}`);
   });
 };
 
