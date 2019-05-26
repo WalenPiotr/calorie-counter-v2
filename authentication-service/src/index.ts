@@ -92,8 +92,12 @@ const main = async () => {
   app.get("/", (_, res) => {
     res.send("OK");
   });
-  app.listen(4000, () => {
-    console.log("server started on http://localhost:4000");
+  const { PORT } = process.env;
+  if (!PORT) {
+    throw Error("No host env var");
+  }
+  app.listen(PORT, () => {
+    console.log(`server started on http://localhost:${PORT}`);
   });
 };
 
