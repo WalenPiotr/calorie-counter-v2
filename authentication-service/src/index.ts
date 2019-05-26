@@ -70,13 +70,13 @@ const main = async () => {
       }),
     );
     app.get(
-      "/auth/google/callback",
+      "/google/callback",
       passport.authenticate("google", {
         failureRedirect: "/login",
         session: false,
       }),
       function(_, res) {
-        res.redirect("/");
+        res.redirect("/isalive");
       },
     );
   } else {
@@ -89,15 +89,15 @@ const main = async () => {
       });
     }
   });
-  app.get("/", (_, res) => {
-    res.send("OK");
+  app.get("/isalive", (_, res) => {
+    res.send("Auth service is alive");
   });
   const { PORT } = process.env;
   if (!PORT) {
     throw Error("No host env var");
   }
   app.listen(PORT, () => {
-    console.log(`Auth server started on http://localhost:${PORT}`);
+    console.log(`Auth service started on http://localhost:${PORT}`);
   });
 };
 
