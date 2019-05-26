@@ -1,0 +1,22 @@
+version: "3.1"
+services:
+    db:
+        image: postgres:latest
+        restart: always
+        environment:
+            POSTGRES_USER: pg-username
+            POSTGRES_PASSWORD: pg-password
+            POSTGRES_DB: pg-db
+        volumes:
+            - ./data/db:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
+    kv-store:
+        image: redis:4.0.5-alpine
+        command: ["redis-server", "--appendonly", "yes", "--requirepass", "redis-password"]
+        hostname: redis
+        volumes:
+            - ./data/redis:/data
+        ports:
+            - 6379:6379
+
