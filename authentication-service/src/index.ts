@@ -8,12 +8,17 @@ import session from "express-session";
 import "reflect-metadata";
 import redis from "./redis/config";
 import passport from "passport";
-import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth";
+import {
+  OAuth2Strategy as GoogleStrategy,
+  Profile,
+} from "passport-google-oauth";
+import { createConnection } from "typeorm";
+import { User, Provider, Role } from "./entity/User";
 
 const main = async () => {
   const app = Express();
   const RedisStore = connectRedis(session);
-
+  await createConnection();
   if (process.env.REDIS_SECRET) {
     app.use(
       session({
@@ -47,8 +52,25 @@ const main = async () => {
           clientSecret: GOOGLE_CLIENT_SECRET,
           callbackURL: GOOGLE_REDIRECT_URL,
         },
-        function(_, __, profile, done) {
-          return done(null, profile);
+        async function(_, __, profile: Profile, done) {
+          if (profile && profile.emails) {
+            const found = await User.findOne({
+              externalId: profile.id,
+              provider: Provider.GOOGLE,
+            });
+            if (found) {
+              return done(null, found);
+            }
+            const created = await User.create({
+              email: profile.emails[0].value,
+              displayName: profile.displayName,
+              externalId: profile.id,
+              provider: Provider.GOOGLE,
+              role: Role.USER,
+            }).save();
+            return done(null, created);
+          }
+          return done(new Error("No profile provided"));
         },
       ),
     );
@@ -62,7 +84,10 @@ const main = async () => {
     app.get(
       "/login",
       passport.authenticate("google", {
-        scope: ["https://www.googleapis.com/auth/plus.login"],
+        scope: [
+          "https://www.googleapis.com/auth/plus.login",
+          "https://www.googleapis.com/auth/userinfo.email",
+        ],
         session: true,
       }),
     );
