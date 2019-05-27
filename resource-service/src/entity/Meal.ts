@@ -10,28 +10,24 @@ import {
   ManyToOne,
   OneToMany,
 } from "typeorm";
-import { Product } from "./Product";
-import { Meal } from "./Meal";
+import { Entry } from "./Entry";
 
-@ObjectType()
-@Entity()
-export class Entry extends BaseEntity {
+export class Meal extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(() => [Product])
-  @ManyToOne(() => Product, p => p.entries)
-  @JoinTable()
-  product: Product;
-
   @Field()
-  @Column()
-  quantity: number;
+  @Column({ unique: true })
+  name: string;
 
-  @Field(() => Meal)
-  @OneToMany(() => Meal, m => m.entries)
-  meal: Meal;
+  @Field(() => [Entry])
+  @ManyToOne(() => Entry, e => e.meal)
+  entries: Entry[];
+
+  @Field(() => Date)
+  @Column()
+  date: Date;
 
   @Field(() => ID)
   @Column()
