@@ -7,10 +7,16 @@ import {
   Mutation,
   Query,
   Resolver,
+  Args,
+  ArgsType,
+  FieldResolver,
+  Root,
+  ID,
 } from "type-graphql";
 import { Product } from "../entity/Product";
 import { Unit } from "../entity/Unit";
 import { ContextType } from "../types/ContextType";
+import { Role } from "../auth/authChecker";
 
 @InputType()
 class ProductInput implements Partial<Product> {
@@ -36,12 +42,32 @@ class AddProductInput {
   units: UnitInput[];
 }
 
+@ArgsType()
+class SearchProductsArgs {
+  @Field()
+  name: string;
+}
+
+@InputType()
+class DeleteProductInput {
+  @Field(() => ID)
+  id: number;
+}
+
 @Resolver(Product)
 export class ProductResolver {
   @Query(() => String)
   async helloWorld() {
     return "Hello world";
   }
+
+  @Query(() => [Product])
+  async searchProducts(@Args() args: SearchProductsArgs): Promise<Product[]> {
+    return Product.createQueryBuilder()
+      .where("LOWER(name) LIKE LOWER(:name)", { name: `%${args.name}%` })
+      .getMany();
+  }
+
   @Authorized()
   @Mutation(() => Product, { nullable: true })
   async addProduct(
@@ -50,7 +76,6 @@ export class ProductResolver {
   ): Promise<Product | undefined> {
     if (ctx.req.session) {
       const { user } = ctx.req.session.passport;
-      console.log(user.id);
       let units: Unit[] = [];
       for (const unit of data.units) {
         const dbUnit = await Unit.create({
@@ -69,5 +94,24 @@ export class ProductResolver {
       return dbProduct;
     }
     throw new Error("No user in session");
+  }
+
+  @Authorized(Role.ADMIN)
+  @Mutation(() => Boolean)
+  async deleteProduct(@Arg("data") { id }: DeleteProductInput): Promise<
+    boolean
+  > {
+    await Unit.delete({ product: { id } });
+    await Product.delete({ id });
+    return true;
+  }
+
+  @FieldResolver()
+  async units(@Root() product: Product): Promise<Unit[]> {
+    const { units } = await Product.findOneOrFail(
+      { id: product.id },
+      { relations: ["units"] },
+    );
+    return units;
   }
 }

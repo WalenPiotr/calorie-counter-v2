@@ -29,14 +29,16 @@ export class Unit extends BaseEntity {
   @Column()
   energy: number;
 
-  @Field()
+  @Field(() => ID)
+  @Column()
   createdById: number;
 
   @CreateDateColumn()
   @Field(() => Date)
   createdAt: Date;
 
-  @Field()
+  @Field(() => ID)
+  @Column()
   updatedById: number;
 
   @UpdateDateColumn()

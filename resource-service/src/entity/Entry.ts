@@ -32,6 +32,7 @@ export class Entry extends BaseEntity {
   quantity: number;
 
   @Field(() => ID)
+  @Column()
   createdById: number;
 
   @CreateDateColumn()
@@ -39,6 +40,7 @@ export class Entry extends BaseEntity {
   createdAt: Date;
 
   @Field(() => ID)
+  @Column()
   updatedById: number;
 
   @UpdateDateColumn()

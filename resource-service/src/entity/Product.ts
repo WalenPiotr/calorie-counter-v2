@@ -30,14 +30,16 @@ export class Product extends BaseEntity {
   @OneToMany(() => Entry, e => e.product)
   entries: Entry[];
 
-  @Field()
+  @Field(() => ID)
+  @Column()
   createdById: number;
 
   @CreateDateColumn()
   @Field(() => Date)
   createdAt: Date;
 
-  @Field()
+  @Field(() => ID)
+  @Column()
   updatedById: number;
 
   @UpdateDateColumn()
