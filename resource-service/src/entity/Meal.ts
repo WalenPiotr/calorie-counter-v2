@@ -3,15 +3,15 @@ import {
   BaseEntity,
   Column,
   CreateDateColumn,
-  Entity,
-  JoinTable,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  ManyToOne,
-  OneToMany,
+  Entity,
 } from "typeorm";
 import { Entry } from "./Entry";
 
+@ObjectType()
+@Entity()
 export class Meal extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
