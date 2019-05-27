@@ -33,15 +33,15 @@ export class Unit extends BaseEntity {
   @Column()
   createdById: number;
 
-  @CreateDateColumn()
   @Field(() => Date)
+  @CreateDateColumn()
   createdAt: Date;
 
   @Field(() => ID)
   @Column()
   updatedById: number;
 
-  @UpdateDateColumn()
   @Field(() => Date, { nullable: true })
+  @UpdateDateColumn()
   updatedAt: Date;
 }

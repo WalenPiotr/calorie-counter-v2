@@ -2,14 +2,16 @@ import { Field, ID, ObjectType } from "type-graphql";
 import {
   BaseEntity,
   Column,
-  Entity,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn,
+  Entity,
+  ManyToOne,
   OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from "typeorm";
-import { Unit } from "./Unit";
 import { Entry } from "./Entry";
+import { Unit } from "./Unit";
+import { Report } from "./Report";
 
 @ObjectType()
 @Entity()
@@ -34,15 +36,19 @@ export class Product extends BaseEntity {
   @Column()
   createdById: number;
 
-  @CreateDateColumn()
   @Field(() => Date)
+  @CreateDateColumn()
   createdAt: Date;
 
   @Field(() => ID)
   @Column()
   updatedById: number;
 
-  @UpdateDateColumn()
   @Field(() => Date, { nullable: true })
+  @UpdateDateColumn()
   updatedAt: Date;
+
+  @Field(() => [Report])
+  @ManyToOne(() => Report, r => r.product)
+  reports: Report[];
 }
