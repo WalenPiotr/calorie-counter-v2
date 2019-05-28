@@ -54,6 +54,8 @@ const main = async () => {
         },
         async function(_, __, profile: Profile, done) {
           if (profile && profile.emails) {
+            const count = await User.count();
+
             const found = await User.findOne({
               externalId: profile.id,
               provider: Provider.GOOGLE,
@@ -66,7 +68,7 @@ const main = async () => {
               displayName: profile.displayName,
               externalId: profile.id,
               provider: Provider.GOOGLE,
-              role: Role.USER,
+              role: count === 0 ? Role.ADMIN : Role.USER,
             }).save();
             return done(null, created);
           }
@@ -88,6 +90,7 @@ const main = async () => {
           "https://www.googleapis.com/auth/plus.login",
           "https://www.googleapis.com/auth/userinfo.email",
         ],
+        prompt: "select_account",
         session: true,
       }),
     );
