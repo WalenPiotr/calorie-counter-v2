@@ -4,14 +4,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { Entry } from "./Entry";
-import { Unit } from "./Unit";
 import { Report } from "./Report";
+import { Unit } from "./Unit";
 
 @ObjectType()
 @Entity()
@@ -48,7 +47,7 @@ export class Product extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Field(() => [Report])
-  @ManyToOne(() => Report, r => r.product)
+  @Field(() => [Report], { nullable: true })
+  @OneToMany(() => Report, r => r.product)
   reports: Report[];
 }

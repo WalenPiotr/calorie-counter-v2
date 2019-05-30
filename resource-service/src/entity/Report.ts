@@ -1,14 +1,14 @@
-import { Field, ID, ObjectType } from "type-graphql";
+import { Field, ID, ObjectType, registerEnumType } from "type-graphql";
 import {
   BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from "typeorm";
 import { Product } from "./Product";
-import { registerEnumType } from "type-graphql";
 
 export enum ReportStatus {
   OPEN,
@@ -31,6 +31,7 @@ registerEnumType(ReportReason, {
 
 @Entity()
 @ObjectType()
+@Unique(["creatorId", "product"])
 export class Report extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
@@ -57,6 +58,6 @@ export class Report extends BaseEntity {
   createdAt: Date;
 
   @Field(() => Product)
-  @OneToMany(() => Product, p => p.reports)
+  @ManyToOne(() => Product, p => p.reports)
   product: Product;
 }

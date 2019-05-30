@@ -1,46 +1,84 @@
 import {
+  IsPositive,
+  MinLength,
+  ArrayNotEmpty,
+  ValidatorConstraintInterface,
+  ValidationOptions,
+  ValidatorConstraint,
+  registerDecorator,
+  ValidationArguments,
+} from "class-validator";
+import {
   Arg,
+  Args,
+  ArgsType,
   Authorized,
   Ctx,
   Field,
+  FieldResolver,
+  ID,
   InputType,
   Mutation,
   Query,
   Resolver,
-  Args,
-  ArgsType,
-  FieldResolver,
   Root,
-  ID,
 } from "type-graphql";
 import { Product } from "../entity/Product";
+import { Report } from "../entity/Report";
 import { Unit } from "../entity/Unit";
+import { Role } from "../helpers/authChecker";
+import { NestedField, ValidateInput } from "../helpers/validate";
 import { ContextType } from "../types/ContextType";
-import { Role } from "../auth/authChecker";
-import { Report, ReportStatus, ReportReason } from "../entity/Report";
 
-@InputType()
-class ProductInput implements Partial<Product> {
-  @Field()
-  name: string;
+@ValidatorConstraint({ async: true })
+class ProductAlreadyExistsConstraint implements ValidatorConstraintInterface {
+  async validate({ name }: ProductInput, _?: ValidationArguments) {
+    const count = await Product.count({ name });
+    return count === 0;
+  }
+  defaultMessage(_: ValidationArguments): string {
+    return "Product already exists";
+  }
+}
+
+function ProductAlreadyExists(validationOptions?: ValidationOptions) {
+  return function(object: Object, propertyName: string) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: ProductAlreadyExistsConstraint,
+    });
+  };
 }
 
 @InputType()
-class UnitInput implements Partial<Product> {
+export class UnitInput {
   @Field()
   name: string;
 
   @Field()
+  @IsPositive()
   energy: number;
 }
 
 @InputType()
-class AddProductInput {
-  @Field(() => ProductInput)
-  product: ProductInput;
+export class ProductInput {
+  @Field()
+  @MinLength(3)
+  name: string;
 
-  @Field(() => [UnitInput])
+  @NestedField(() => UnitInput)
+  @ArrayNotEmpty()
   units: UnitInput[];
+}
+
+@InputType()
+export class AddProductInput {
+  @NestedField(() => ProductInput)
+  @ProductAlreadyExists()
+  newProduct: ProductInput;
 }
 
 @ArgsType()
@@ -64,27 +102,6 @@ class UpdateProductInput {
   newProduct: ProductInput;
 }
 
-@InputType()
-class UpdateProductsUnitsInput {
-  @Field(() => ID)
-  id: number;
-
-  @Field(() => [UnitInput])
-  newUnits: UnitInput[];
-}
-
-@InputType()
-class ReportProductInput {
-  @Field(() => ID)
-  id: number;
-
-  @Field(() => ReportReason)
-  reason: ReportReason;
-
-  @Field()
-  message: string;
-}
-
 @Resolver(Product)
 export class ProductResolver {
   @Query(() => [Product])
@@ -95,28 +112,28 @@ export class ProductResolver {
   }
 
   @Authorized()
-  @Mutation(() => Product, { nullable: true })
+  @ValidateInput("data", AddProductInput)
+  @Mutation(() => Boolean)
   async addProduct(
     @Arg("data") data: AddProductInput,
     @Ctx() ctx: ContextType,
-  ): Promise<Product | undefined> {
-    const { id } = ctx.req.session!.passport.user;
-    let units: Unit[] = [];
-    for (const unit of data.units) {
-      const dbUnit = await Unit.create({
-        ...unit,
-        createdById: id,
-        updatedById: id,
-      }).save();
-      units = units.concat(dbUnit);
-    }
+  ): Promise<Boolean> {
+    const { units, ...rest } = data.newProduct;
+    const userId = ctx.req.session!.passport.user.id;
     const dbProduct = await Product.create({
-      ...data.product,
-      units: units,
-      createdById: id,
-      updatedById: id,
+      ...rest,
+      createdById: userId,
+      updatedById: userId,
     }).save();
-    return dbProduct;
+    for (const unit of units) {
+      await Unit.create({
+        ...unit,
+        createdById: userId,
+        updatedById: userId,
+        product: { id: dbProduct.id },
+      }).save();
+    }
+    return true;
   }
 
   @Authorized(Role.ADMIN)
@@ -124,6 +141,7 @@ export class ProductResolver {
   async deleteProduct(@Arg("data") { id }: DeleteProductInput): Promise<
     boolean
   > {
+    await Report.delete({ product: { id } });
     await Unit.delete({ product: { id } });
     await Product.delete({ id });
     return true;
@@ -131,68 +149,22 @@ export class ProductResolver {
 
   @Authorized(Role.ADMIN)
   @Mutation(() => Boolean)
-  async updateProductUnits(
+  async updateProduct(
     @Arg("data") data: UpdateProductInput,
     @Ctx() ctx: ContextType,
   ): Promise<Boolean> {
-    const { id } = ctx.req.session!.passport.user;
-    await Product.update(
-      { id: data.id },
-      { ...data.newProduct, updatedById: id },
-    );
-    return true;
-  }
-
-  @Authorized(Role.ADMIN)
-  @Mutation(() => Boolean)
-  async updateProductsUnits(
-    @Arg("data") data: UpdateProductsUnitsInput,
-    @Ctx() ctx: ContextType,
-  ): Promise<Boolean> {
-    const { id } = ctx.req.session!.passport.user;
-    Unit.delete({ product: { id: data.id } });
-    let units: Unit[] = [];
-    for (const unit of data.newUnits) {
-      const dbUnit = await Unit.create({
+    const { units, ...rest } = data.newProduct;
+    const userId = ctx.req.session!.passport.user.id;
+    await Product.update({ id: data.id }, { ...rest, updatedById: userId });
+    await Unit.delete({ product: { id: data.id } });
+    for (const unit of units) {
+      await Unit.create({
         ...unit,
-        updatedById: id,
+        createdById: userId,
+        updatedById: userId,
+        product: { id: data.id },
       }).save();
-      units = units.concat(dbUnit);
     }
-    await Product.update({ id: data.id }, { units, updatedById: id });
-    return true;
-  }
-
-  @Authorized()
-  @Mutation(() => Boolean)
-  async reportProduct(
-    @Arg("data") data: ReportProductInput,
-    @Ctx() ctx: ContextType,
-  ): Promise<Boolean> {
-    const userId = ctx.req.session!.passport.user;
-    const count = await Report.count({
-      creatorId: userId,
-      product: { id: data.id },
-    });
-    if (count > 0) {
-      throw new Error("Product has been already reported");
-    }
-    const report = await Report.create({
-      reason: data.reason,
-      message: data.message,
-      creatorId: userId,
-      status: ReportStatus.OPEN,
-    }).save();
-    const product = await Product.findOneOrFail(
-      { id: data.id },
-      { relations: ["reports"] },
-    );
-    await Product.update(
-      { id: data.id },
-      {
-        reports: [...product.reports, report],
-      },
-    );
     return true;
   }
 
@@ -221,7 +193,7 @@ export class ProductResolver {
     @Root() product: Product,
     @Ctx() ctx: ContextType,
   ): Promise<Boolean> {
-    const userId = ctx.req.session!.passport.user;
+    const userId = ctx.req.session!.passport.user.id;
     const count = await Report.count({
       where: {
         product: {
