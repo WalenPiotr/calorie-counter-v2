@@ -2,30 +2,25 @@ import dotenv from "dotenv";
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();
 }
-import { ApolloServer, ApolloError } from "apollo-server-express";
+import { ApolloError, ApolloServer } from "apollo-server-express";
 import connectRedis from "connect-redis";
 import cors from "cors";
 import Express from "express";
 import session from "express-session";
+import { GraphQLError, GraphQLFormattedError } from "graphql";
+import passport from "passport";
 import "reflect-metadata";
 import {
-  buildSchema,
   ArgumentValidationError,
+  buildSchema,
   UnauthorizedError,
 } from "type-graphql";
 import { createConnection } from "typeorm";
+import { authChecker } from "./helpers/authChecker";
 import redis from "./redis/config";
 import { ProductResolver } from "./resolvers/Product";
-import cookieParser from "cookie-parser";
-import { authChecker } from "./helpers/authChecker";
-import passport from "passport";
-import { GraphQLError, GraphQLFormattedError } from "graphql";
-import Joi from "joi";
-import { registerJoi } from "tsdv-joi/core";
 
 const main = async () => {
-  registerJoi(Joi);
-
   const { REDIS_SECRET, PORT } = process.env;
   if (!REDIS_SECRET) {
     throw new Error("No redis kv-store secret provided");
@@ -42,7 +37,6 @@ const main = async () => {
       origin: "http://localhost:3000",
     }),
   );
-  app.use(cookieParser());
   const RedisStore = connectRedis(session);
   app.use(
     session({
