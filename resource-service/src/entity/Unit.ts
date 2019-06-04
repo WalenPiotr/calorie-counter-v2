@@ -32,7 +32,7 @@ export class Unit extends BaseEntity {
   product: Product;
 
   @Field()
-  @Column()
+  @Column({ type: "float" })
   @IsPositive()
   energy: number;
 
