@@ -8,6 +8,8 @@ import {
   InputType,
   ArgsType,
   Ctx,
+  Args,
+  Authorized,
 } from "type-graphql";
 import { ContextType } from "../types/ContextType";
 import { Entry } from "../entity/Entry";
@@ -43,17 +45,23 @@ class RemoveEntryInput {
 
 @Resolver(Entry)
 export class EntryResolver {
+  @Authorized()
   @Query(() => [Entry])
-  async getEntryByMealId(args: GetEntriesByMealId): Promise<Entry[]> {
+  async getEntryByMealId(
+    @Args() args: GetEntriesByMealId,
+    @Ctx() ctx: ContextType,
+  ): Promise<Entry[]> {
     const { mealId } = args;
-    return Entry.find({ meal: { id: mealId } });
+    const userId = ctx.req.session!.passport.user.id;
+    return Entry.find({ meal: { id: mealId }, createdById: userId });
   }
 
-  @Mutation(() => Boolean)
+  @Authorized()
+  @Mutation(() => Entry)
   async addEntry(
     @Arg("data") data: AddEntryInput,
     @Ctx() ctx: ContextType,
-  ): Promise<Boolean> {
+  ): Promise<Entry> {
     const userId = ctx.req.session!.passport.user.id;
     const { newEntry, mealId } = data;
     const entry = Entry.fromObject({
@@ -65,14 +73,18 @@ export class EntryResolver {
       },
     });
     await Entry.validate(entry);
-    await Entry.create(entry).save();
-    return true;
+    return Entry.create(entry).save();
   }
 
+  @Authorized()
   @Mutation(() => Boolean)
-  async removeEntry(@Arg("data") data: RemoveEntryInput): Promise<Boolean> {
+  async removeEntry(
+    @Arg("data") data: RemoveEntryInput,
+    @Ctx() ctx: ContextType,
+  ): Promise<Boolean> {
     const { id } = data;
-    await Entry.delete({ id: id });
+    const userId = ctx.req.session!.passport.user.id;
+    await Entry.delete({ id: id, createdById: userId });
     return true;
   }
 }

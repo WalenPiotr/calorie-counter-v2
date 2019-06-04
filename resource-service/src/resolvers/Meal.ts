@@ -1,17 +1,19 @@
 import {
-  Mutation,
   Arg,
-  Resolver,
+  ArgsType,
+  Authorized,
+  Ctx,
   Field,
-  Query,
   ID,
   InputType,
-  ArgsType,
-  Ctx,
+  Mutation,
+  Query,
+  Resolver,
+  Args,
 } from "type-graphql";
-import { ContextType } from "../types/ContextType";
-import { Meal } from "../entity/Meal";
 import { Entry } from "../entity/Entry";
+import { Meal } from "../entity/Meal";
+import { ContextType } from "../types/ContextType";
 
 @InputType()
 class MealInput {
@@ -41,16 +43,22 @@ class RemoveMealInput {
 
 @Resolver(Meal)
 export class MealResolver {
+  @Authorized()
   @Query(() => [Meal])
-  async getMealsByDate(args: GetMealByDateArgs): Promise<Meal[]> {
-    return Meal.find({ date: args.date });
+  async getMealsByDate(
+    @Args() args: GetMealByDateArgs,
+    @Ctx() ctx: ContextType,
+  ): Promise<Meal[]> {
+    const userId = ctx.req.session!.passport.user.id;
+    return Meal.find({ date: args.date, createdById: userId });
   }
 
-  @Mutation(() => Boolean)
+  @Authorized()
+  @Mutation(() => Meal)
   async addMeal(
     @Arg("data") data: AddMealInput,
     @Ctx() ctx: ContextType,
-  ): Promise<Boolean> {
+  ): Promise<Meal> {
     const userId = ctx.req.session!.passport.user.id;
     const { newMeal } = data;
     const meal = Meal.fromObject({
@@ -59,15 +67,19 @@ export class MealResolver {
       updatedById: userId,
     });
     await Meal.validate(meal);
-    await Meal.create(meal).save();
-    return true;
+    return Meal.create(meal).save();
   }
 
+  @Authorized()
   @Mutation(() => Boolean)
-  async removeMeal(@Arg("data") data: RemoveMealInput): Promise<Boolean> {
+  async removeMeal(
+    @Arg("data") data: RemoveMealInput,
+    @Ctx() ctx: ContextType,
+  ): Promise<Boolean> {
     const { id } = data;
-    await Meal.delete({ id: id });
-    await Entry.delete({ meal: { id: id } });
+    const userId = ctx.req.session!.passport.user.id;
+    await Meal.delete({ id: id, createdById: userId });
+    await Entry.delete({ meal: { id: id, createdById: userId } });
     return true;
   }
 }

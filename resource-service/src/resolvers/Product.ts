@@ -64,11 +64,11 @@ export class ProductResolver {
 
   @Authorized()
   @ValidateInput("data", AddProductInput)
-  @Mutation(() => Boolean)
+  @Mutation(() => Product)
   async addProduct(
     @Arg("data") data: AddProductInput,
     @Ctx() ctx: ContextType,
-  ): Promise<Boolean> {
+  ): Promise<Product> {
     const { newProduct } = data;
     const userId = ctx.req.session!.passport.user.id;
     const productPartial: Partial<Product> = {
@@ -78,8 +78,7 @@ export class ProductResolver {
     };
     const product = Product.fromObject(productPartial);
     await Product.validate(product);
-    await Product.create(product).save();
-    return true;
+    return Product.create(product).save();
   }
 
   @Authorized(Role.ADMIN)

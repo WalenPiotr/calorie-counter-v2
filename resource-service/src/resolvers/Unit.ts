@@ -8,9 +8,11 @@ import {
   InputType,
   ArgsType,
   Ctx,
+  Authorized,
 } from "type-graphql";
 import { ContextType } from "../types/ContextType";
 import { Unit } from "../entity/Unit";
+import { Role } from "../helpers/authChecker";
 
 @InputType()
 class UnitInput {
@@ -44,17 +46,19 @@ class RemoveUnitInput {
 
 @Resolver(Unit)
 export class UnitResolver {
+  @Authorized()
   @Query(() => [Unit])
   async getUnitsByProductId(args: GetUnitsByProductIdArgs): Promise<Unit[]> {
     const { productId } = args;
     return Unit.find({ product: { id: productId } });
   }
 
-  @Mutation(() => Boolean)
+  @Authorized()
+  @Mutation(() => Unit)
   async addUnit(
     @Arg("data") data: AddUnitInput,
     @Ctx() ctx: ContextType,
-  ): Promise<Boolean> {
+  ): Promise<Unit> {
     const userId = ctx.req.session!.passport.user.id;
     const { newUnit, productId } = data;
     const unit = Unit.fromObject({
@@ -66,12 +70,12 @@ export class UnitResolver {
       },
     });
     await Unit.validate(unit);
-    await Unit.create(unit).save();
-    return true;
+    return Unit.create(unit).save();
   }
 
+  @Authorized(Role.ADMIN)
   @Mutation(() => Boolean)
-  async removeEntry(@Arg("data") data: RemoveUnitInput): Promise<Boolean> {
+  async removeUnit(@Arg("data") data: RemoveUnitInput): Promise<Boolean> {
     const { id } = data;
     await Unit.delete({ id: id });
     return true;
