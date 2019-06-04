@@ -28,7 +28,7 @@ export class Entry extends BaseEntity {
   product: Product;
 
   @Field()
-  @Column()
+  @Column({ type: "float" })
   quantity: number;
 
   @Field(() => Meal)

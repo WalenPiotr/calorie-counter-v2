@@ -17,18 +17,19 @@ import { Entry } from "../entity/Entry";
 @InputType()
 class EntryInput {
   @Field()
-  name: string;
+  productId: number;
+
+  @Field(() => ID)
+  mealId: number;
+
   @Field()
-  date: Date;
+  quantity: number;
 }
 
 @InputType()
 class AddEntryInput {
   @Field(() => EntryInput)
   newEntry: EntryInput;
-
-  @Field(() => ID)
-  mealId: number;
 }
 
 @ArgsType()
@@ -47,7 +48,7 @@ class RemoveEntryInput {
 export class EntryResolver {
   @Authorized()
   @Query(() => [Entry])
-  async getEntryByMealId(
+  async getEntriesByMealId(
     @Args() args: GetEntriesByMealId,
     @Ctx() ctx: ContextType,
   ): Promise<Entry[]> {
@@ -63,13 +64,16 @@ export class EntryResolver {
     @Ctx() ctx: ContextType,
   ): Promise<Entry> {
     const userId = ctx.req.session!.passport.user.id;
-    const { newEntry, mealId } = data;
+    const { newEntry } = data;
     const entry = Entry.fromObject({
-      ...newEntry,
+      quantity: newEntry.quantity,
       createdById: userId,
       updatedById: userId,
       meal: {
-        id: mealId,
+        id: newEntry.mealId,
+      },
+      product: {
+        id: newEntry.productId,
       },
     });
     await Entry.validate(entry);
