@@ -23,7 +23,7 @@ export class Unit extends BaseEntity {
 
   @Field()
   @Column()
-  @MinLength(3)
+  @MinLength(1)
   @MaxLength(20)
   name: string;
 
