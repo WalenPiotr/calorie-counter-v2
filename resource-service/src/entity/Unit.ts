@@ -59,7 +59,7 @@ export class Unit extends BaseEntity {
     }
   }
 
-  static fromObject(obj: Partial<Unit>) {
+  static fromObject(obj: any) {
     return plainToClass(Unit, obj);
   }
 }

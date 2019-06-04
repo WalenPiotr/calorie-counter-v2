@@ -23,6 +23,9 @@ class EntryInput {
 class AddEntryInput {
   @Field(() => EntryInput)
   newEntry: EntryInput;
+
+  @Field(() => ID)
+  mealId: number;
 }
 
 @ArgsType()
@@ -39,30 +42,33 @@ class RemoveEntryInput {
 
 @Resolver(Entry)
 export class EntryResolver {
-  @Query()
+  @Query(() => [Entry])
   async getEntryByMealId(args: GetEntriesByMealId): Promise<Entry[]> {
     const { mealId } = args;
     return Entry.find({ meal: { id: mealId } });
   }
 
-  @Mutation()
+  @Mutation(() => Boolean)
   async addEntry(
     @Arg("data") data: AddEntryInput,
     ctx: ContextType,
   ): Promise<Boolean> {
     const userId = ctx.req.session!.passport.user.id;
-    const { newEntry } = data;
+    const { newEntry, mealId } = data;
     const entry = Entry.fromObject({
       ...newEntry,
       createdById: userId,
       updatedById: userId,
+      meal: {
+        id: mealId,
+      },
     });
     await Entry.validate(entry);
     await Entry.create(entry).save();
     return true;
   }
 
-  @Mutation()
+  @Mutation(() => Boolean)
   async removeEntry(@Arg("data") data: RemoveEntryInput): Promise<Boolean> {
     const { id } = data;
     await Entry.delete({ id: id });

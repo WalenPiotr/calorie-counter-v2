@@ -8,9 +8,9 @@ import {
   InputType,
   ArgsType,
 } from "type-graphql";
-import { ContextType } from "src/types/ContextType";
-import { Meal } from "src/entity/Meal";
-import { Entry } from "src/entity/Entry";
+import { ContextType } from "../types/ContextType";
+import { Meal } from "../entity/Meal";
+import { Entry } from "../entity/Entry";
 
 @InputType()
 class MealInput {
@@ -40,12 +40,12 @@ class RemoveMealInput {
 
 @Resolver(Meal)
 export class MealResolver {
-  @Query()
+  @Query(() => [Meal])
   async getMealsByDate(args: GetMealByDateArgs): Promise<Meal[]> {
     return Meal.find({ date: args.date });
   }
 
-  @Mutation()
+  @Mutation(() => Boolean)
   async addMeal(
     @Arg("data") data: AddMealInput,
     ctx: ContextType,
@@ -62,7 +62,7 @@ export class MealResolver {
     return true;
   }
 
-  @Mutation()
+  @Mutation(() => Boolean)
   async removeMeal(@Arg("data") data: RemoveMealInput): Promise<Boolean> {
     const { id } = data;
     await Meal.delete({ id: id });

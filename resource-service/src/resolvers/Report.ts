@@ -13,7 +13,7 @@ import {
 } from "type-graphql";
 import { Report, ReportStatus, ReportReason } from "../entity/Report";
 import { Role } from "../helpers/authChecker";
-import { ContextType } from "src/types/ContextType";
+import { ContextType } from "../types/ContextType";
 
 @ArgsType()
 class GetReportArgs {
@@ -74,7 +74,7 @@ export class ReportResolver {
     @Ctx() ctx: ContextType,
   ): Promise<Boolean> {
     const userId = ctx.req.session!.passport.user.id;
-    await Report.create({
+    const report = Report.fromObject({
       product: {
         id: data.productId,
       },
@@ -82,7 +82,9 @@ export class ReportResolver {
       message: data.message,
       creatorId: userId,
       status: ReportStatus.OPEN,
-    }).save();
+    });
+    await Report.validate(report);
+    await Report.create(report).save();
     return true;
   }
 }

@@ -1,5 +1,3 @@
-import { ArrayNotEmpty } from "class-validator";
-import { NestedField, ValidateInput } from "../helpers/validate";
 import {
   Arg,
   Args,
@@ -19,6 +17,7 @@ import { Product } from "../entity/Product";
 import { Report } from "../entity/Report";
 import { Unit } from "../entity/Unit";
 import { Role } from "../helpers/authChecker";
+import { NestedField, ValidateInput } from "../helpers/validate";
 import { ContextType } from "../types/ContextType";
 
 @InputType()

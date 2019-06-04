@@ -64,7 +64,7 @@ export class Product extends BaseEntity {
     }
   }
 
-  static fromObject(obj: Partial<Product>) {
+  static fromObject(obj: any) {
     return plainToClass(Product, obj);
   }
 }

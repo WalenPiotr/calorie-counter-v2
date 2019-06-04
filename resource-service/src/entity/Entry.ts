@@ -58,7 +58,7 @@ export class Entry extends BaseEntity {
     }
   }
 
-  static fromObject(obj: Partial<Entry>) {
+  static fromObject(obj: any) {
     return plainToClass(Entry, obj);
   }
 }

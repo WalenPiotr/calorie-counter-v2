@@ -21,7 +21,7 @@ class UnitInput {
 }
 
 @InputType()
-class AddEntryInput {
+class AddUnitInput {
   @Field(() => UnitInput)
   newUnit: UnitInput;
 
@@ -30,44 +30,47 @@ class AddEntryInput {
 }
 
 @ArgsType()
-class GetEntryByMealIdArgs {
+class GetUnitsByProductIdArgs {
   @Field(() => ID)
   productId: number;
 }
 
 @InputType()
-class RemoveEntryInput {
+class RemoveUnitInput {
   @Field(() => ID)
   id: number;
 }
 
 @Resolver(Unit)
 export class UnitResolver {
-  @Query()
-  async getUnitsByProductId(args: GetEntryByMealIdArgs): Promise<Unit[]> {
+  @Query(() => [Unit])
+  async getUnitsByProductId(args: GetUnitsByProductIdArgs): Promise<Unit[]> {
     const { productId } = args;
     return Unit.find({ product: { id: productId } });
   }
 
-  @Mutation()
+  @Mutation(() => Boolean)
   async addUnit(
-    @Arg("data") data: AddEntryInput,
+    @Arg("data") data: AddUnitInput,
     ctx: ContextType,
   ): Promise<Boolean> {
     const userId = ctx.req.session!.passport.user.id;
-    const { newUnit } = data;
+    const { newUnit, productId } = data;
     const unit = Unit.fromObject({
       ...newUnit,
       createdById: userId,
       updatedById: userId,
+      product: {
+        id: productId,
+      },
     });
     await Unit.validate(unit);
     await Unit.create(unit).save();
     return true;
   }
 
-  @Mutation()
-  async removeEntry(@Arg("data") data: RemoveEntryInput): Promise<Boolean> {
+  @Mutation(() => Boolean)
+  async removeEntry(@Arg("data") data: RemoveUnitInput): Promise<Boolean> {
     const { id } = data;
     await Unit.delete({ id: id });
     return true;

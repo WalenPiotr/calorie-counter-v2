@@ -19,6 +19,10 @@ import { createConnection, QueryFailedError } from "typeorm";
 import { authChecker } from "./helpers/authChecker";
 import redis from "./redis/config";
 import { ProductResolver } from "./resolvers/Product";
+import { MealResolver } from "./resolvers/Meal";
+import { ReportResolver } from "./resolvers/Report";
+import { UnitResolver } from "./resolvers/Unit";
+import { EntryResolver } from "./resolvers/Entry";
 
 const main = async () => {
   const { REDIS_SECRET, PORT } = process.env;
@@ -58,7 +62,13 @@ const main = async () => {
     done(null, user);
   });
   const schema = await buildSchema({
-    resolvers: [ProductResolver],
+    resolvers: [
+      ProductResolver,
+      EntryResolver,
+      MealResolver,
+      ReportResolver,
+      UnitResolver,
+    ],
     authChecker: authChecker,
     validate: false,
   });

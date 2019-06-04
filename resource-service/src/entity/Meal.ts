@@ -1,17 +1,16 @@
-import { Field, ID, ObjectType, ArgumentValidationError } from "type-graphql";
+import { plainToClass } from "class-transformer";
+import { validate } from "class-validator";
+import { ArgumentValidationError, Field, ID, ObjectType } from "type-graphql";
 import {
   BaseEntity,
   Column,
   CreateDateColumn,
+  Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  Entity,
 } from "typeorm";
 import { Entry } from "./Entry";
-import { validate } from "class-validator";
-import { plainToClass } from "class-transformer";
-import { Product } from "./Product";
 
 @ObjectType()
 @Entity()
@@ -55,7 +54,7 @@ export class Meal extends BaseEntity {
     }
   }
 
-  static fromObject(obj: Partial<Meal>) {
+  static fromObject(obj: any) {
     return plainToClass(Meal, obj);
   }
 }

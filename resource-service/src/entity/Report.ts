@@ -1,4 +1,10 @@
-import { Field, ID, ObjectType, registerEnumType } from "type-graphql";
+import {
+  Field,
+  ID,
+  ObjectType,
+  registerEnumType,
+  ArgumentValidationError,
+} from "type-graphql";
 import {
   BaseEntity,
   Column,
@@ -9,6 +15,8 @@ import {
   Unique,
 } from "typeorm";
 import { Product } from "./Product";
+import { plainToClass } from "class-transformer";
+import { validate } from "class-validator";
 
 export enum ReportStatus {
   OPEN,
@@ -60,4 +68,15 @@ export class Report extends BaseEntity {
   @Field(() => Product)
   @ManyToOne(() => Product, p => p.reports)
   product: Product;
+
+  static async validate(obj: Report) {
+    const errors = await validate(obj);
+    if (errors.length > 0) {
+      throw new ArgumentValidationError(errors);
+    }
+  }
+
+  static fromObject(obj: any) {
+    return plainToClass(Report, obj);
+  }
 }
