@@ -10,9 +10,13 @@ import {
   Ctx,
   Args,
   Authorized,
+  FieldResolver,
+  Root,
 } from "type-graphql";
 import { ContextType } from "../types/ContextType";
 import { Entry } from "../entity/Entry";
+import { Meal } from "../entity/Meal";
+import { Product } from "../entity/Product";
 
 @InputType()
 class EntryInput {
@@ -90,5 +94,23 @@ export class EntryResolver {
     const userId = ctx.req.session!.passport.user.id;
     await Entry.delete({ id: id, createdById: userId });
     return true;
+  }
+
+  @FieldResolver(() => Meal)
+  async meal(@Root() entry: Entry): Promise<Meal> {
+    const { meal } = await Entry.findOneOrFail(
+      { id: entry.id },
+      { relations: ["meal"] },
+    );
+    return meal;
+  }
+
+  @FieldResolver(() => Product)
+  async product(@Root() entry: Entry): Promise<Product> {
+    const { product } = await Entry.findOneOrFail(
+      { id: entry.id },
+      { relations: ["product"] },
+    );
+    return product;
   }
 }

@@ -10,6 +10,8 @@ import {
   Query,
   Resolver,
   Args,
+  FieldResolver,
+  Root,
 } from "type-graphql";
 import { Entry } from "../entity/Entry";
 import { Meal } from "../entity/Meal";
@@ -81,5 +83,14 @@ export class MealResolver {
     await Meal.delete({ id: id, createdById: userId });
     await Entry.delete({ meal: { id: id, createdById: userId } });
     return true;
+  }
+
+  @FieldResolver(() => [Entry])
+  async entries(@Root() meal: Meal): Promise<Entry[]> {
+    const { entries } = await Meal.findOneOrFail(
+      { id: meal.id },
+      { relations: ["entries"] },
+    );
+    return entries;
   }
 }

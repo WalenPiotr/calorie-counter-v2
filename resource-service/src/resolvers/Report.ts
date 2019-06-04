@@ -10,10 +10,13 @@ import {
   Resolver,
   ID,
   Ctx,
+  FieldResolver,
+  Root,
 } from "type-graphql";
 import { Report, ReportStatus, ReportReason } from "../entity/Report";
 import { Role } from "../helpers/authChecker";
 import { ContextType } from "../types/ContextType";
+import { Product } from "../entity/Product";
 
 @ArgsType()
 class GetReportArgs {
@@ -86,5 +89,14 @@ export class ReportResolver {
     await Report.validate(report);
     await Report.create(report).save();
     return true;
+  }
+
+  @FieldResolver(() => Product)
+  async product(@Root() report: Report) {
+    const { product } = await Report.findOneOrFail(
+      { id: report.id },
+      { relations: ["product"] },
+    );
+    return product;
   }
 }

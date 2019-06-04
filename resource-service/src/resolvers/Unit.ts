@@ -9,10 +9,13 @@ import {
   ArgsType,
   Ctx,
   Authorized,
+  FieldResolver,
+  Root,
 } from "type-graphql";
 import { ContextType } from "../types/ContextType";
 import { Unit } from "../entity/Unit";
 import { Role } from "../helpers/authChecker";
+import { Product } from "../entity/Product";
 
 @InputType()
 class UnitInput {
@@ -79,5 +82,14 @@ export class UnitResolver {
     const { id } = data;
     await Unit.delete({ id: id });
     return true;
+  }
+
+  @FieldResolver(() => Product)
+  async product(@Root() report: Unit) {
+    const { product } = await Unit.findOneOrFail(
+      { id: report.id },
+      { relations: ["product"] },
+    );
+    return product;
   }
 }
