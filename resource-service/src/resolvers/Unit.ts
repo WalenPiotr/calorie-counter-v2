@@ -7,6 +7,7 @@ import {
   ID,
   InputType,
   ArgsType,
+  Ctx,
 } from "type-graphql";
 import { ContextType } from "../types/ContextType";
 import { Unit } from "../entity/Unit";
@@ -52,7 +53,7 @@ export class UnitResolver {
   @Mutation(() => Boolean)
   async addUnit(
     @Arg("data") data: AddUnitInput,
-    ctx: ContextType,
+    @Ctx() ctx: ContextType,
   ): Promise<Boolean> {
     const userId = ctx.req.session!.passport.user.id;
     const { newUnit, productId } = data;

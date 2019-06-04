@@ -7,6 +7,7 @@ import {
   ID,
   InputType,
   ArgsType,
+  Ctx,
 } from "type-graphql";
 import { ContextType } from "../types/ContextType";
 import { Entry } from "../entity/Entry";
@@ -51,7 +52,7 @@ export class EntryResolver {
   @Mutation(() => Boolean)
   async addEntry(
     @Arg("data") data: AddEntryInput,
-    ctx: ContextType,
+    @Ctx() ctx: ContextType,
   ): Promise<Boolean> {
     const userId = ctx.req.session!.passport.user.id;
     const { newEntry, mealId } = data;
