@@ -1,19 +1,19 @@
 import {
-  Resolver,
-  Query,
-  Field,
-  ArgsType,
-  Args,
-  Mutation,
-  Authorized,
-  InputType,
   Arg,
-  Ctx,
+  Args,
+  ArgsType,
+  Authorized,
+  Field,
+  InputType,
+  Mutation,
+  Query,
+  Resolver,
   ID,
+  Ctx,
 } from "type-graphql";
 import { Report, ReportStatus, ReportReason } from "../entity/Report";
 import { Role } from "../helpers/authChecker";
-import { ContextType } from "../types/ContextType";
+import { ContextType } from "src/types/ContextType";
 
 @ArgsType()
 class GetReportArgs {
@@ -33,7 +33,7 @@ class ValidateReportInput {
 @InputType()
 class ReportProductInput {
   @Field(() => ID)
-  id: number;
+  productId: number;
 
   @Field(() => ReportReason)
   reason: ReportReason;
@@ -42,7 +42,7 @@ class ReportProductInput {
   message: string;
 }
 
-@Resolver()
+@Resolver(Report)
 export class ReportResolver {
   @Authorized(Role.ADMIN)
   @Query(() => Report)
@@ -76,7 +76,7 @@ export class ReportResolver {
     const userId = ctx.req.session!.passport.user.id;
     await Report.create({
       product: {
-        id: data.id,
+        id: data.productId,
       },
       reason: data.reason,
       message: data.message,

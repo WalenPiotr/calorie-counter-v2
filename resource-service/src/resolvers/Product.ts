@@ -1,13 +1,5 @@
-import {
-  IsPositive,
-  MinLength,
-  ArrayNotEmpty,
-  ValidatorConstraintInterface,
-  ValidationOptions,
-  ValidatorConstraint,
-  registerDecorator,
-  ValidationArguments,
-} from "class-validator";
+import { ArrayNotEmpty } from "class-validator";
+import { NestedField, ValidateInput } from "../helpers/validate";
 import {
   Arg,
   Args,
@@ -27,57 +19,17 @@ import { Product } from "../entity/Product";
 import { Report } from "../entity/Report";
 import { Unit } from "../entity/Unit";
 import { Role } from "../helpers/authChecker";
-import { NestedField, ValidateInput } from "../helpers/validate";
 import { ContextType } from "../types/ContextType";
 
-@ValidatorConstraint({ async: true })
-class ProductAlreadyExistsConstraint implements ValidatorConstraintInterface {
-  async validate({ name }: ProductInput, _?: ValidationArguments) {
-    const count = await Product.count({ name });
-    return count === 0;
-  }
-  defaultMessage(_: ValidationArguments): string {
-    return "Product already exists";
-  }
-}
-
-function ProductAlreadyExists(validationOptions?: ValidationOptions) {
-  return function(object: Object, propertyName: string) {
-    registerDecorator({
-      target: object.constructor,
-      propertyName: propertyName,
-      options: validationOptions,
-      constraints: [],
-      validator: ProductAlreadyExistsConstraint,
-    });
-  };
-}
-
 @InputType()
-export class UnitInput {
+class ProductInput {
   @Field()
   name: string;
-
-  @Field()
-  @IsPositive()
-  energy: number;
 }
 
 @InputType()
-export class ProductInput {
-  @Field()
-  @MinLength(3)
-  name: string;
-
-  @NestedField(() => UnitInput)
-  @ArrayNotEmpty()
-  units: UnitInput[];
-}
-
-@InputType()
-export class AddProductInput {
-  @NestedField(() => ProductInput)
-  @ProductAlreadyExists()
+class AddProductInput {
+  @Field(() => ProductInput)
   newProduct: ProductInput;
 }
 
@@ -98,7 +50,7 @@ class UpdateProductInput {
   @Field(() => ID)
   id: number;
 
-  @Field(() => ProductInput)
+  @NestedField(() => ProductInput)
   newProduct: ProductInput;
 }
 
@@ -118,21 +70,16 @@ export class ProductResolver {
     @Arg("data") data: AddProductInput,
     @Ctx() ctx: ContextType,
   ): Promise<Boolean> {
-    const { units, ...rest } = data.newProduct;
+    const { newProduct } = data;
     const userId = ctx.req.session!.passport.user.id;
-    const dbProduct = await Product.create({
-      ...rest,
+    const productPartial: Partial<Product> = {
+      name: newProduct.name,
       createdById: userId,
       updatedById: userId,
-    }).save();
-    for (const unit of units) {
-      await Unit.create({
-        ...unit,
-        createdById: userId,
-        updatedById: userId,
-        product: { id: dbProduct.id },
-      }).save();
-    }
+    };
+    const product = Product.fromObject(productPartial);
+    await Product.validate(product);
+    await Product.create(product).save();
     return true;
   }
 
@@ -148,23 +95,21 @@ export class ProductResolver {
   }
 
   @Authorized(Role.ADMIN)
+  @ValidateInput("data", UpdateProductInput)
   @Mutation(() => Boolean)
   async updateProduct(
     @Arg("data") data: UpdateProductInput,
     @Ctx() ctx: ContextType,
   ): Promise<Boolean> {
-    const { units, ...rest } = data.newProduct;
+    const { newProduct, id } = data;
     const userId = ctx.req.session!.passport.user.id;
-    await Product.update({ id: data.id }, { ...rest, updatedById: userId });
-    await Unit.delete({ product: { id: data.id } });
-    for (const unit of units) {
-      await Unit.create({
-        ...unit,
-        createdById: userId,
-        updatedById: userId,
-        product: { id: data.id },
-      }).save();
-    }
+    const productPartial: Partial<Product> = {
+      name: newProduct.name,
+      updatedById: userId,
+    };
+    const product = await Product.fromObject(productPartial);
+    await Product.validate(product);
+    await Product.update({ id }, product);
     return true;
   }
 

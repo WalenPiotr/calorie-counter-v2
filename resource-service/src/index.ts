@@ -15,7 +15,7 @@ import {
   buildSchema,
   UnauthorizedError,
 } from "type-graphql";
-import { createConnection } from "typeorm";
+import { createConnection, QueryFailedError } from "typeorm";
 import { authChecker } from "./helpers/authChecker";
 import redis from "./redis/config";
 import { ProductResolver } from "./resolvers/Product";
@@ -95,6 +95,20 @@ const main = async () => {
           path,
         };
       }
+      if (error.originalError instanceof QueryFailedError) {
+        const { extensions, locations, message, path } = error;
+        error.extensions!.code = `DUPLICATE_KEY_VALUE`;
+        const originalError = error.originalError as any;
+        if ((originalError["code"] = "23505")) {
+          return {
+            extensions,
+            locations,
+            message,
+            path,
+          };
+        }
+      }
+
       error.message = "Internal Server Error";
       return error;
     },

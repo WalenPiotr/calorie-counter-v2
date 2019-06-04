@@ -1,10 +1,13 @@
-import { Field, ID, ObjectType } from "type-graphql";
+import { plainToClass } from "class-transformer";
+import { IsPositive, MaxLength, MinLength, validate } from "class-validator";
+import { ArgumentValidationError, Field, ID, ObjectType } from "type-graphql";
 import {
   BaseEntity,
   Column,
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm";
@@ -12,6 +15,7 @@ import { Product } from "./Product";
 
 @ObjectType()
 @Entity()
+@Unique(["product", "name", "energy"])
 export class Unit extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
@@ -19,6 +23,8 @@ export class Unit extends BaseEntity {
 
   @Field()
   @Column()
+  @MinLength(3)
+  @MaxLength(20)
   name: string;
 
   @Field(() => Product)
@@ -27,6 +33,7 @@ export class Unit extends BaseEntity {
 
   @Field()
   @Column()
+  @IsPositive()
   energy: number;
 
   @Field(() => ID)
@@ -44,4 +51,15 @@ export class Unit extends BaseEntity {
   @Field(() => Date, { nullable: true })
   @UpdateDateColumn()
   updatedAt: Date;
+
+  static async validate(obj: Unit) {
+    const errors = await validate(obj);
+    if (errors.length > 0) {
+      throw new ArgumentValidationError(errors);
+    }
+  }
+
+  static fromObject(obj: Partial<Unit>) {
+    return plainToClass(Unit, obj);
+  }
 }

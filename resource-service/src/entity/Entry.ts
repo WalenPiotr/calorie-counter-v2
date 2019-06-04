@@ -1,17 +1,19 @@
-import { Field, ID, ObjectType } from "type-graphql";
+import { plainToClass } from "class-transformer";
+import { validate } from "class-validator";
+import { ArgumentValidationError, Field, ID, ObjectType } from "type-graphql";
 import {
   BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
   JoinTable,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
   ManyToOne,
   OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from "typeorm";
-import { Product } from "./Product";
 import { Meal } from "./Meal";
+import { Product } from "./Product";
 
 @ObjectType()
 @Entity()
@@ -48,4 +50,15 @@ export class Entry extends BaseEntity {
   @Field(() => Date, { nullable: true })
   @UpdateDateColumn()
   updatedAt: Date;
+
+  static async validate(obj: Entry) {
+    const errors = await validate(obj);
+    if (errors.length > 0) {
+      throw new ArgumentValidationError(errors);
+    }
+  }
+
+  static fromObject(obj: Partial<Entry>) {
+    return plainToClass(Entry, obj);
+  }
 }
