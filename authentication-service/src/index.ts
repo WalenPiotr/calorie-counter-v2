@@ -14,9 +14,11 @@ import "reflect-metadata";
 import { createConnection } from "typeorm";
 import { Provider, Role, Status, User } from "./entity/User";
 import redis from "./redis/config";
+import bodyParser from "body-parser";
 
 const main = async () => {
   const app = Express();
+  app.use(bodyParser.json());
   const RedisStore = connectRedis(session);
   await createConnection();
   if (process.env.REDIS_SECRET) {
@@ -118,6 +120,73 @@ const main = async () => {
   app.get("/isalive", (_, res) => {
     res.send("Auth service is alive");
   });
+
+  const isAuthenticated = (roles?: Role[]) => (
+    req: Express.Request,
+    res: Express.Response,
+    next: Express.NextFunction,
+  ) => {
+    if (req.session) {
+      const { user } = req.session.passport;
+      if (!roles && user) {
+        return next();
+      }
+      if (roles && user && roles.indexOf(user.role) >= 0) {
+        return next();
+      }
+    }
+    return res.redirect("/login");
+  };
+
+  const removeUndefinded = (obj: any) =>
+    Object.entries(obj)
+      .filter(([_, v]) => v !== undefined)
+      .reduce((newObj, [k, v]) => Object.assign(newObj, { [k]: v }), {});
+
+  app.get("/users", isAuthenticated([Role.ADMIN]), async (req, res) => {
+    const email = req.query.email;
+    const displayName = req.query.name;
+    const role = req.query.role;
+    const provider = req.query.provider;
+    const status = req.query.status;
+    const queryObj = {
+      email,
+      displayName,
+      role,
+      provider,
+      status,
+    };
+    const users = await User.find(removeUndefinded(queryObj));
+    res.json(users);
+  });
+
+  app.get("/users/:id", isAuthenticated([Role.ADMIN]), async (req, res) => {
+    const { id } = req.params;
+    const users = await User.findOne({ id });
+    res.json(users);
+  });
+
+  app.patch("/users/:id/", isAuthenticated([Role.ADMIN]), async (req, res) => {
+    const { id } = req.params;
+    const { status, displayName, role } = req.body;
+    if (status === Status.OK || status === Status.BANNED) {
+      await User.update({ id }, { status, displayName, role });
+    }
+    res.json(true);
+  });
+
+  app.get("/me", isAuthenticated(), async (req, res) => {
+    const { user } = req.session!.passport;
+    return res.json(user);
+  });
+
+  app.patch("/me", isAuthenticated(), async (req, res) => {
+    const { displayName } = req.body;
+    const { id } = req.session!.passport.user;
+    await User.update({ id }, { displayName });
+    res.json(true);
+  });
+
   const { PORT } = process.env;
   if (!PORT) {
     throw Error("No host env var");

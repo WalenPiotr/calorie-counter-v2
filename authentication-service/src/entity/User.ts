@@ -35,7 +35,7 @@ export class User extends BaseEntity {
   @Column()
   displayName: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, select: false })
   externalId: string;
 
   @Column("text")
