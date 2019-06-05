@@ -106,7 +106,6 @@ export class EntryResolver {
       { id: entry.id },
       { relations: ["meal"] },
     );
-    console.log(meal);
     return meal;
   }
 
