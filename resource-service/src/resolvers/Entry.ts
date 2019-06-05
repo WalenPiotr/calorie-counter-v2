@@ -116,7 +116,6 @@ export class EntryResolver {
       { id: entry.id },
       { relations: ["product"] },
     );
-    console.log(product);
     return product;
   }
 }
