@@ -5,15 +5,15 @@ if (process.env.NODE_ENV !== "production") {
 import connectRedis from "connect-redis";
 import Express from "express";
 import session from "express-session";
-import "reflect-metadata";
-import redis from "./redis/config";
 import passport from "passport";
 import {
   OAuth2Strategy as GoogleStrategy,
   Profile,
 } from "passport-google-oauth";
+import "reflect-metadata";
 import { createConnection } from "typeorm";
-import { User, Provider, Role, Status } from "./entity/User";
+import { Provider, Role, Status, User } from "./entity/User";
+import redis from "./redis/config";
 
 const main = async () => {
   const app = Express();
@@ -122,6 +122,7 @@ const main = async () => {
   if (!PORT) {
     throw Error("No host env var");
   }
+
   app.listen(PORT, () => {
     console.log(`Auth service started on http://localhost:${PORT}`);
   });
