@@ -6,13 +6,13 @@ const port = process.env.REDIS_PORT
 const password = process.env.REDIS_PASSWORD;
 
 let redis: Redis.Redis | undefined;
-if (port && password) {
-  redis = new Redis({
-    port,
-    password,
-  });
-} else {
+if (!port || !password) {
   throw new Error("INVALID REDIS CONFIG");
 }
+
+redis = new Redis({
+  port,
+  password,
+});
 
 export default redis;
