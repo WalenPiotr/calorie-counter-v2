@@ -111,7 +111,7 @@ export class ProductResolver {
     return true;
   }
 
-  @FieldResolver()
+  @FieldResolver(() => [Unit])
   async units(@Root() product: Product): Promise<Unit[]> {
     const { units } = await Product.findOneOrFail(
       { id: product.id },
@@ -121,7 +121,7 @@ export class ProductResolver {
   }
 
   @Authorized(Role.ADMIN)
-  @FieldResolver()
+  @FieldResolver(() => [Report])
   async reports(@Root() product: Product): Promise<Report[]> {
     const { reports } = await Product.findOneOrFail(
       { id: product.id },

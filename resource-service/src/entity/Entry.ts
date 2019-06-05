@@ -22,7 +22,7 @@ export class Entry extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(() => [Product])
+  @Field(() => Product)
   @ManyToOne(() => Product, p => p.entries)
   @JoinTable()
   product: Product;

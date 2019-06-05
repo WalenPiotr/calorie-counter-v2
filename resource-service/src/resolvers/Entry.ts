@@ -20,7 +20,7 @@ import { Product } from "../entity/Product";
 
 @InputType()
 class EntryInput {
-  @Field()
+  @Field(() => ID)
   productId: number;
 
   @Field(() => ID)
@@ -58,7 +58,11 @@ export class EntryResolver {
   ): Promise<Entry[]> {
     const { mealId } = args;
     const userId = ctx.req.session!.passport.user.id;
-    return Entry.find({ meal: { id: mealId }, createdById: userId });
+    const entries = await Entry.find({
+      meal: { id: mealId },
+      createdById: userId,
+    });
+    return entries;
   }
 
   @Authorized()
@@ -102,6 +106,7 @@ export class EntryResolver {
       { id: entry.id },
       { relations: ["meal"] },
     );
+    console.log(meal);
     return meal;
   }
 
@@ -111,6 +116,7 @@ export class EntryResolver {
       { id: entry.id },
       { relations: ["product"] },
     );
+    console.log(product);
     return product;
   }
 }
