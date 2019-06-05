@@ -13,7 +13,7 @@ import {
   Profile,
 } from "passport-google-oauth";
 import { createConnection } from "typeorm";
-import { User, Provider, Role } from "./entity/User";
+import { User, Provider, Role, Status } from "./entity/User";
 
 const main = async () => {
   const app = Express();
@@ -69,6 +69,7 @@ const main = async () => {
               externalId: profile.id,
               provider: Provider.GOOGLE,
               role: count === 0 ? Role.ADMIN : Role.USER,
+              status: Status.OK,
             }).save();
             return done(null, created);
           }

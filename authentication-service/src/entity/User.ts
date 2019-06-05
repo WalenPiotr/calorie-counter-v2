@@ -16,6 +16,11 @@ export enum Role {
   ADMIN = "ADMIN",
 }
 
+export enum Status {
+  OK = "OK",
+  BANNED = "BANNED",
+}
+
 @Entity()
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
@@ -41,4 +46,7 @@ export class User extends BaseEntity {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column("text")
+  status: Status;
 }
