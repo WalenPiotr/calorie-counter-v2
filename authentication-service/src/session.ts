@@ -8,7 +8,7 @@ if (!process.env.REDIS_SECRET) {
 
 const RedisStore = connectRedis(session);
 
-export const sessionConfig = {
+const sessionConfig = {
   store: new RedisStore({
     client: redis as any,
   }),
@@ -22,3 +22,5 @@ export const sessionConfig = {
     maxAge: 1000 * 60 * 60,
   },
 };
+
+export default session(sessionConfig);
