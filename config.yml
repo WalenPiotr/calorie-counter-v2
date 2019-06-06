@@ -30,10 +30,11 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - resource-service
       - auth-service
+      - admin-client
 
   resource-service:
     build: ./resource-service
@@ -44,8 +45,6 @@ services:
       - session-store
     env_file:
       - ./.env/resource-service.env
-    ports:
-      - 8083:8080
 
   auth-service:
     build: ./auth-service
@@ -56,5 +55,13 @@ services:
       - session-store
     env_file:
       - ./.env/auth-service.env
-    ports:
-      - 8082:8080
+
+  admin-client:
+    build: ./admin-client
+    image: admin-client:latest
+    restart: always
+    depends_on:
+      - auth-service
+      - resource-service
+    env_file:
+      - ./.env/admin-client.env
