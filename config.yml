@@ -3,7 +3,7 @@ services:
   resource-db:
     image: postgres:latest
     restart: always
-    env-file:
+    env_file:
       - ./.env/resource-db.env
     volumes:
       - ./data/resource-db:/var/lib/postgresql/data
@@ -11,7 +11,7 @@ services:
   auth-db:
     image: postgres:latest
     restart: always
-    env-file:
+    env_file:
       - ./.env/auth-db.env
     volumes:
       - ./data/auth-db:/var/lib/postgresql/data
@@ -42,7 +42,7 @@ services:
     depends_on:
       - resource-db
       - session-store
-    env-file:
+    env_file:
       - ./.env/resource-service.env
     ports:
       - 8083:8080
@@ -54,7 +54,7 @@ services:
     depends_on:
       - auth-db
       - session-store
-    env-file:
+    env_file:
       - ./.env/auth-service.env
     ports:
       - 8082:8080
