@@ -12,6 +12,7 @@ import rootRouter from "./routes/root";
 import usersRouter from "./routes/users";
 import sessionHandler from "./session";
 import passportHandler from "./passport";
+import cors from "cors";
 
 const main = async () => {
   const { PORT } = process.env;
@@ -21,7 +22,7 @@ const main = async () => {
   const app = Express();
   await createConnection();
   app.use(bodyParser.json());
-
+  app.use(cors());
   app.use(sessionHandler);
   app.use(passportHandler);
 

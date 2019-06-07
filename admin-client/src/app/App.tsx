@@ -1,11 +1,17 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import { Hello } from './components/Hello';
-declare let module: any
+import React from "react";
+import Router from "./Router";
+import { Provider } from "react-redux";
+import { createStore, applyMiddleware } from "redux";
+import thunk from "redux-thunk";
+import rootReducer from "./reducers";
 
-ReactDOM.render(<Hello compiler="Typescript" framework="React..." bundler="Webpack" />, 
-document.getElementById('root'));
+// use applyMiddleware to add the thunk middleware to the store
+const store = createStore(rootReducer, applyMiddleware(thunk));
 
-if (module.hot) {
-    module.hot.accept();
-}
+const App = () => (
+  <Provider store={store}>
+    <Router />
+  </Provider>
+);
+
+export default App;
