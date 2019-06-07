@@ -55,7 +55,6 @@ services:
       - session-store
     env_file:
       - ./.env/auth-service.env
-
   admin-client:
     build: ./admin-client
     image: admin-client:latest
