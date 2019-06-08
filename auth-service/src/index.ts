@@ -22,7 +22,12 @@ const main = async () => {
   const app = Express();
   await createConnection();
   app.use(bodyParser.json());
-  app.use(cors());
+  app.use(
+    cors({
+      credentials: true,
+      origin: "http://localhost:3000",
+    }),
+  );
   app.use(sessionHandler);
   app.use(passportHandler);
 

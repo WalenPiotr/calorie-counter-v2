@@ -3,6 +3,11 @@ import passport from "passport";
 
 const router = Express.Router();
 
+const { SUCCESS_REDIRECT_URL } = process.env;
+if (!SUCCESS_REDIRECT_URL) {
+  throw Error("No SUCCESS_REDIRECT_URL env var");
+}
+
 router.get(
   "/login",
   passport.authenticate("google", {
@@ -21,7 +26,7 @@ router.get(
     session: true,
   }),
   async function(_, res) {
-    res.redirect("/api/graphql");
+    res.redirect(SUCCESS_REDIRECT_URL);
   },
 );
 
