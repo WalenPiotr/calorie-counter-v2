@@ -1,5 +1,5 @@
 import React from "react";
-import Router from "./Router";
+import Router from "./components/Router";
 import { Provider } from "react-redux";
 import { createStore, applyMiddleware } from "redux";
 import thunk from "redux-thunk";

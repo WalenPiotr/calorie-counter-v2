@@ -6,6 +6,7 @@ export const me = () => {
   return (dispatch: Dispatch) => {
     dispatch(meStarted());
     axios
+      .create({ timeout: 10000, withCredentials: true })
       .get(`http://localhost:8080/auth/me`)
       .then(res => {
         dispatch(meSuccess(res.data));
