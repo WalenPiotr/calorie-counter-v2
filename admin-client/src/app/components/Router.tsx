@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Route, Link } from "react-router-dom";
-import { me } from "../actions/auth";
+import { me } from "../redux-store/actions/auth";
 import { connect } from "react-redux";
 import Button from "@material-ui/core/Button";
 
