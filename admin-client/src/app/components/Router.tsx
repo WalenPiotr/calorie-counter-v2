@@ -2,7 +2,10 @@ import React from "react";
 import { BrowserRouter, Route, Link } from "react-router-dom";
 import { me } from "../redux-store/actions/auth";
 import { connect } from "react-redux";
-import Button from "@material-ui/core/Button";
+import Layout from "./Layout";
+import About from "../pages/About";
+import Index from "../pages/Index";
+import Users from "../pages/Users";
 
 const mapStateToProps = (state: any) => ({
   me: state.auth.me,
@@ -37,48 +40,30 @@ const MeComponent = withDispatch(
   },
 );
 
-const Index = () => {
-  return <h2>Home</h2>;
-};
-
-const About = () => {
-  return <h2>About</h2>;
-};
-
-const Users = () => {
-  return <h2>Users</h2>;
-};
+const links = [
+  {
+    to: "/",
+    text: "Home",
+  },
+  {
+    to: "/about",
+    text: "About",
+  },
+  {
+    to: "/users",
+    text: "Users",
+  },
+];
+const routes = [
+  { href: "/", component: Index, exact: true },
+  { href: "/about", component: About, exact: false },
+  { href: "/users", component: Users, exact: false },
+];
 
 const Router = () => {
   return (
-    <BrowserRouter basename="panel">
-      <div>
-        <MeComponent>
-          {({ me }: any) => {
-            console.log(me);
-            return (
-              <nav>
-                <pre>{JSON.stringify(me, null, 2)}</pre>
-                <ul>
-                  <li>
-                    <Link to="/">Home</Link>
-                  </li>
-                  <li>
-                    <Link to="/about/">About</Link>
-                  </li>
-                  <li>
-                    <Link to="/users/">Users</Link>
-                  </li>
-                </ul>
-              </nav>
-            );
-          }}
-        </MeComponent>
-        <Button>Click</Button>
-        <Route path="/" exact component={Index} />
-        <Route path="/about/" component={About} />
-        <Route path="/users/" component={Users} />
-      </div>
+    <BrowserRouter basename={"panel"}>
+      <Layout links={links} routes={routes} />
     </BrowserRouter>
   );
 };

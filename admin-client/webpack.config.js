@@ -24,6 +24,12 @@ module.exports = {
       { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
     ],
   },
+  devServer: {
+    contentBase: path.join(__dirname, "dist"),
+    compress: true,
+    port: 3000,
+    historyApiFallback: true,
+  },
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "src", "app", "index.html"),

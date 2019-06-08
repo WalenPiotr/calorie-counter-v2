@@ -1,6 +1,5 @@
-import React from "react";
+import React, { ComponentClass, FunctionComponent, RefObject } from "react";
 import clsx from "clsx";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Drawer from "@material-ui/core/Drawer";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import AppBar from "@material-ui/core/AppBar";
@@ -17,10 +16,15 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import InboxIcon from "@material-ui/icons/MoveToInbox";
 import MailIcon from "@material-ui/icons/Mail";
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import createStyled from "../providers/Styled";
+import ToggleProvider from "../providers/Toggle";
+import { Route, Link, Switch } from "react-router-dom";
+import Button from "@material-ui/core/Button";
 
 const drawerWidth = 240;
 
-const useStyles = makeStyles(theme => ({
+const StylesProvider = createStyled((theme: Theme) => ({
   root: {
     display: "flex",
   },
@@ -76,94 +80,113 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function PersistentDrawerLeft() {
-  const classes = useStyles();
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
-
-  function handleDrawerOpen() {
-    setOpen(true);
-  }
-
-  function handleDrawerClose() {
-    setOpen(false);
-  }
-
-  return (
-    <div className={classes.root}>
-      <CssBaseline />
-      <AppBar
-        position="fixed"
-        className={clsx(classes.appBar, {
-          [classes.appBarShift]: open,
-        })}
-      >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="Open drawer"
-            onClick={handleDrawerOpen}
-            edge="start"
-            className={clsx(classes.menuButton, open && classes.hide)}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap>
-            Persistent drawer
-          </Typography>
-        </Toolbar>
-      </AppBar>
-      <Drawer
-        className={classes.drawer}
-        variant="persistent"
-        anchor="left"
-        open={open}
-        classes={{
-          paper: classes.drawerPaper,
-        }}
-      >
-        <div className={classes.drawerHeader}>
-          <IconButton onClick={handleDrawerClose}>
-            {theme.direction === "ltr" ? (
-              <ChevronLeftIcon />
-            ) : (
-              <ChevronRightIcon />
-            )}
-          </IconButton>
-        </div>
-        <Divider />
-        <List>
-          {["Inbox", "Starred", "Send email", "Drafts"].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
-        </List>
-        <Divider />
-        <List>
-          {["All mail", "Trash", "Spam"].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
-      <main
-        className={clsx(classes.content, {
-          [classes.contentShift]: open,
-        })}
-      >
-        <div className={classes.drawerHeader} />
-        content
-      </main>
-    </div>
-  );
+interface LinkTemplate {
+  text: string;
+  to: string;
+}
+interface RouteTemplate {
+  href: string;
+  component: React.ComponentType<any>;
+  exact: boolean;
+}
+interface LayoutProps {
+  routes: RouteTemplate[];
+  links: LinkTemplate[];
 }
 
-export default PersistentDrawerLeft;
+const Layout = ({ links, routes }: LayoutProps) => {
+  return (
+    <ToggleProvider>
+      {({ isOpen, open, close, toggle }) => (
+        <StylesProvider>
+          {({ classes, theme }) => (
+            <div className={classes.root}>
+              <CssBaseline />
+              <AppBar
+                position="fixed"
+                className={clsx(classes.appBar, {
+                  [classes.appBarShift]: isOpen,
+                })}
+              >
+                <Toolbar>
+                  <IconButton
+                    color="inherit"
+                    aria-label="Open drawer"
+                    onClick={toggle}
+                    edge="start"
+                    className={clsx(classes.menuButton, isOpen && classes.hide)}
+                  >
+                    <MenuIcon />
+                  </IconButton>
+                  <Typography variant="h6" noWrap>
+                    Persistent drawer
+                  </Typography>
+                </Toolbar>
+              </AppBar>
+              <Drawer
+                className={classes.drawer}
+                variant="persistent"
+                anchor="left"
+                open={isOpen}
+                classes={{
+                  paper: classes.drawerPaper,
+                }}
+              >
+                <div className={classes.drawerHeader}>
+                  <IconButton onClick={close}>
+                    {theme.direction === "ltr" ? (
+                      <ChevronLeftIcon />
+                    ) : (
+                      <ChevronRightIcon />
+                    )}
+                  </IconButton>
+                </div>
+                <Divider />
+                <List>
+                  {links.map(({ text, to }, index) => (
+                    // @ts-ignore
+
+                    <Button
+                      component={React.forwardRef(
+                        (props: any, ref: RefObject<Link>) => (
+                          <Link to={to} {...props} ref={ref} />
+                        ),
+                      )}
+                      fullWidth
+                      key={to}
+                    >
+                      <ListItemIcon>
+                        {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                      </ListItemIcon>
+                      <ListItemText primary={text} />
+                    </Button>
+                  ))}
+                </List>
+                <Divider />
+              </Drawer>
+              <main
+                className={clsx(classes.content, {
+                  [classes.contentShift]: isOpen,
+                })}
+              >
+                <div className={classes.drawerHeader} />
+                <Switch>
+                  {routes.map(({ href, component, exact }) => (
+                    <Route
+                      path={href}
+                      component={component}
+                      key={href}
+                      exact={exact}
+                    />
+                  ))}
+                </Switch>
+              </main>
+            </div>
+          )}
+        </StylesProvider>
+      )}
+    </ToggleProvider>
+  );
+};
+
+export default Layout;
