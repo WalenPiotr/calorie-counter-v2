@@ -2,27 +2,23 @@ import dotenv from "dotenv";
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();
 }
-import { ApolloError, ApolloServer } from "apollo-server-express";
+import { ApolloServer } from "apollo-server-express";
 import connectRedis from "connect-redis";
 import cors from "cors";
 import Express from "express";
 import session from "express-session";
-import { GraphQLError, GraphQLFormattedError } from "graphql";
 import passport from "passport";
 import "reflect-metadata";
-import {
-  ArgumentValidationError,
-  buildSchema,
-  UnauthorizedError,
-} from "type-graphql";
-import { createConnection, QueryFailedError } from "typeorm";
+import { buildSchema } from "type-graphql";
+import { createConnection } from "typeorm";
 import { authChecker } from "./helpers/authChecker";
+import { formatError } from "./helpers/formatError";
 import redis from "./redis/config";
-import { ProductResolver } from "./resolvers/Product";
+import { EntryResolver } from "./resolvers/Entry";
 import { MealResolver } from "./resolvers/Meal";
+import { ProductResolver } from "./resolvers/Product";
 import { ReportResolver } from "./resolvers/Report";
 import { UnitResolver } from "./resolvers/Unit";
-import { EntryResolver } from "./resolvers/Entry";
 
 const main = async () => {
   const { REDIS_SECRET, PORT } = process.env;
@@ -81,47 +77,7 @@ const main = async () => {
         res,
       };
     },
-    formatError: (error: GraphQLError): GraphQLFormattedError => {
-      if (error.originalError instanceof ApolloError) {
-        return error;
-      }
-      if (error.originalError instanceof ArgumentValidationError) {
-        const { extensions, locations, message, path } = error;
-        error.extensions!.code = "VALIDATION_FAILED";
-        return {
-          extensions,
-          locations,
-          message,
-          path,
-        };
-      }
-      if (error.originalError instanceof UnauthorizedError) {
-        const { extensions, locations, message, path } = error;
-        error.extensions!.code = "AUTHENTICATION_FAILED";
-        return {
-          extensions,
-          locations,
-          message,
-          path,
-        };
-      }
-      if (error.originalError instanceof QueryFailedError) {
-        const { extensions, locations, message, path } = error;
-        error.extensions!.code = `DUPLICATE_KEY_VALUE`;
-        const originalError = error.originalError as any;
-        if ((originalError["code"] = "23505")) {
-          return {
-            extensions,
-            locations,
-            message,
-            path,
-          };
-        }
-      }
-
-      error.message = "Internal Server Error";
-      return error;
-    },
+    formatError: formatError,
   });
   apolloServer.applyMiddleware({ app, cors: false });
   app.listen(PORT, () => {
