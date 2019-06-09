@@ -6,14 +6,15 @@ export const isAuthenticated = (roles?: Role[]) => (
   res: Express.Response,
   next: Express.NextFunction,
 ) => {
-  if (req.session) {
-    const { user } = req.session.passport;
+  try {
+    const { user } = req.session!.passport;
     if (!roles && user) {
       return next();
     }
     if (roles && user && roles.indexOf(user.role) >= 0) {
       return next();
     }
+  } catch (err) {
+    return res.status(401).json({ message: "Not Authenticated" });
   }
-  return res.redirect("/login");
 };

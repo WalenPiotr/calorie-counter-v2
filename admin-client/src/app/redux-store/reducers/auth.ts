@@ -1,9 +1,10 @@
-import { AuthTypes } from "../types/auth";
+import { AuthTypes, Me } from "../types/auth";
+import { RestError } from "../types/error";
 
 interface AuthState {
   loading: boolean;
-  error?: any;
-  me?: any;
+  error?: RestError;
+  me?: Me;
 }
 
 const auth = (state: AuthState = { loading: false }, action: any) => {

@@ -21,6 +21,7 @@ import createStyled from "../providers/Styled";
 import ToggleProvider from "../providers/Toggle";
 import { Route, Link, Switch } from "react-router-dom";
 import Button from "@material-ui/core/Button";
+import MeProvider from "../providers/Me";
 
 const drawerWidth = 240;
 
@@ -102,27 +103,43 @@ const Layout = ({ links, routes }: LayoutProps) => {
           {({ classes, theme }) => (
             <div className={classes.root}>
               <CssBaseline />
-              <AppBar
-                position="fixed"
-                className={clsx(classes.appBar, {
-                  [classes.appBarShift]: isOpen,
-                })}
-              >
-                <Toolbar>
-                  <IconButton
-                    color="inherit"
-                    aria-label="Open drawer"
-                    onClick={toggle}
-                    edge="start"
-                    className={clsx(classes.menuButton, isOpen && classes.hide)}
+              <MeProvider>
+                {({ me }) => (
+                  <AppBar
+                    position="fixed"
+                    className={clsx(classes.appBar, {
+                      [classes.appBarShift]: isOpen,
+                    })}
                   >
-                    <MenuIcon />
-                  </IconButton>
-                  <Typography variant="h6" noWrap>
-                    Persistent drawer
-                  </Typography>
-                </Toolbar>
-              </AppBar>
+                    <Toolbar>
+                      <IconButton
+                        color="inherit"
+                        aria-label="Open drawer"
+                        onClick={toggle}
+                        edge="start"
+                        className={clsx(
+                          classes.menuButton,
+                          isOpen && classes.hide,
+                        )}
+                      >
+                        <MenuIcon />
+                      </IconButton>
+                      <Typography variant="h6" noWrap>
+                        Admin App
+                      </Typography>
+                      {me ? (
+                        <div>
+                          <Typography variant="caption">Logged as:</Typography>
+                          <Typography variant="subtitle1">
+                            {me.displayName}
+                          </Typography>
+                        </div>
+                      ) : null}
+                    </Toolbar>
+                  </AppBar>
+                )}
+              </MeProvider>
+
               <Drawer
                 className={classes.drawer}
                 variant="persistent"
@@ -145,7 +162,6 @@ const Layout = ({ links, routes }: LayoutProps) => {
                 <List>
                   {links.map(({ text, to }, index) => (
                     // @ts-ignore
-
                     <Button
                       component={React.forwardRef(
                         (props: any, ref: RefObject<Link>) => (

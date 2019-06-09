@@ -5,8 +5,12 @@ import { isAuthenticated } from "../middlewares/isAuthenticated";
 const router = Express.Router();
 
 router.get("/", isAuthenticated(), async (req, res) => {
-  const { user } = req.session!.passport;
-  return res.json(user);
+  try {
+    const { user } = req.session!.passport;
+    return res.json(user);
+  } catch (e) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
 });
 
 router.patch("/", isAuthenticated(), async (req, res) => {

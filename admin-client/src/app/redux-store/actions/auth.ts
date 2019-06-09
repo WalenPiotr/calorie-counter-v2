@@ -1,4 +1,5 @@
-import { AuthTypes } from "../types/auth";
+import { AuthTypes, Me } from "../types/auth";
+import { RestError } from "../types/error";
 import { Dispatch } from "redux";
 import axios from "axios";
 
@@ -12,12 +13,16 @@ export const me = () => {
         dispatch(meSuccess(res.data));
       })
       .catch(err => {
-        dispatch(meFailure(err.message));
+        if (err && err.response && err.response.message) {
+          dispatch(meFailure({ message: err.response.message }));
+          return;
+        }
+        dispatch(meFailure({ message: "Something went wrong" }));
       });
   };
 };
 
-const meSuccess = (user: any) => ({
+const meSuccess = (user: Me) => ({
   type: AuthTypes.ME_SUCCESS,
   payload: {
     me: user,
@@ -28,7 +33,7 @@ const meStarted = () => ({
   type: AuthTypes.ME_STARTED,
 });
 
-const meFailure = (error: any) => ({
+const meFailure = (error: RestError) => ({
   type: AuthTypes.ME_FAILURE,
   payload: {
     error,

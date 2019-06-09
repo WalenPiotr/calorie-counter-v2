@@ -1,6 +1,7 @@
 import React from "react";
 import { me } from "../redux-store/actions/auth";
 import { connect } from "react-redux";
+import { Me } from "../redux-store/types/auth";
 
 const mapStateToProps = (state: any) => ({
   me: state.auth.me,
@@ -17,12 +18,12 @@ const withDispatch = connect(
   mapDispatchToProps,
 );
 interface MeProps {
-  me: any;
-  onMe: any;
+  me: Me;
+  onMe: () => void;
   children: (props: MePassedProps) => React.ReactNode;
 }
 interface MePassedProps {
-  me: any;
+  me: Me;
 }
 const MeComponent = withDispatch(
   class Me extends React.Component<MeProps> {
