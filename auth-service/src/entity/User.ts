@@ -1,3 +1,6 @@
+import { plainToClass } from "class-transformer";
+import { Min, validate } from "class-validator";
+import { ArgumentValidationError } from "type-graphql";
 import {
   BaseEntity,
   Column,
@@ -33,6 +36,7 @@ export class User extends BaseEntity {
   email: string;
 
   @Column()
+  @Min(3)
   displayName: string;
 
   @Column({ unique: true, select: false })
@@ -49,4 +53,12 @@ export class User extends BaseEntity {
 
   @Column("text")
   status: Status;
+
+  static async validate(obj: any) {
+    const clzObj = plainToClass(User, obj);
+    const errors = await validate(clzObj);
+    if (errors.length > 0) {
+      throw new ArgumentValidationError(errors);
+    }
+  }
 }
