@@ -1,15 +1,6 @@
 import { AuthChecker } from "type-graphql";
 import { ContextType } from "../types/ContextType";
-
-export enum Role {
-  USER = "USER",
-  ADMIN = "ADMIN",
-}
-
-export enum Status {
-  OK = "OK",
-  BANNED = "BANNED",
-}
+import { Status } from "../entity/User";
 
 export const authChecker: AuthChecker<ContextType> = ({ context }, roles) => {
   const { session } = context.req;

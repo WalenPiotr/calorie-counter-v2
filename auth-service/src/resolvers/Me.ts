@@ -8,6 +8,7 @@ import {
   Mutation,
   Arg,
   InputType,
+  Field,
 } from "type-graphql";
 import { ContextType } from "../types/ContextType";
 import { User } from "../entity/User";
@@ -16,10 +17,15 @@ import { User } from "../entity/User";
 class MeArgs {}
 
 @InputType()
+class MeInput {
+  @Field()
+  displayName: string;
+}
+
+@InputType()
 class UpdateMeInput {
-  me: {
-    displayName: string;
-  };
+  @Field()
+  me: MeInput;
 }
 
 @Resolver()

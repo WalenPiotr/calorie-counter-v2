@@ -12,11 +12,11 @@ import { createConnection } from "typeorm";
 import { authChecker } from "./helpers/authChecker";
 import passportHandler from "./passport";
 import googleRouter from "./routes/google";
-import meRouter from "./routes/me";
 import rootRouter from "./routes/root";
-import usersRouter from "./routes/users";
 import sessionHandler from "./session";
 import { formatError } from "./helpers/formatError";
+import { MeResolver } from "./resolvers/Me";
+import { UserResolver } from "./resolvers/User";
 
 const main = async () => {
   const { PORT } = process.env;
@@ -36,8 +36,6 @@ const main = async () => {
   app.use(passportHandler);
 
   app.use("/google", googleRouter);
-  app.use("/users", usersRouter);
-  app.use("/me", meRouter);
   app.use("/", rootRouter);
 
   const schema = await buildSchema({
