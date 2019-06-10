@@ -73,7 +73,7 @@ export class UserResolver {
 
   @Query(() => User)
   @Authorized([Role.ADMIN])
-  async getUser(@Args() args: GetUserArgs): Promise<User> {
+  async getUserById(@Args() args: GetUserArgs): Promise<User> {
     return User.findOneOrFail({ id: args.id });
   }
 
