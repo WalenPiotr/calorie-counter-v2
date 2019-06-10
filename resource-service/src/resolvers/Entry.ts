@@ -48,6 +48,12 @@ class RemoveEntryInput {
   id: number;
 }
 
+@ArgsType()
+class GetEntriesByCreatedById {
+  @Field(() => ID)
+  id: number;
+}
+
 @Resolver(Entry)
 export class EntryResolver {
   @Authorized()
@@ -63,6 +69,13 @@ export class EntryResolver {
       createdById: userId,
     });
     return entries;
+  }
+
+  @Query(() => [Entry])
+  async getEntriesByCreatedById(
+    @Args() args: GetEntriesByCreatedById,
+  ): Promise<Entry[]> {
+    return Entry.find({ createdById: args.id });
   }
 
   @Authorized()
