@@ -53,6 +53,12 @@ class UpdateProductInput {
   newProduct: ProductInput;
 }
 
+@ArgsType()
+class GetProductsByCreatedById {
+  @Field()
+  id: number;
+}
+
 @Resolver(Product)
 export class ProductResolver {
   @Query(() => [Product])
@@ -60,6 +66,13 @@ export class ProductResolver {
     return Product.createQueryBuilder()
       .where("LOWER(name) LIKE LOWER(:name)", { name: `%${args.name}%` })
       .getMany();
+  }
+
+  @Query(() => [Product])
+  async getProductsByCreatedById(
+    @Args() args: GetProductsByCreatedById,
+  ): Promise<Product[]> {
+    return Product.find({ createdById: args.id });
   }
 
   @Authorized()
