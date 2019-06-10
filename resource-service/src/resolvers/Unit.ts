@@ -11,6 +11,7 @@ import {
   Authorized,
   FieldResolver,
   Root,
+  Args,
 } from "type-graphql";
 import { ContextType } from "../types/ContextType";
 import { Unit } from "../entity/Unit";
@@ -47,13 +48,28 @@ class RemoveUnitInput {
   id: number;
 }
 
+@ArgsType()
+class GetUnitsByCreatedById {
+  @Field(() => ID)
+  id: number;
+}
+
 @Resolver(Unit)
 export class UnitResolver {
   @Authorized()
   @Query(() => [Unit])
-  async getUnitsByProductId(args: GetUnitsByProductIdArgs): Promise<Unit[]> {
+  async getUnitsByProductId(
+    @Args() args: GetUnitsByProductIdArgs,
+  ): Promise<Unit[]> {
     const { productId } = args;
     return Unit.find({ product: { id: productId } });
+  }
+
+  @Query(() => [Unit])
+  async getUnitsByCreatedById(
+    @Args() args: GetUnitsByCreatedById,
+  ): Promise<Unit[]> {
+    return Unit.find({ createdById: args.id });
   }
 
   @Authorized()
