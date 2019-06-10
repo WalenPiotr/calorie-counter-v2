@@ -43,6 +43,12 @@ class RemoveMealInput {
   id: number;
 }
 
+@ArgsType()
+class GetMealsByCreatedById {
+  @Field(() => ID)
+  id: number;
+}
+
 @Resolver(Meal)
 export class MealResolver {
   @Authorized()
@@ -53,6 +59,13 @@ export class MealResolver {
   ): Promise<Meal[]> {
     const userId = ctx.req.session!.passport.user.id;
     return Meal.find({ date: args.date, createdById: userId });
+  }
+
+  @Query(() => [Meal])
+  async getMealsByCreatedById(
+    @Args() args: GetMealsByCreatedById,
+  ): Promise<Meal[]> {
+    return Meal.find({ createdById: args.id });
   }
 
   @Authorized()
