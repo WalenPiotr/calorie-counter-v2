@@ -34,6 +34,7 @@ services:
     depends_on:
       - resource-service
       - auth-service
+      - gateway
       # - admin-client
 
   resource-service:
@@ -55,6 +56,16 @@ services:
       - session-store
     env_file:
       - ./.env/auth-service.env
+
+  gateway:
+    build: ./gateway
+    image: gateway:latest
+    restart: always
+    depends_on:
+      - auth-service
+      - resource-service
+    env_file:
+      - ./.env/gateway.env
   # admin-client:
   #   build: ./admin-client
   #   image: admin-client:latest

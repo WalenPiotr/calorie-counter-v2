@@ -4,4 +4,4 @@ WORKDIR /app
 RUN npm i
 RUN npm run build
 WORKDIR /app/dist
-CMD ["node", "index.js"]
+CMD ["node", "server.js"]
