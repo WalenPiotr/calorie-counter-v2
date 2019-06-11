@@ -5,7 +5,7 @@ import path from "path";
 import { printSchema } from "graphql/utilities";
 import "cross-fetch/polyfill";
 
-const destination = "src/data";
+const destination = "graphql";
 const httpConvectionLink = createHttpLink({
   fetch,
   uri: "http://localhost:8080/auth/graphql",
