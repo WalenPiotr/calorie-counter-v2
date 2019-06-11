@@ -55,13 +55,13 @@ class UpdateProductInput {
 
 @ArgsType()
 class GetProductsByCreatedById {
-  @Field()
+  @Field(() => ID)
   id: number;
 }
 
 @ArgsType()
 class GetProductsByUpdatedById {
-  @Field()
+  @Field(() => ID)
   id: number;
 }
 
