@@ -56,7 +56,7 @@ const main = async () => {
       operation: "query",
       fieldName,
       args: {
-        createdById: user.id,
+        id: user.id,
       },
       context,
       info,
