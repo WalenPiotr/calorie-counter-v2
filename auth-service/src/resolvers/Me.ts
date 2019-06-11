@@ -30,11 +30,20 @@ class UpdateMeInput {
 
 @Resolver()
 export class MeResolver {
-  @Query(() => User)
-  @Authorized()
-  async me(@Args() _: MeArgs, @Ctx() ctx: ContextType): Promise<User> {
-    const userId = ctx.req.session!.passport.user.id;
-    return User.findOneOrFail({ id: userId });
+  @Query(() => User, { nullable: true })
+  async me(
+    @Args() _: MeArgs,
+    @Ctx() ctx: ContextType,
+  ): Promise<User | undefined> {
+    if (
+      ctx.req.session &&
+      ctx.req.session.passport &&
+      ctx.req.session.passport.user &&
+      ctx.req.session.passport.user.id
+    ) {
+      return User.findOne({ id: ctx.req.session.passport.user.id });
+    }
+    return undefined;
   }
 
   @Mutation(() => Boolean)
