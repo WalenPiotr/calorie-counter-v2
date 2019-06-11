@@ -21,9 +21,14 @@ const contextLink = setContext((_, context) => {
   };
 });
 
+const { API_URI } = process.env;
+if (!API_URI) {
+  throw new Error("No API_URI env var");
+}
+
 const httpLink = createHttpLink({
   fetch,
-  uri: "http://localhost:8080/api/graphql",
+  uri: API_URI,
   credentials: "include",
 });
 

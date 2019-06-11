@@ -21,9 +21,14 @@ const contextLink = setContext((_, context) => {
   };
 });
 
+const { AUTH_URI } = process.env;
+if (!AUTH_URI) {
+  throw new Error("No AUTH_URI env var");
+}
+
 const httpLink = createHttpLink({
   fetch,
-  uri: "http://localhost:8080/auth/graphql",
+  uri: AUTH_URI,
   credentials: "include",
 });
 
