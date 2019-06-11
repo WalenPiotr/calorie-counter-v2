@@ -2,13 +2,13 @@ import dotenv from "dotenv";
 if (!process.env.production) {
   dotenv.config();
 }
-
 import { ApolloServer } from "apollo-server-express";
 import "cross-fetch/polyfill";
 import Express from "express";
 import { mergeSchemas, IFieldResolver } from "graphql-tools";
 import { executableAuthSchema } from "./schemas/auth";
 import { executableResourceSchema } from "./schemas/resource";
+import cors from "cors";
 
 const main = async () => {
   const resourceSchema = await executableResourceSchema();
@@ -173,12 +173,12 @@ const main = async () => {
     return error;
   };
   const app = Express();
-  // app.use(
-  //   cors({
-  //     credentials: true,
-  //     origin: "http://localhost:3000",
-  //   }),
-  // );
+  app.use(
+    cors({
+      credentials: true,
+      origin: "http://localhost:3000",
+    }),
+  );
   const apolloServer = new ApolloServer({
     schema,
     context: async ({ req, res }: any) => {
