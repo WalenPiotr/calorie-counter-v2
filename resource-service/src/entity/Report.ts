@@ -40,7 +40,7 @@ registerEnumType(ReportReason, {
 
 @Entity()
 @ObjectType()
-@Unique(["creatorId", "product"])
+@Unique(["createdById", "product"])
 export class Report extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
