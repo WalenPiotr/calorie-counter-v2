@@ -54,6 +54,12 @@ class GetUnitsByCreatedById {
   id: number;
 }
 
+@ArgsType()
+class GetUnitsByUpdatedById {
+  @Field(() => ID)
+  id: number;
+}
+
 @Resolver(Unit)
 export class UnitResolver {
   @Authorized()
@@ -72,6 +78,13 @@ export class UnitResolver {
     return Unit.find({ createdById: args.id });
   }
 
+  @Query(() => [Unit])
+  async getUnitsByUpdatedById(
+    @Args() args: GetUnitsByUpdatedById,
+  ): Promise<Unit[]> {
+    return Unit.find({ updatedById: args.id });
+  }
+
   @Authorized()
   @Mutation(() => Unit)
   async addUnit(
@@ -80,7 +93,7 @@ export class UnitResolver {
   ): Promise<Unit> {
     const userId = ctx.req.session!.passport.user.id;
     const { newUnit, productId } = data;
-    const unit ={
+    const unit = {
       ...newUnit,
       createdById: userId,
       updatedById: userId,
