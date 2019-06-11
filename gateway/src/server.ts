@@ -48,7 +48,7 @@ const main = async () => {
     }
   `;
 
-  const getEntitiesResolverCreator = (
+  const getEntitiesResolveCreator = (
     fieldName: string,
   ): IFieldResolver<any, any, any> => (user, _, context, info) => {
     return info.mergeInfo.delegateToSchema({
@@ -63,7 +63,7 @@ const main = async () => {
     });
   };
 
-  const getUserResolverCreator = (
+  const getUserResolveCreator = (
     fieldName: string = "getUserById",
   ): IFieldResolver<any, any, any> => (entity, _, context, info) => {
     return info.mergeInfo.delegateToSchema({
@@ -84,86 +84,86 @@ const main = async () => {
       User: {
         createdEntries: {
           fragment: `... on User { id }`,
-          resolve: getEntitiesResolverCreator("getEntriesByCreatedById"),
+          resolve: getEntitiesResolveCreator("getEntriesByCreatedById"),
         },
         updatedEntries: {
           fragment: `... on User { id }`,
-          resolve: getEntitiesResolverCreator("getEntriesByUpdatedById"),
+          resolve: getEntitiesResolveCreator("getEntriesByUpdatedById"),
         },
         createdProducts: {
           fragment: `... on User { id }`,
-          resolve: getEntitiesResolverCreator("getProductsByCreatedById"),
+          resolve: getEntitiesResolveCreator("getProductsByCreatedById"),
         },
         updatedProducts: {
           fragment: `... on User { id }`,
-          resolve: getEntitiesResolverCreator("getProductsByUpdatedById"),
+          resolve: getEntitiesResolveCreator("getProductsByUpdatedById"),
         },
         createdMeals: {
           fragment: `... on User { id }`,
-          resolve: getEntitiesResolverCreator("getMealsByCreatedById"),
+          resolve: getEntitiesResolveCreator("getMealsByCreatedById"),
         },
         updatedMeals: {
           fragment: `... on User { id }`,
-          resolve: getEntitiesResolverCreator("getMealsByUpdatedById"),
+          resolve: getEntitiesResolveCreator("getMealsByUpdatedById"),
         },
         createdReports: {
           fragment: `... on User { id }`,
-          resolve: getEntitiesResolverCreator("getReportsByCreatedById"),
+          resolve: getEntitiesResolveCreator("getReportsByCreatedById"),
         },
         createdUnits: {
           fragment: `... on User { id }`,
-          resolve: getEntitiesResolverCreator("getUnitsByCreatedById"),
+          resolve: getEntitiesResolveCreator("getUnitsByCreatedById"),
         },
         updatedUnits: {
           fragment: `... on User { id }`,
-          resolve: getEntitiesResolverCreator("getUnitsByUpdatedById"),
+          resolve: getEntitiesResolveCreator("getUnitsByUpdatedById"),
         },
       },
 
       Entry: {
         createdBy: {
           fragment: `... on Entry { createdById }`,
-          resolve: getUserResolverCreator(),
+          resolve: getUserResolveCreator(),
         },
         updatedBy: {
           fragment: `... on Entry { updatedById }`,
-          resolve: getUserResolverCreator(),
+          resolve: getUserResolveCreator(),
         },
       },
       Meal: {
         createdBy: {
           fragment: `... on Meal { createdById }`,
-          resolve: getUserResolverCreator(),
+          resolve: getUserResolveCreator(),
         },
         updatedBy: {
           fragment: `... on Meal { updatedById }`,
-          resolve: getUserResolverCreator(),
+          resolve: getUserResolveCreator(),
         },
       },
       Product: {
         createdBy: {
           fragment: `... on Product { createdById }`,
-          resolve: getUserResolverCreator(),
+          resolve: getUserResolveCreator(),
         },
         updatedBy: {
           fragment: `... on Product { updatedById }`,
-          resolve: getUserResolverCreator(),
+          resolve: getUserResolveCreator(),
         },
       },
       Report: {
         createdBy: {
           fragment: `... on Report { createdById }`,
-          resolve: getUserResolverCreator(),
+          resolve: getUserResolveCreator(),
         },
       },
       Unit: {
         createdBy: {
           fragment: `... on Unit { createdById }`,
-          resolve: getUserResolverCreator(),
+          resolve: getUserResolveCreator(),
         },
         updatedBy: {
           fragment: `... on Unit { updatedById }`,
-          resolve: getUserResolverCreator(),
+          resolve: getUserResolveCreator(),
         },
       },
     },
