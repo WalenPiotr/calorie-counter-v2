@@ -80,14 +80,14 @@ export class UnitResolver {
   ): Promise<Unit> {
     const userId = ctx.req.session!.passport.user.id;
     const { newUnit, productId } = data;
-    const unit = Unit.fromObject({
+    const unit ={
       ...newUnit,
       createdById: userId,
       updatedById: userId,
       product: {
         id: productId,
       },
-    });
+    };
     await Unit.validate(unit);
     return Unit.create(unit).save();
   }

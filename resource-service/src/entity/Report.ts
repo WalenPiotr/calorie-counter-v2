@@ -17,6 +17,7 @@ import {
 import { Product } from "./Product";
 import { plainToClass } from "class-transformer";
 import { validate } from "class-validator";
+import { RecursivePartial } from "../types/RecursivePartial";
 
 export enum ReportStatus {
   OPEN,
@@ -45,10 +46,6 @@ export class Report extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(() => ID)
-  @Column()
-  creatorId: number;
-
   @Field(() => ReportReason)
   @Column("int")
   reason: ReportReason;
@@ -61,6 +58,10 @@ export class Report extends BaseEntity {
   @Column("int")
   status: ReportStatus;
 
+  @Field(() => ID)
+  @Column()
+  createdById: number;
+
   @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
@@ -69,14 +70,10 @@ export class Report extends BaseEntity {
   @ManyToOne(() => Product, p => p.reports)
   product: Product;
 
-  static async validate(obj: Report) {
-    const errors = await validate(obj);
+  static async validate(obj: RecursivePartial<Report>) {
+    const errors = await validate(plainToClass(Report, obj));
     if (errors.length > 0) {
       throw new ArgumentValidationError(errors);
     }
-  }
-
-  static fromObject(obj: any) {
-    return plainToClass(Report, obj);
   }
 }

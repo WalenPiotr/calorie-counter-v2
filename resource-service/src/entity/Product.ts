@@ -14,6 +14,7 @@ import {
 import { Entry } from "./Entry";
 import { Report } from "./Report";
 import { Unit } from "./Unit";
+import { RecursivePartial } from "../types/RecursivePartial";
 
 @ObjectType()
 @Entity()
@@ -57,14 +58,10 @@ export class Product extends BaseEntity {
   @OneToMany(() => Report, r => r.product)
   reports: Report[];
 
-  static async validate(obj: Product) {
-    const errors = await validate(obj);
+  static async validate(obj: RecursivePartial<Product>) {
+    const errors = await validate(plainToClass(Product, obj));
     if (errors.length > 0) {
       throw new ArgumentValidationError(errors);
     }
-  }
-
-  static fromObject(obj: any) {
-    return plainToClass(Product, obj);
   }
 }

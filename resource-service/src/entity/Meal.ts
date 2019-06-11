@@ -11,6 +11,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { Entry } from "./Entry";
+import { RecursivePartial } from "../types/RecursivePartial";
 
 @ObjectType()
 @Entity()
@@ -47,14 +48,10 @@ export class Meal extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  static async validate(obj: Meal) {
-    const errors = await validate(obj);
+  static async validate(obj: RecursivePartial<Meal>) {
+    const errors = await validate(plainToClass(Meal, obj));
     if (errors.length > 0) {
       throw new ArgumentValidationError(errors);
     }
-  }
-
-  static fromObject(obj: any) {
-    return plainToClass(Meal, obj);
   }
 }

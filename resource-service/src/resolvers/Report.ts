@@ -45,6 +45,12 @@ class ReportProductInput {
   message: string;
 }
 
+@ArgsType()
+class GetReportsByCreatedById {
+  @Field(() => ID)
+  id: number;
+}
+
 @Resolver(Report)
 export class ReportResolver {
   @Authorized(Role.ADMIN)
@@ -57,6 +63,14 @@ export class ReportResolver {
         },
       },
     });
+  }
+
+  @Authorized()
+  @Query(() => [Report])
+  async getReportsByCreatedById(
+    @Args() args: GetReportsByCreatedById,
+  ): Promise<Report[]> {
+    return Report.find({ createdById: args.id });
   }
 
   @Authorized(Role.ADMIN)
@@ -77,15 +91,15 @@ export class ReportResolver {
     @Ctx() ctx: ContextType,
   ): Promise<Boolean> {
     const userId = ctx.req.session!.passport.user.id;
-    const report = Report.fromObject({
+    const report = {
       product: {
         id: data.productId,
       },
       reason: data.reason,
       message: data.message,
-      creatorId: userId,
+      createdById: userId,
       status: ReportStatus.OPEN,
-    });
+    };
     await Report.validate(report);
     await Report.create(report).save();
     return true;

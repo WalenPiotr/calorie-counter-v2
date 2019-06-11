@@ -59,6 +59,12 @@ class GetProductsByCreatedById {
   id: number;
 }
 
+@ArgsType()
+class GetProductsByUpdatedById {
+  @Field()
+  id: number;
+}
+
 @Resolver(Product)
 export class ProductResolver {
   @Query(() => [Product])
@@ -75,6 +81,13 @@ export class ProductResolver {
     return Product.find({ createdById: args.id });
   }
 
+  @Query(() => [Product])
+  async getProductsByUpdatedById(
+    @Args() args: GetProductsByUpdatedById,
+  ): Promise<Product[]> {
+    return Product.find({ updatedById: args.id });
+  }
+
   @Authorized()
   @ValidateInput("data", AddProductInput)
   @Mutation(() => Product)
@@ -84,12 +97,11 @@ export class ProductResolver {
   ): Promise<Product> {
     const { newProduct } = data;
     const userId = ctx.req.session!.passport.user.id;
-    const productPartial: Partial<Product> = {
+    const product: Partial<Product> = {
       name: newProduct.name,
       createdById: userId,
       updatedById: userId,
     };
-    const product = Product.fromObject(productPartial);
     await Product.validate(product);
     return Product.create(product).save();
   }
@@ -114,11 +126,10 @@ export class ProductResolver {
   ): Promise<Boolean> {
     const { newProduct, id } = data;
     const userId = ctx.req.session!.passport.user.id;
-    const productPartial: Partial<Product> = {
+    const product: Partial<Product> = {
       name: newProduct.name,
       updatedById: userId,
     };
-    const product = await Product.fromObject(productPartial);
     await Product.validate(product);
     await Product.update({ id }, product);
     return true;

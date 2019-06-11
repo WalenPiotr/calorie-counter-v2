@@ -54,6 +54,12 @@ class GetEntriesByCreatedById {
   id: number;
 }
 
+@ArgsType()
+class GetEntriesByUpdatedById {
+  @Field(() => ID)
+  id: number;
+}
+
 @Resolver(Entry)
 export class EntryResolver {
   @Authorized()
@@ -71,11 +77,20 @@ export class EntryResolver {
     return entries;
   }
 
+  @Authorized()
   @Query(() => [Entry])
   async getEntriesByCreatedById(
     @Args() args: GetEntriesByCreatedById,
   ): Promise<Entry[]> {
     return Entry.find({ createdById: args.id });
+  }
+
+  @Authorized()
+  @Query(() => [Entry])
+  async getEntriesByUpdatedById(
+    @Args() args: GetEntriesByUpdatedById,
+  ): Promise<Entry[]> {
+    return Entry.find({ updatedById: args.id });
   }
 
   @Authorized()
@@ -86,7 +101,7 @@ export class EntryResolver {
   ): Promise<Entry> {
     const userId = ctx.req.session!.passport.user.id;
     const { newEntry } = data;
-    const entry = Entry.fromObject({
+    const entry = {
       quantity: newEntry.quantity,
       createdById: userId,
       updatedById: userId,
@@ -96,7 +111,7 @@ export class EntryResolver {
       product: {
         id: newEntry.productId,
       },
-    });
+    };
     await Entry.validate(entry);
     return Entry.create(entry).save();
   }

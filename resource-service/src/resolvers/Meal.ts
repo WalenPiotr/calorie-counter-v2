@@ -49,6 +49,12 @@ class GetMealsByCreatedById {
   id: number;
 }
 
+@ArgsType()
+class GetMealsByUpdatedById {
+  @Field(() => ID)
+  id: number;
+}
+
 @Resolver(Meal)
 export class MealResolver {
   @Authorized()
@@ -61,11 +67,20 @@ export class MealResolver {
     return Meal.find({ date: args.date, createdById: userId });
   }
 
+  @Authorized()
   @Query(() => [Meal])
   async getMealsByCreatedById(
     @Args() args: GetMealsByCreatedById,
   ): Promise<Meal[]> {
     return Meal.find({ createdById: args.id });
+  }
+
+  @Authorized()
+  @Query(() => [Meal])
+  async getMealsByUpdatedById(
+    @Args() args: GetMealsByUpdatedById,
+  ): Promise<Meal[]> {
+    return Meal.find({ updatedById: args.id });
   }
 
   @Authorized()
@@ -76,11 +91,11 @@ export class MealResolver {
   ): Promise<Meal> {
     const userId = ctx.req.session!.passport.user.id;
     const { newMeal } = data;
-    const meal = Meal.fromObject({
+    const meal = {
       ...newMeal,
       createdById: userId,
       updatedById: userId,
-    });
+    };
     await Meal.validate(meal);
     return Meal.create(meal).save();
   }
