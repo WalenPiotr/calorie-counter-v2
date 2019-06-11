@@ -1,19 +1,13 @@
 import React from "react";
-import PropTypes from "prop-types";
 import Document, { Head, Main, NextScript } from "next/document";
+import { ServerStyleSheets } from "@material-ui/styles";
 import flush from "styled-jsx/server";
-import { PageContext } from "../lib/material-ui/getPageContext";
+import theme from "../material-ui/theme";
 
-interface MyDocumentProps {
-  pageContext: PageContext;
-}
-
-class MyDocument extends Document<MyDocumentProps> {
+class MyDocument extends Document {
   render() {
-    const { pageContext } = this.props;
-
     return (
-      <html lang="en" dir="ltr">
+      <html lang="en">
         <Head>
           <meta charSet="utf-8" />
           {/* Use minimum-scale=1 to enable GPU rasterization */}
@@ -22,15 +16,10 @@ class MyDocument extends Document<MyDocumentProps> {
             content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
           />
           {/* PWA primary color */}
-          <meta
-            name="theme-color"
-            content={
-              pageContext ? pageContext.theme.palette.primary.main : undefined
-            }
-          />
+          <meta name="theme-color" content={theme.palette.primary.main} />
           <link
             rel="stylesheet"
-            href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
+            href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
           />
         </Head>
         <body>
@@ -42,7 +31,7 @@ class MyDocument extends Document<MyDocumentProps> {
   }
 }
 
-MyDocument.getInitialProps = ctx => {
+MyDocument.getInitialProps = async ctx => {
   // Resolution order
   //
   // On the server:
@@ -66,42 +55,25 @@ MyDocument.getInitialProps = ctx => {
   // 4. page.render
 
   // Render app and page and get the context of the page with collected side effects.
-  let pageContext: PageContext | undefined;
-  const page = ctx.renderPage(Component => {
-    const WrappedComponent = (props: any) => {
-      pageContext = props.pageContext;
-      return <Component {...props} />;
-    };
+  const sheets = new ServerStyleSheets();
+  const originalRenderPage = ctx.renderPage;
 
-    WrappedComponent.propTypes = {
-      pageContext: PropTypes.object.isRequired,
-    };
+  ctx.renderPage = () =>
+    originalRenderPage({
+      enhanceApp: App => props => sheets.collect(<App {...props} />),
+    });
 
-    return WrappedComponent;
-  });
+  const initialProps = await Document.getInitialProps(ctx);
 
-  // It might be undefined, e.g. after an error.
-  if (pageContext) {
-    const css = pageContext.sheetsRegistry.toString();
-    return {
-      ...page,
-      pageContext,
-      // Styles fragment is rendered after the app and page rendering finish.
-      styles: (
-        <React.Fragment>
-          <style
-            id="jss-server-side"
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: css }}
-          />
-          {flush() || null}
-        </React.Fragment>
-      ),
-    };
-  }
   return {
-    ...page,
-    pageContext,
+    ...initialProps,
+    // Styles fragment is rendered after the app and page rendering finish.
+    styles: (
+      <React.Fragment>
+        {sheets.getStyleElement()}
+        {flush() || null}
+      </React.Fragment>
+    ),
   };
 };
 

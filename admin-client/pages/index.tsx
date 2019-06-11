@@ -1,30 +1,19 @@
-import { createStyles, Theme } from "@material-ui/core/styles";
 import React from "react";
-import createStyled from "../render-props/Styled";
+import createStyled from "../providers/Styled";
 
-const styles = (theme: Theme) =>
-  createStyles({
-    root: {
-      textAlign: "center",
-      paddingTop: theme.spacing.unit * 5,
-      width: 600,
-      margin: "0 auto",
-    },
-
-    paperBox: {
-      padding: theme.spacing.unit * 4,
-    },
-    divider: {
-      marginTop: theme.spacing.unit * 2,
-      marginBottom: theme.spacing.unit * 2,
-    },
-  });
-
-const IndexStyled = createStyled(styles);
+const IndexStyled = createStyled(() => ({
+  root: {
+    background: "red",
+  },
+}));
 
 class Index extends React.Component {
   render() {
-    return <div>Index Page</div>;
+    return (
+      <IndexStyled>
+        {({ classes }) => <div className={classes.root}>Index Page</div>}
+      </IndexStyled>
+    );
   }
 }
 
