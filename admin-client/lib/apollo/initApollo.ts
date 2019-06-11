@@ -23,7 +23,7 @@ interface Options {
 
 function create(initialState: any, { getToken }: Options) {
   const httpLink = createHttpLink({
-    uri: "http://localhost:4000/graphql",
+    uri: "http://localhost:8080/gateway/graphql",
     credentials: "include",
   });
 
