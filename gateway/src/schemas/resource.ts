@@ -16,7 +16,6 @@ const errorLink = onError(({ graphQLErrors, response }) => {
 
 const contextLink = setContext((_, context) => {
   const headers = context.graphqlContext.req.headers;
-  console.log(headers);
   return {
     headers,
   };
@@ -34,6 +33,5 @@ export const executableResourceSchema = async () => {
     schema: typeDefs,
     link: ApolloLink.from([errorLink, contextLink, httpLink]),
   });
-
   return schema;
 };

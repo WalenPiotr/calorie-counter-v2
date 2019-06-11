@@ -9,14 +9,13 @@ import { setContext } from "apollo-link-context";
 const errorLink = onError(({ graphQLErrors, response }) => {
   if (graphQLErrors) {
     response!.errors = graphQLErrors.map(
-      e => new ApolloError(e.message, e.extensions!.code),
+      err => new ApolloError(err.message, err.extensions!.code),
     );
   }
 });
 
 const contextLink = setContext((_, context) => {
   const headers = context.graphqlContext.req.headers;
-  console.log(headers);
   return {
     headers,
   };
@@ -34,6 +33,5 @@ export const executableAuthSchema = async () => {
     schema: typeDefs,
     link: ApolloLink.from([errorLink, contextLink, httpLink]),
   });
-
   return schema;
 };
