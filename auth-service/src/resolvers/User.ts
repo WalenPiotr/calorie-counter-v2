@@ -1,16 +1,16 @@
 import {
-  Resolver,
-  Query,
+  Arg,
   Args,
   ArgsType,
   Authorized,
-  Mutation,
-  Arg,
-  InputType,
   Field,
   ID,
+  InputType,
+  Mutation,
+  Query,
+  Resolver,
 } from "type-graphql";
-import { User, Provider, Status, Role } from "../entity/User";
+import { Role, Status, User } from "../entity/User";
 
 @ArgsType()
 class SearchUserArgs implements Partial<User> {
@@ -47,14 +47,15 @@ class UpdateUserInput {
 
 @Resolver()
 export class UserResolver {
-  @Query(() => User)
+  @Query(() => [User])
   @Authorized([Role.ADMIN])
   async searchUser(@Args() args: SearchUserArgs): Promise<User[]> {
-    return User.createQueryBuilder()
+    const users = await User.createQueryBuilder()
       .where("LOWER(email) LIKE LOWER(:email)", {
         email: `%${args.email}%`,
       })
       .getMany();
+    return users;
   }
 
   @Query(() => User)
