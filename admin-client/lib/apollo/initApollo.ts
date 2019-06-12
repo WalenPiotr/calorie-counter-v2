@@ -33,9 +33,8 @@ function create(initialState: any, { getToken }: Options) {
         console.log(
           `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
         );
-
         if (isBrowser && message.includes("not authenticated")) {
-          Router.replace("/login");
+          Router.replace("/access-denied");
         }
       });
     if (networkError) console.log(`[Network error]: ${networkError}`);

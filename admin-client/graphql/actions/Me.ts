@@ -5,6 +5,8 @@ export const meQuery = gql`
     me {
       id
       email
+      displayName
+      role
     }
   }
 `;

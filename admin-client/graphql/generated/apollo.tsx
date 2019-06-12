@@ -382,7 +382,12 @@ export type ValidateReportInput = {
 export type MeQueryVariables = {};
 
 export type MeQuery = { __typename?: "Query" } & {
-  me: Maybe<{ __typename?: "User" } & Pick<User, "id" | "email">>;
+  me: Maybe<
+    { __typename?: "User" } & Pick<
+      User,
+      "id" | "email" | "displayName" | "role"
+    >
+  >;
 };
 
 export const MeDocument = gql`
@@ -390,6 +395,8 @@ export const MeDocument = gql`
     me {
       id
       email
+      displayName
+      role
     }
   }
 `;

@@ -1,5 +1,6 @@
 import React from "react";
-import createStyled from "../providers/Styled";
+import createStyled from "../faacs/Style";
+import Layout from "../components/layout/Layout";
 
 const IndexStyled = createStyled(() => ({
   root: {
@@ -10,9 +11,11 @@ const IndexStyled = createStyled(() => ({
 class Index extends React.Component {
   render() {
     return (
-      <IndexStyled>
-        {({ classes }) => <div className={classes.root}>Index Page</div>}
-      </IndexStyled>
+      <Layout>
+        <IndexStyled>
+          {({ classes }) => <div className={classes.root}>blabla</div>}
+        </IndexStyled>
+      </Layout>
     );
   }
 }

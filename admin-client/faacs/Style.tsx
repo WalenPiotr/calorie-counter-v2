@@ -17,7 +17,7 @@ interface InjectedProps {
   theme: any;
 }
 
-function createStyled<ClassKey extends string>(
+function createStyle<ClassKey extends string>(
   styles: StyleRulesCallback<any, any> | StyleRules<ClassKey>,
 ): React.ComponentType<StyledProps<typeof styles>> {
   class Styled extends React.Component<
@@ -32,4 +32,4 @@ function createStyled<ClassKey extends string>(
   }
   return withStyles(styles, { withTheme: true })(Styled);
 }
-export default createStyled;
+export default createStyle;
