@@ -188,7 +188,7 @@ export type Query = {
   getUnitsByCreatedById: Array<Unit>;
   getUnitsByUpdatedById: Array<Unit>;
   me?: Maybe<User>;
-  searchUser: User;
+  searchUser: Array<User>;
   getUserById: User;
 };
 
@@ -250,12 +250,6 @@ export type QueryGetUnitsByUpdatedByIdArgs = {
 
 export type QuerySearchUserArgs = {
   email: Scalars["String"];
-  displayName: Scalars["String"];
-  status: Status;
-  role: Role;
-  provider: Provider;
-  createdAt: Scalars["DateTime"];
-  updatedAt: Scalars["DateTime"];
 };
 
 export type QueryGetUserByIdArgs = {
@@ -390,6 +384,26 @@ export type MeQuery = { __typename?: "Query" } & {
   >;
 };
 
+export type SearchUserQueryVariables = {
+  email: Scalars["String"];
+};
+
+export type SearchUserQuery = { __typename?: "Query" } & {
+  searchUser: Array<
+    { __typename?: "User" } & Pick<
+      User,
+      | "id"
+      | "email"
+      | "displayName"
+      | "role"
+      | "provider"
+      | "status"
+      | "createdAt"
+      | "updatedAt"
+    >
+  >;
+};
+
 export const MeDocument = gql`
   query Me {
     me {
@@ -428,6 +442,55 @@ export function withMe<TProps, TChildProps = {}>(
     MeProps<TChildProps>
   >(MeDocument, {
     alias: "withMe",
+    ...operationOptions
+  });
+}
+export const SearchUserDocument = gql`
+  query searchUser($email: String!) {
+    searchUser(email: $email) {
+      id
+      email
+      displayName
+      role
+      provider
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export type SearchUserComponentProps = Omit<
+  ReactApollo.QueryProps<SearchUserQuery, SearchUserQueryVariables>,
+  "query"
+> &
+  ({ variables: SearchUserQueryVariables; skip?: false } | { skip: true });
+
+export const SearchUserComponent = (props: SearchUserComponentProps) => (
+  <ReactApollo.Query<SearchUserQuery, SearchUserQueryVariables>
+    query={SearchUserDocument}
+    {...props}
+  />
+);
+
+export type SearchUserProps<TChildProps = {}> = Partial<
+  ReactApollo.DataProps<SearchUserQuery, SearchUserQueryVariables>
+> &
+  TChildProps;
+export function withSearchUser<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    SearchUserQuery,
+    SearchUserQueryVariables,
+    SearchUserProps<TChildProps>
+  >
+) {
+  return ReactApollo.withQuery<
+    TProps,
+    SearchUserQuery,
+    SearchUserQueryVariables,
+    SearchUserProps<TChildProps>
+  >(SearchUserDocument, {
+    alias: "withSearchUser",
     ...operationOptions
   });
 }

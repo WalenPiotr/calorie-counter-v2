@@ -1,5 +1,5 @@
 import { Component } from "react";
-import Layout from "../components/layout/Layout";
+import Layout from "../components/Layout";
 import createStyle from "../faacs/Style";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";

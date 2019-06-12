@@ -1,5 +1,5 @@
 import { Component } from "react";
-import Layout from "../components/layout/Layout";
+import Layout from "../components/Layout";
 import { Role } from "../graphql/generated/apollo";
 import { authorized } from "../lib/nextjs/authorized";
 

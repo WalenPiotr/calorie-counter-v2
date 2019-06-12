@@ -1,6 +1,6 @@
 import React from "react";
 import createStyled from "../faacs/Style";
-import Layout from "../components/layout/Layout";
+import Layout from "../components/Layout";
 
 const IndexStyled = createStyled(() => ({
   root: {

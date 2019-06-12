@@ -15,14 +15,15 @@ import MenuIcon from "@material-ui/icons/Menu";
 import InboxIcon from "@material-ui/icons/MoveToInbox";
 import clsx from "clsx";
 import React from "react";
-import createStyle from "../../faacs/Style";
-import Toggle from "../../faacs/Toggle";
-import { MeComponent } from "../../graphql/generated/apollo";
+import createStyle from "../faacs/Style";
+import Toggle from "../faacs/Toggle";
+import { MeComponent } from "../graphql/generated/apollo";
 import AccountCircle from "@material-ui/icons/AccountCircle";
 import Button from "@material-ui/core/Button";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
-import MenuController from "../../faacs/Menu";
+import MenuController from "../faacs/Menu";
+import Link from "next/link";
 
 const loginURI = "http://localhost:8080/auth/google/login";
 const logoutURI = "http://localhost:8080/auth/logout";
@@ -158,11 +159,47 @@ const LayoutDrawerStyle = createStyle(theme => ({
   },
 }));
 
+const links: { text: string; href: string; icon: React.ReactNode }[][] = [
+  [
+    {
+      text: "Index",
+      href: "/",
+      icon: <InboxIcon />,
+    },
+    {
+      text: "Protected",
+      href: "/protected",
+      icon: <InboxIcon />,
+    },
+    {
+      text: "Access Denied",
+      href: "/access-denied",
+      icon: <InboxIcon />,
+    },
+  ],
+  [
+    {
+      text: "Users",
+      href: "/users",
+      icon: <InboxIcon />,
+    },
+  ],
+];
+
 interface LayoutDrawerProps {
   close: () => void;
   isOpen: boolean;
+  isLoggedIn: boolean;
 }
-const LayoutDrawer = ({ isOpen, close }: LayoutDrawerProps) => (
+
+const ButtonLink = React.forwardRef(
+  ({ href, className, children }: any, ref: any) => (
+    <Link href={href} prefetch ref={ref as any}>
+      <a className={className}>{children}</a>
+    </Link>
+  ),
+);
+const LayoutDrawer = ({ isOpen, close, isLoggedIn }: LayoutDrawerProps) => (
   <LayoutDrawerStyle>
     {({ classes, theme }) => (
       <Drawer
@@ -184,27 +221,29 @@ const LayoutDrawer = ({ isOpen, close }: LayoutDrawerProps) => (
           </IconButton>
         </div>
         <Divider />
-        <List>
-          {["Inbox", "Starred", "Send email", "Drafts"].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
-        </List>
-        <Divider />
-        <List>
-          {["All mail", "Trash", "Spam"].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
-        </List>
+        {isLoggedIn ? (
+          <>
+            {links.map((group, index) => (
+              <>
+                <List key={"list" + index}>
+                  {group.map(link => (
+                    <ListItem
+                      button
+                      key={link.text}
+                      component={ButtonLink}
+                      href={link.href}
+                      onClick={close}
+                    >
+                      <ListItemIcon>{link.icon as any}</ListItemIcon>
+                      <ListItemText primary={link.text} />
+                    </ListItem>
+                  ))}
+                </List>
+                {links.length > 1 ? <Divider key={"divider" + index} /> : null}
+              </>
+            ))}
+          </>
+        ) : null}
       </Drawer>
     )}
   </LayoutDrawerStyle>
@@ -256,10 +295,11 @@ const Layout = ({ children }: LayoutProps) => {
                     isOpen={isOpen}
                     isLoggedIn={Boolean(data && data.me)}
                   />
-                  {Boolean(data && data.me) ? (
-                    <LayoutDrawer isOpen={isOpen} close={close} />
-                  ) : null}
-                  <LayoutDrawer isOpen={isOpen} close={close} />
+                  <LayoutDrawer
+                    isOpen={isOpen}
+                    close={close}
+                    isLoggedIn={Boolean(data && data.me)}
+                  />
                   <main
                     className={clsx(classes.content, {
                       [classes.contentShift]: isOpen,
