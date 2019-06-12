@@ -16,24 +16,6 @@ import { User, Provider, Status, Role } from "../entity/User";
 class SearchUserArgs implements Partial<User> {
   @Field()
   email: string;
-
-  @Field()
-  displayName: string;
-
-  @Field(() => Status)
-  status: Status;
-
-  @Field(() => Role)
-  role: Role;
-
-  @Field(() => Provider)
-  provider: Provider;
-
-  @Field(() => Date)
-  createdAt: Date;
-
-  @Field(() => Date)
-  updatedAt: Date;
 }
 
 @ArgsType()
@@ -68,7 +50,11 @@ export class UserResolver {
   @Query(() => User)
   @Authorized([Role.ADMIN])
   async searchUser(@Args() args: SearchUserArgs): Promise<User[]> {
-    return User.find({ ...args });
+    return User.createQueryBuilder()
+      .where("LOWER(email) LIKE LOWER(:email)", {
+        email: `%${args.email}%`,
+      })
+      .getMany();
   }
 
   @Query(() => User)
