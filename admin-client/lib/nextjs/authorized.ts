@@ -24,10 +24,18 @@ const checkMe = (apolloClient: ApolloClient<any>) =>
       return null;
     });
 
-export const authorized = async (props: any, roles: Role[]) => {
+export interface Me {
+  id: string;
+  email: string;
+  displayName: string;
+  role: string;
+}
+
+export const authorized = async (props: any, roles: Role[]): Promise<void> => {
   const data = await checkMe(props.apolloClient);
   if (data && data.me && roles.indexOf(data.me.role) >= 0) {
-    return { me: data.me };
+    return;
   }
   redirect(props, "/access-denied");
+  return;
 };

@@ -167,11 +167,6 @@ const links: { text: string; href: string; icon: React.ReactNode }[][] = [
       icon: <InboxIcon />,
     },
     {
-      text: "Protected",
-      href: "/protected",
-      icon: <InboxIcon />,
-    },
-    {
       text: "Access Denied",
       href: "/access-denied",
       icon: <InboxIcon />,
@@ -179,8 +174,8 @@ const links: { text: string; href: string; icon: React.ReactNode }[][] = [
   ],
   [
     {
-      text: "Users",
-      href: "/users",
+      text: "User",
+      href: "/user",
       icon: <InboxIcon />,
     },
   ],
