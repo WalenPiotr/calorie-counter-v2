@@ -11,6 +11,10 @@ import {
   MethodAndPropDecorator,
 } from "type-graphql/dist/decorators/types";
 
+// class ValidateInputOptions {
+//   nullable?: boolean = false;
+// }
+
 export function ValidateInput<T>(field: string, clz: new (obj?: any) => T) {
   return createMethodDecorator(async ({ args }, next) => {
     const obj = plainToClass<T, any>(clz, args[field]);

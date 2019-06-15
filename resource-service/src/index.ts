@@ -66,7 +66,7 @@ const main = async () => {
       UnitResolver,
     ],
     authChecker: authChecker,
-    validate: false,
+    validate: true,
   });
 
   const apolloServer = new ApolloServer({

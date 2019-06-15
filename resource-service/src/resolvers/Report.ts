@@ -1,25 +1,22 @@
 import {
   Arg,
-  Args,
-  ArgsType,
   Authorized,
+  Ctx,
   Field,
+  FieldResolver,
+  ID,
   InputType,
   Mutation,
+  ObjectType,
   Query,
   Resolver,
-  ID,
-  Ctx,
-  FieldResolver,
   Root,
-  ObjectType,
 } from "type-graphql";
-import { Report, ReportStatus, ReportReason } from "../entity/Report";
+import { Product } from "../entity/Product";
+import { Report, ReportReason, ReportStatus } from "../entity/Report";
 import { Role } from "../helpers/authChecker";
 import { ContextType } from "../types/ContextType";
-import { Product } from "../entity/Product";
-import { ListWithCount, PaginationInput } from "src/types/Pagination";
-import { ValidateInput } from "src/helpers/validate";
+import { ListWithCount, PaginationInput } from "../types/Pagination";
 
 @ObjectType()
 export class ReportsWithCount implements ListWithCount<Report> {
@@ -30,7 +27,7 @@ export class ReportsWithCount implements ListWithCount<Report> {
   count: number;
 }
 
-@ArgsType()
+@InputType()
 class GetReportArgs {
   @Field({ nullable: true })
   productId?: number;
@@ -57,7 +54,7 @@ class ReportProductInput {
   message: string;
 }
 
-@ArgsType()
+@InputType()
 class GetReportsByCreatedById {
   @Field(() => ID)
   id: number;
@@ -66,20 +63,20 @@ class GetReportsByCreatedById {
 @Resolver(Report)
 export class ReportResolver {
   @Authorized(Role.ADMIN)
-  @ValidateInput("pagination", PaginationInput)
   @Query(() => ReportsWithCount)
   async getReports(
     @Arg("data") { productId }: GetReportArgs,
-    @Arg("pagination") pagination: PaginationInput,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<ReportsWithCount> {
+    const { take, skip } = pagination ? pagination : new PaginationInput();
     const [items, count] = await Report.findAndCount({
       where: {
         product: {
           id: productId,
         },
       },
-      take: pagination.take,
-      skip: pagination.skip,
+      take,
+      skip,
       order: {
         id: "ASC",
       },
@@ -88,16 +85,16 @@ export class ReportResolver {
   }
 
   @Authorized()
-  @ValidateInput("pagination", PaginationInput)
   @Query(() => ReportsWithCount)
   async getReportsByCreatedById(
     @Arg("data") data: GetReportsByCreatedById,
-    @Arg("pagination") pagination: PaginationInput,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<ReportsWithCount> {
+    const { take, skip } = pagination ? pagination : new PaginationInput();
     const [items, count] = await Report.findAndCount({
       where: { createdById: data.id },
-      take: pagination.take,
-      skip: pagination.skip,
+      take,
+      skip,
       order: { id: "ASC" },
     });
     return { items, count };

@@ -16,15 +16,15 @@ const main = async () => {
 
   const linkTypeDefs = `
     extend type User {
-      createdEntries: [Entry]
-      updatedEntries: [Entry]
-      createdMeals: [Meal]
-      updatedMeals: [Meal]
-      createdProducts: [Product]
-      updatedProducts: [Product]
-      createdReports: [Report]
-      createdUnits: [Unit]
-      updatedUnits: [Unit]
+      createdEntries: EntriesWithCount
+      updatedEntries: EntriesWithCount
+      createdMeals: MealsWithCount
+      updatedMeals: MealsWithCount
+      createdProducts: ProductsWithCount
+      updatedProducts: ProductsWithCount
+      createdReports: ReportsWithCount
+      createdUnits: UnitsWithCount
+      updatedUnits: UnitsWithCount
     }
 
     extend type Entry {
@@ -76,7 +76,7 @@ const main = async () => {
       fieldName: resolvedField,
       args: {
         data: {
-          id: entity.createdById,
+          id: entity[entityField],
         },
       },
       context,

@@ -1,26 +1,26 @@
+import { Max, Min } from "class-validator";
 import {
   Arg,
-  Args,
-  ArgsType,
   Authorized,
   Field,
   ID,
   InputType,
+  Int,
   Mutation,
+  ObjectType,
   Query,
   Resolver,
-  ObjectType,
 } from "type-graphql";
 import { Role, Status, User } from "../entity/User";
 
-@ArgsType()
-class SearchUserArgs implements Partial<User> {
+@InputType()
+class SearchUserInput implements Partial<User> {
   @Field()
   email: string;
 }
 
-@ArgsType()
-class GetUserArgs {
+@InputType()
+class GetUserInput {
   @Field(() => ID)
   id: number;
 }
@@ -57,11 +57,14 @@ class UsersWithCount {
 
 @InputType()
 class PaginationInput {
-  @Field()
-  take: number;
+  @Field(() => Int)
+  @Min(0)
+  skip: number = 0;
 
-  @Field()
-  skip: number;
+  @Field(() => Int)
+  @Min(1)
+  @Max(50)
+  take: number = 25;
 }
 
 @Resolver()
@@ -69,23 +72,24 @@ export class UserResolver {
   @Query(() => UsersWithCount)
   @Authorized([Role.ADMIN])
   async searchUser(
-    @Arg("data") data: SearchUserArgs,
-    @Arg("pagination") pagination: PaginationInput,
+    @Arg("data") data: SearchUserInput,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UsersWithCount> {
+    const { take, skip } = pagination ? pagination : new PaginationInput();
     const [items, count] = await User.createQueryBuilder()
       .where("LOWER(email) LIKE LOWER(:email)", {
         email: `%${data.email}%`,
       })
       .orderBy({ id: "ASC" })
-      .take(pagination.take)
-      .skip(pagination.skip)
+      .take(take)
+      .skip(skip)
       .getManyAndCount();
     return { items, count };
   }
 
   @Query(() => User)
   @Authorized([Role.ADMIN])
-  async getUserById(@Arg("data") data: GetUserArgs): Promise<User> {
+  async getUserById(@Arg("data") data: GetUserInput): Promise<User> {
     return User.findOneOrFail({ id: data.id });
   }
 

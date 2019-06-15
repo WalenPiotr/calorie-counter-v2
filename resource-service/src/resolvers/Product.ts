@@ -1,4 +1,3 @@
-import { ListWithCount, PaginationInput } from "src/types/Pagination";
 import {
   Arg,
   Authorized,
@@ -18,11 +17,12 @@ import { Product } from "../entity/Product";
 import { Report } from "../entity/Report";
 import { Unit } from "../entity/Unit";
 import { Role } from "../helpers/authChecker";
-import { NestedField, ValidateInput } from "../helpers/validate";
+import { NestedField } from "../helpers/validate";
 import { ContextType } from "../types/ContextType";
-import { UnitsWithCount } from "./Unit";
-import { ReportsWithCount } from "./Report";
+import { ListWithCount, PaginationInput } from "../types/Pagination";
 import { EntriesWithCount } from "./Entry";
+import { ReportsWithCount } from "./Report";
+import { UnitsWithCount } from "./Unit";
 
 @InputType()
 class ProductInput {
@@ -81,31 +81,30 @@ class GetProductsByUpdatedById {
 @Resolver(Product)
 export class ProductResolver {
   @Query(() => ProductsWithCount)
-  @ValidateInput("data", SearchProductsInput)
-  @ValidateInput("pagination", PaginationInput)
   async searchProducts(
     @Arg("data") data: SearchProductsInput,
-    @Arg("pagination") pagination: PaginationInput,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<ProductsWithCount> {
+    const { take, skip } = pagination ? pagination : new PaginationInput();
     const [products, count] = await Product.createQueryBuilder()
       .where("LOWER(name) LIKE LOWER(:name)", { name: `%${data.name}%` })
       .orderBy({ id: "ASC" })
-      .take(pagination.take)
-      .skip(pagination.skip)
+      .take(take)
+      .skip(skip)
       .getManyAndCount();
     return { items: products, count };
   }
 
   @Query(() => ProductsWithCount)
-  @ValidateInput("pagination", PaginationInput)
   async getProductsByCreatedById(
     @Arg("data") data: GetProductsByCreatedById,
-    @Arg("pagination") pagination: PaginationInput,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<ProductsWithCount> {
+    const { take, skip } = pagination ? pagination : new PaginationInput();
     const [items, count] = await Product.findAndCount({
       where: { createdById: data.id },
-      take: pagination.take,
-      skip: pagination.skip,
+      take,
+      skip,
       order: {
         id: "ASC",
       },
@@ -117,15 +116,15 @@ export class ProductResolver {
   }
 
   @Query(() => ProductsWithCount)
-  @ValidateInput("pagination", PaginationInput)
   async getProductsByUpdatedById(
     @Arg("data") data: GetProductsByUpdatedById,
-    @Arg("pagination") pagination: PaginationInput,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<ProductsWithCount> {
+    const { take, skip } = pagination ? pagination : new PaginationInput();
     const [items, count] = await Product.findAndCount({
       where: { updatedById: data.id },
-      take: pagination.take,
-      skip: pagination.skip,
+      take,
+      skip,
       order: {
         id: "ASC",
       },
@@ -137,7 +136,6 @@ export class ProductResolver {
   }
 
   @Authorized()
-  @ValidateInput("data", AddProductInput)
   @Mutation(() => Product)
   async addProduct(
     @Arg("data") data: AddProductInput,
@@ -166,7 +164,6 @@ export class ProductResolver {
   }
 
   @Authorized(Role.ADMIN)
-  @ValidateInput("data", UpdateProductInput)
   @Mutation(() => Boolean)
   async updateProduct(
     @Arg("data") data: UpdateProductInput,
@@ -184,15 +181,15 @@ export class ProductResolver {
   }
 
   @FieldResolver(() => UnitsWithCount)
-  @ValidateInput("pagination", PaginationInput)
   async units(
     @Root() product: Product,
-    @Arg("pagination") pagination: PaginationInput,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UnitsWithCount> {
+    const { take, skip } = pagination ? pagination : new PaginationInput();
     const [items, count] = await Unit.findAndCount({
       where: { product: { id: product.id } },
-      take: pagination.take,
-      skip: pagination.skip,
+      take,
+      skip,
       order: {
         id: "ASC",
       },
@@ -201,16 +198,16 @@ export class ProductResolver {
   }
 
   @Authorized(Role.ADMIN)
-  @ValidateInput("pagination", PaginationInput)
   @FieldResolver(() => ReportsWithCount)
   async reports(
     @Root() product: Product,
-    @Arg("pagination") pagination: PaginationInput,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<ReportsWithCount> {
+    const { take, skip } = pagination ? pagination : new PaginationInput();
     const [items, count] = await Report.findAndCount({
       where: { product: { id: product.id } },
-      take: pagination.take,
-      skip: pagination.skip,
+      take,
+      skip,
       order: {
         id: "ASC",
       },
@@ -219,16 +216,16 @@ export class ProductResolver {
   }
 
   @Authorized(Role.ADMIN)
-  @ValidateInput("pagination", PaginationInput)
   @FieldResolver(() => EntriesWithCount)
   async entries(
     @Root() product: Product,
-    @Arg("pagination") pagination: PaginationInput,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<EntriesWithCount> {
+    const { take, skip } = pagination ? pagination : new PaginationInput();
     const [items, count] = await Entry.findAndCount({
       where: { product: { id: product.id } },
-      take: pagination.take,
-      skip: pagination.skip,
+      take,
+      skip,
       order: {
         id: "ASC",
       },

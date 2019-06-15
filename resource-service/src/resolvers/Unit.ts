@@ -1,25 +1,22 @@
 import {
-  Mutation,
   Arg,
-  Resolver,
+  Authorized,
+  Ctx,
   Field,
-  Query,
+  FieldResolver,
   ID,
   InputType,
-  ArgsType,
-  Ctx,
-  Authorized,
-  FieldResolver,
-  Root,
-  Args,
+  Mutation,
   ObjectType,
+  Query,
+  Resolver,
+  Root,
 } from "type-graphql";
-import { ContextType } from "../types/ContextType";
+import { Product } from "../entity/Product";
 import { Unit } from "../entity/Unit";
 import { Role } from "../helpers/authChecker";
-import { Product } from "../entity/Product";
-import { ListWithCount, PaginationInput } from "src/types/Pagination";
-import { ValidateInput } from "src/helpers/validate";
+import { ContextType } from "../types/ContextType";
+import { ListWithCount, PaginationInput } from "../types/Pagination";
 
 @ObjectType()
 export class UnitsWithCount implements ListWithCount<Unit> {
@@ -48,7 +45,7 @@ class AddUnitInput {
   productId: number;
 }
 
-@ArgsType()
+@InputType()
 class GetUnitsByProductIdArgs {
   @Field(() => ID)
   productId: number;
@@ -60,13 +57,13 @@ class RemoveUnitInput {
   id: number;
 }
 
-@ArgsType()
+@InputType()
 class GetUnitsByCreatedById {
   @Field(() => ID)
   id: number;
 }
 
-@ArgsType()
+@InputType()
 class GetUnitsByUpdatedById {
   @Field(() => ID)
   id: number;
@@ -75,19 +72,19 @@ class GetUnitsByUpdatedById {
 @Resolver(Unit)
 export class UnitResolver {
   @Authorized()
-  @ValidateInput("pagination", PaginationInput)
   @Query(() => UnitsWithCount)
   async getUnitsByProductId(
     @Arg("data") data: GetUnitsByProductIdArgs,
-    @Arg("pagination") pagination: PaginationInput,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UnitsWithCount> {
+    const { take, skip } = pagination ? pagination : new PaginationInput();
     const { productId } = data;
     const [items, count] = await Unit.findAndCount({
       where: {
         product: { id: productId },
       },
-      take: pagination.take,
-      skip: pagination.skip,
+      take,
+      skip,
       order: {
         id: "ASC",
       },
@@ -98,12 +95,13 @@ export class UnitResolver {
   @Query(() => UnitsWithCount)
   async getUnitsByCreatedById(
     @Arg("data") data: GetUnitsByCreatedById,
-    @Arg("pagination") pagination: PaginationInput,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UnitsWithCount> {
+    const { take, skip } = pagination ? pagination : new PaginationInput();
     const [items, count] = await Unit.findAndCount({
       where: { createdById: data.id },
-      take: pagination.take,
-      skip: pagination.skip,
+      take,
+      skip,
       order: {
         id: "ASC",
       },
@@ -114,12 +112,16 @@ export class UnitResolver {
   @Query(() => UnitsWithCount)
   async getUnitsByUpdatedById(
     @Arg("data") data: GetUnitsByUpdatedById,
-    @Arg("pagination") pagination: PaginationInput,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UnitsWithCount> {
+    const { take, skip } = pagination ? pagination : new PaginationInput();
     const [items, count] = await Unit.findAndCount({
       where: { updatedById: data.id },
-      take: pagination.take,
-      skip: pagination.skip,
+      take,
+      skip,
+      order: {
+        id: "ASC",
+      },
     });
     return { items, count };
   }

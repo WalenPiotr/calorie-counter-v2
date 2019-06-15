@@ -1,20 +1,15 @@
 import {
-  Resolver,
-  Query,
-  Args,
-  Ctx,
-  ArgsType,
-  Authorized,
-  Mutation,
   Arg,
-  InputType,
+  Authorized,
+  Ctx,
   Field,
+  InputType,
+  Mutation,
+  Query,
+  Resolver,
 } from "type-graphql";
-import { ContextType } from "../types/ContextType";
 import { User } from "../entity/User";
-
-@ArgsType()
-class MeArgs {}
+import { ContextType } from "../types/ContextType";
 
 @InputType()
 class MeInput {
@@ -31,10 +26,7 @@ class UpdateMeInput {
 @Resolver()
 export class MeResolver {
   @Query(() => User, { nullable: true })
-  async me(
-    @Args() _: MeArgs,
-    @Ctx() ctx: ContextType,
-  ): Promise<User | undefined> {
+  async me(@Ctx() ctx: ContextType): Promise<User | undefined> {
     if (
       ctx.req.session &&
       ctx.req.session.passport &&

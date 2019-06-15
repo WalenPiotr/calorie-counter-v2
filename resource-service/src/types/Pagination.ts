@@ -1,5 +1,5 @@
-import { registerEnumType, InputType, Field, Int } from "type-graphql";
-import { Min, Max } from "class-validator";
+import { Max, Min } from "class-validator";
+import { Field, InputType, Int } from "type-graphql";
 
 export interface ListWithCount<T> {
   count: number;
