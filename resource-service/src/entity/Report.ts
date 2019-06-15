@@ -69,11 +69,4 @@ export class Report extends BaseEntity {
   @Field(() => Product)
   @ManyToOne(() => Product, p => p.reports)
   product: Product;
-
-  static async validate(obj: RecursivePartial<Report>) {
-    const errors = await validate(plainToClass(Report, obj));
-    if (errors.length > 0) {
-      throw new ArgumentValidationError(errors);
-    }
-  }
 }

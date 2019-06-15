@@ -52,11 +52,4 @@ export class Unit extends BaseEntity {
   @Field(() => Date, { nullable: true })
   @UpdateDateColumn()
   updatedAt: Date;
-
-  static async validate(obj: RecursivePartial<Unit>) {
-    const errors = await validate(plainToClass(Unit, obj));
-    if (errors.length > 0) {
-      throw new ArgumentValidationError(errors);
-    }
-  }
 }

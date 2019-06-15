@@ -153,7 +153,7 @@ export class EntryResolver {
         id: newEntry.productId,
       },
     };
-    await Entry.validate(entry);
+    await transformAndValidate(Entry, entry);
     return Entry.create(entry).save();
   }
 

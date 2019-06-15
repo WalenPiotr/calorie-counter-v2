@@ -57,11 +57,4 @@ export class Product extends BaseEntity {
   @Field(() => [Report], { nullable: true })
   @OneToMany(() => Report, r => r.product)
   reports: Report[];
-
-  static async validate(obj: RecursivePartial<Product>) {
-    const errors = await validate(plainToClass(Product, obj));
-    if (errors.length > 0) {
-      throw new ArgumentValidationError(errors);
-    }
-  }
 }

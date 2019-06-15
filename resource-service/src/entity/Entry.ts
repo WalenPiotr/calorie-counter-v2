@@ -51,11 +51,4 @@ export class Entry extends BaseEntity {
   @Field(() => Date, { nullable: true })
   @UpdateDateColumn()
   updatedAt: Date;
-
-  static async validate(obj: RecursivePartial<Entry>) {
-    const errors = await validate(plainToClass(Entry, obj));
-    if (errors.length > 0) {
-      throw new ArgumentValidationError(errors);
-    }
-  }
 }

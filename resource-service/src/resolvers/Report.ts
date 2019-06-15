@@ -132,7 +132,7 @@ export class ReportResolver {
       createdById: userId,
       status: ReportStatus.OPEN,
     };
-    await Report.validate(report);
+    await transformAndValidate(Report, report);
     await Report.create(report).save();
     return true;
   }

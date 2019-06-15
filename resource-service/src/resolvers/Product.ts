@@ -154,7 +154,7 @@ export class ProductResolver {
       createdById: userId,
       updatedById: userId,
     };
-    await Product.validate(product);
+    await transformAndValidate(Product, product);
     return Product.create(product).save();
   }
 
@@ -181,7 +181,7 @@ export class ProductResolver {
       name: newProduct.name,
       updatedById: userId,
     };
-    await Product.validate(product);
+    await transformAndValidate(Product, product);
     await Product.update({ id }, product);
     return true;
   }

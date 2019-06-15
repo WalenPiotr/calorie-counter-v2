@@ -141,7 +141,7 @@ export class MealResolver {
       createdById: userId,
       updatedById: userId,
     };
-    await Meal.validate(meal);
+    await transformAndValidate(Meal, meal);
     return Meal.create(meal).save();
   }
 

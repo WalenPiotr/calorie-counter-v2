@@ -47,11 +47,4 @@ export class Meal extends BaseEntity {
   @Field(() => Date, { nullable: true })
   @UpdateDateColumn()
   updatedAt: Date;
-
-  static async validate(obj: RecursivePartial<Meal>) {
-    const errors = await validate(plainToClass(Meal, obj));
-    if (errors.length > 0) {
-      throw new ArgumentValidationError(errors);
-    }
-  }
 }

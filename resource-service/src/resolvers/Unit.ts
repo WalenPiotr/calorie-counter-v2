@@ -149,7 +149,7 @@ export class UnitResolver {
         id: productId,
       },
     };
-    await Unit.validate(unit);
+    await transformAndValidate(Unit, unit);
     return Unit.create(unit).save();
   }
 

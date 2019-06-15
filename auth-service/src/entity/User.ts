@@ -77,12 +77,4 @@ export class User extends BaseEntity {
   @Field(() => Status)
   @Column("text")
   status: Status;
-
-  static async validate(obj: any) {
-    const clzObj = plainToClass(User, obj);
-    const errors = await validate(clzObj);
-    if (errors.length > 0) {
-      throw new ArgumentValidationError(errors);
-    }
-  }
 }

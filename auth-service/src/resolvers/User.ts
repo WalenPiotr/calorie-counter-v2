@@ -100,7 +100,7 @@ export class UserResolver {
   @Authorized([Role.ADMIN])
   async updateUser(@Arg("data") input: UpdateUserInput): Promise<Boolean> {
     await User.findOneOrFail({ id: input.id });
-    await User.validate(input.user);
+    await transformAndValidate(User, input.user);
     await User.update({ id: input.id }, { ...input.user });
     return true;
   }
