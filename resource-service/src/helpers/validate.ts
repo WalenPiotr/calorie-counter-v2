@@ -22,6 +22,17 @@ export function ValidateInput<T>(field: string, clz: new (obj?: any) => T) {
   });
 }
 
+export function ValidateArgs<T>(clz: new (obj?: any) => T) {
+  return createMethodDecorator(async ({ args }, next) => {
+    const obj = plainToClass<T, any>(clz, args);
+    const errors = await validate(obj);
+    if (errors.length > 0) {
+      throw new ArgumentValidationError(errors);
+    }
+    return next();
+  });
+}
+
 export function NestedField(
   returnTypeFunction: ReturnTypeFunc,
   options?: AdvancedOptions,

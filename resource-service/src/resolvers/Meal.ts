@@ -12,10 +12,23 @@ import {
   Args,
   FieldResolver,
   Root,
+  ObjectType,
 } from "type-graphql";
 import { Entry } from "../entity/Entry";
 import { Meal } from "../entity/Meal";
 import { ContextType } from "../types/ContextType";
+import { PaginationInput, ListWithCount } from "src/types/Pagination";
+import { ValidateInput } from "src/helpers/validate";
+import { EntriesWithCount } from "./Entry";
+
+@ObjectType()
+class MealsWithCount implements ListWithCount<Meal> {
+  @Field(() => [Meal])
+  items: Meal[];
+
+  @Field()
+  count: number;
+}
 
 @InputType()
 class MealInput {
@@ -58,29 +71,59 @@ class GetMealsByUpdatedById {
 @Resolver(Meal)
 export class MealResolver {
   @Authorized()
+  @ValidateInput("pagination", PaginationInput)
   @Query(() => [Meal])
   async getMealsByDate(
-    @Args() args: GetMealByDateArgs,
+    @Arg("data") data: GetMealByDateArgs,
+    @Arg("pagination") pagination: PaginationInput,
     @Ctx() ctx: ContextType,
-  ): Promise<Meal[]> {
+  ): Promise<MealsWithCount> {
     const userId = ctx.req.session!.passport.user.id;
-    return Meal.find({ date: args.date, createdById: userId });
+    const [items, count] = await Meal.findAndCount({
+      where: { date: data.date, createdById: userId },
+      take: pagination.take,
+      skip: pagination.skip,
+      order: {
+        id: "ASC",
+      },
+    });
+    return { items, count };
   }
 
   @Authorized()
-  @Query(() => [Meal])
+  @ValidateInput("pagination", PaginationInput)
+  @Query(() => MealsWithCount)
   async getMealsByCreatedById(
-    @Args() args: GetMealsByCreatedById,
-  ): Promise<Meal[]> {
-    return Meal.find({ createdById: args.id });
+    @Arg("data") data: GetMealsByCreatedById,
+    @Arg("pagination") pagination: PaginationInput,
+  ): Promise<MealsWithCount> {
+    const [items, count] = await Meal.findAndCount({
+      where: { createdById: data.id },
+      take: pagination.take,
+      skip: pagination.skip,
+      order: {
+        id: "ASC",
+      },
+    });
+    return { items, count };
   }
 
   @Authorized()
-  @Query(() => [Meal])
+  @ValidateInput("pagination", PaginationInput)
+  @Query(() => MealsWithCount)
   async getMealsByUpdatedById(
-    @Args() args: GetMealsByUpdatedById,
-  ): Promise<Meal[]> {
-    return Meal.find({ updatedById: args.id });
+    @Arg("data") data: GetMealsByUpdatedById,
+    @Arg("pagination") pagination: PaginationInput,
+  ): Promise<MealsWithCount> {
+    const [items, count] = await Meal.findAndCount({
+      where: { createdById: data.id },
+      take: pagination.take,
+      skip: pagination.skip,
+      order: {
+        id: "ASC",
+      },
+    });
+    return { items, count };
   }
 
   @Authorized()
@@ -113,12 +156,21 @@ export class MealResolver {
     return true;
   }
 
-  @FieldResolver(() => [Entry])
-  async entries(@Root() meal: Meal): Promise<Entry[]> {
-    const { entries } = await Meal.findOneOrFail(
-      { id: meal.id },
-      { relations: ["entries"] },
-    );
-    return entries;
+  @FieldResolver(() => EntriesWithCount)
+  async entries(
+    @Root() meal: Meal,
+    @Arg("pagination") pagination: PaginationInput,
+  ): Promise<EntriesWithCount> {
+    const [items, count] = await Entry.findAndCount({
+      where: {
+        meal: { id: meal.id },
+      },
+      take: pagination.take,
+      skip: pagination.skip,
+      order: {
+        id: "ASC",
+      },
+    });
+    return { items, count };
   }
 }

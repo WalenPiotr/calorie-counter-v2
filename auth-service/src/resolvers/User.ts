@@ -9,6 +9,7 @@ import {
   Mutation,
   Query,
   Resolver,
+  ObjectType,
 } from "type-graphql";
 import { Role, Status, User } from "../entity/User";
 
@@ -45,23 +46,47 @@ class UpdateUserInput {
   id: number;
 }
 
+@ObjectType()
+class UsersWithCount {
+  @Field(() => User)
+  items: User[];
+
+  @Field()
+  count: number;
+}
+
+@InputType()
+class PaginationInput {
+  @Field()
+  take: number;
+
+  @Field()
+  skip: number;
+}
+
 @Resolver()
 export class UserResolver {
-  @Query(() => [User])
+  @Query(() => UsersWithCount)
   @Authorized([Role.ADMIN])
-  async searchUser(@Args() args: SearchUserArgs): Promise<User[]> {
-    const users = await User.createQueryBuilder()
+  async searchUser(
+    @Arg("data") data: SearchUserArgs,
+    @Arg("pagination") pagination: PaginationInput,
+  ): Promise<UsersWithCount> {
+    const [items, count] = await User.createQueryBuilder()
       .where("LOWER(email) LIKE LOWER(:email)", {
-        email: `%${args.email}%`,
+        email: `%${data.email}%`,
       })
-      .getMany();
-    return users;
+      .orderBy({ id: "ASC" })
+      .take(pagination.take)
+      .skip(pagination.skip)
+      .getManyAndCount();
+    return { items, count };
   }
 
   @Query(() => User)
   @Authorized([Role.ADMIN])
-  async getUserById(@Args() args: GetUserArgs): Promise<User> {
-    return User.findOneOrFail({ id: args.id });
+  async getUserById(@Arg("data") data: GetUserArgs): Promise<User> {
+    return User.findOneOrFail({ id: data.id });
   }
 
   @Mutation(() => Boolean)

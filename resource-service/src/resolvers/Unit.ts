@@ -12,11 +12,23 @@ import {
   FieldResolver,
   Root,
   Args,
+  ObjectType,
 } from "type-graphql";
 import { ContextType } from "../types/ContextType";
 import { Unit } from "../entity/Unit";
 import { Role } from "../helpers/authChecker";
 import { Product } from "../entity/Product";
+import { ListWithCount, PaginationInput } from "src/types/Pagination";
+import { ValidateInput } from "src/helpers/validate";
+
+@ObjectType()
+export class UnitsWithCount implements ListWithCount<Unit> {
+  @Field(() => [Unit])
+  items: Unit[];
+
+  @Field()
+  count: number;
+}
 
 @InputType()
 class UnitInput {
@@ -63,26 +75,53 @@ class GetUnitsByUpdatedById {
 @Resolver(Unit)
 export class UnitResolver {
   @Authorized()
-  @Query(() => [Unit])
+  @ValidateInput("pagination", PaginationInput)
+  @Query(() => UnitsWithCount)
   async getUnitsByProductId(
-    @Args() args: GetUnitsByProductIdArgs,
-  ): Promise<Unit[]> {
-    const { productId } = args;
-    return Unit.find({ product: { id: productId } });
+    @Arg("data") data: GetUnitsByProductIdArgs,
+    @Arg("pagination") pagination: PaginationInput,
+  ): Promise<UnitsWithCount> {
+    const { productId } = data;
+    const [items, count] = await Unit.findAndCount({
+      where: {
+        product: { id: productId },
+      },
+      take: pagination.take,
+      skip: pagination.skip,
+      order: {
+        id: "ASC",
+      },
+    });
+    return { items, count };
   }
 
-  @Query(() => [Unit])
+  @Query(() => UnitsWithCount)
   async getUnitsByCreatedById(
-    @Args() args: GetUnitsByCreatedById,
-  ): Promise<Unit[]> {
-    return Unit.find({ createdById: args.id });
+    @Arg("data") data: GetUnitsByCreatedById,
+    @Arg("pagination") pagination: PaginationInput,
+  ): Promise<UnitsWithCount> {
+    const [items, count] = await Unit.findAndCount({
+      where: { createdById: data.id },
+      take: pagination.take,
+      skip: pagination.skip,
+      order: {
+        id: "ASC",
+      },
+    });
+    return { items, count };
   }
 
-  @Query(() => [Unit])
+  @Query(() => UnitsWithCount)
   async getUnitsByUpdatedById(
-    @Args() args: GetUnitsByUpdatedById,
-  ): Promise<Unit[]> {
-    return Unit.find({ updatedById: args.id });
+    @Arg("data") data: GetUnitsByUpdatedById,
+    @Arg("pagination") pagination: PaginationInput,
+  ): Promise<UnitsWithCount> {
+    const [items, count] = await Unit.findAndCount({
+      where: { updatedById: data.id },
+      take: pagination.take,
+      skip: pagination.skip,
+    });
+    return { items, count };
   }
 
   @Authorized()
