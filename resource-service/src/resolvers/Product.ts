@@ -1,3 +1,4 @@
+import { transformAndValidate } from "class-transformer-validator";
 import {
   Arg,
   Authorized,
@@ -17,14 +18,11 @@ import { Product } from "../entity/Product";
 import { Report } from "../entity/Report";
 import { Unit } from "../entity/Unit";
 import { Role } from "../helpers/authChecker";
-import { NestedField } from "../helpers/validate";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
 import { EntriesWithCount } from "./Entry";
 import { ReportsWithCount } from "./Report";
 import { UnitsWithCount } from "./Unit";
-import { MinLength } from "class-validator";
-import { transformAndValidate } from "class-transformer-validator";
 
 @InputType()
 class ProductInput {

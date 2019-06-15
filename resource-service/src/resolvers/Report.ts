@@ -1,3 +1,4 @@
+import { transformAndValidate } from "class-transformer-validator";
 import {
   Arg,
   Authorized,
@@ -17,7 +18,6 @@ import { Report, ReportReason, ReportStatus } from "../entity/Report";
 import { Role } from "../helpers/authChecker";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
-import { transformAndValidate } from "class-transformer-validator";
 
 @ObjectType()
 export class ReportsWithCount implements ListWithCount<Report> {

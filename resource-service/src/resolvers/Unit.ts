@@ -1,3 +1,4 @@
+import { transformAndValidate } from "class-transformer-validator";
 import {
   Arg,
   Authorized,
@@ -17,7 +18,6 @@ import { Unit } from "../entity/Unit";
 import { Role } from "../helpers/authChecker";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
-import { transformAndValidate } from "class-transformer-validator";
 
 @ObjectType()
 export class UnitsWithCount implements ListWithCount<Unit> {

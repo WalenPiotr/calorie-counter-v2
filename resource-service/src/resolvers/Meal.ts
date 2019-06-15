@@ -1,3 +1,4 @@
+import { transformAndValidate } from "class-transformer-validator";
 import {
   Arg,
   Authorized,
@@ -17,7 +18,6 @@ import { Meal } from "../entity/Meal";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
 import { EntriesWithCount } from "./Entry";
-import { transformAndValidate } from "class-transformer-validator";
 
 @ObjectType()
 class MealsWithCount implements ListWithCount<Meal> {

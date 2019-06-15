@@ -1,3 +1,4 @@
+import { transformAndValidate } from "class-transformer-validator";
 import { Max, Min } from "class-validator";
 import {
   Arg,
@@ -12,7 +13,6 @@ import {
   Resolver,
 } from "type-graphql";
 import { Role, Status, User } from "../entity/User";
-import { transformAndValidate } from "class-transformer-validator";
 
 @InputType()
 class SearchUserInput implements Partial<User> {
