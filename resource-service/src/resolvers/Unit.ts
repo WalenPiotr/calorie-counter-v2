@@ -17,6 +17,7 @@ import { Unit } from "../entity/Unit";
 import { Role } from "../helpers/authChecker";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
+import { transformAndValidate } from "class-transformer-validator";
 
 @ObjectType()
 export class UnitsWithCount implements ListWithCount<Unit> {
@@ -77,7 +78,9 @@ export class UnitResolver {
     @Arg("data") data: GetUnitsByProductIdArgs,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UnitsWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const { productId } = data;
     const [items, count] = await Unit.findAndCount({
       where: {
@@ -97,7 +100,9 @@ export class UnitResolver {
     @Arg("data") data: GetUnitsByCreatedById,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UnitsWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await Unit.findAndCount({
       where: { createdById: data.id },
       take,
@@ -114,7 +119,9 @@ export class UnitResolver {
     @Arg("data") data: GetUnitsByUpdatedById,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UnitsWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await Unit.findAndCount({
       where: { updatedById: data.id },
       take,

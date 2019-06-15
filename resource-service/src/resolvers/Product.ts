@@ -23,6 +23,8 @@ import { ListWithCount, PaginationInput } from "../types/Pagination";
 import { EntriesWithCount } from "./Entry";
 import { ReportsWithCount } from "./Report";
 import { UnitsWithCount } from "./Unit";
+import { MinLength } from "class-validator";
+import { transformAndValidate } from "class-transformer-validator";
 
 @InputType()
 class ProductInput {
@@ -62,7 +64,7 @@ class UpdateProductInput {
   @Field(() => ID)
   id: number;
 
-  @NestedField(() => ProductInput)
+  @Field(() => ProductInput)
   newProduct: ProductInput;
 }
 
@@ -85,7 +87,9 @@ export class ProductResolver {
     @Arg("data") data: SearchProductsInput,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<ProductsWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [products, count] = await Product.createQueryBuilder()
       .where("LOWER(name) LIKE LOWER(:name)", { name: `%${data.name}%` })
       .orderBy({ id: "ASC" })
@@ -100,7 +104,9 @@ export class ProductResolver {
     @Arg("data") data: GetProductsByCreatedById,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<ProductsWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await Product.findAndCount({
       where: { createdById: data.id },
       take,
@@ -120,7 +126,9 @@ export class ProductResolver {
     @Arg("data") data: GetProductsByUpdatedById,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<ProductsWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await Product.findAndCount({
       where: { updatedById: data.id },
       take,
@@ -185,7 +193,9 @@ export class ProductResolver {
     @Root() product: Product,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UnitsWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await Unit.findAndCount({
       where: { product: { id: product.id } },
       take,
@@ -203,7 +213,9 @@ export class ProductResolver {
     @Root() product: Product,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<ReportsWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await Report.findAndCount({
       where: { product: { id: product.id } },
       take,
@@ -221,7 +233,9 @@ export class ProductResolver {
     @Root() product: Product,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<EntriesWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await Entry.findAndCount({
       where: { product: { id: product.id } },
       take,

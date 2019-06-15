@@ -12,6 +12,7 @@ import {
   Resolver,
 } from "type-graphql";
 import { Role, Status, User } from "../entity/User";
+import { transformAndValidate } from "class-transformer-validator";
 
 @InputType()
 class SearchUserInput implements Partial<User> {
@@ -75,7 +76,9 @@ export class UserResolver {
     @Arg("data") data: SearchUserInput,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UsersWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await User.createQueryBuilder()
       .where("LOWER(email) LIKE LOWER(:email)", {
         email: `%${data.email}%`,

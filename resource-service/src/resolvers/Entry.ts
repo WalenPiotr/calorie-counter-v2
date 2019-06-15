@@ -17,6 +17,7 @@ import { Meal } from "../entity/Meal";
 import { Product } from "../entity/Product";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
+import { transformAndValidate } from "class-transformer-validator";
 
 @ObjectType()
 export class EntriesWithCount implements ListWithCount<Entry> {
@@ -78,7 +79,9 @@ export class EntryResolver {
     @Ctx() ctx: ContextType,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<EntriesWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const { mealId } = data;
     const userId = ctx.req.session!.passport.user.id;
     const [items, count] = await Entry.findAndCount({
@@ -101,7 +104,9 @@ export class EntryResolver {
     @Arg("data") data: GetEntriesByCreatedById,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<EntriesWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await Entry.findAndCount({
       where: { createdById: data.id },
       take,
@@ -117,7 +122,9 @@ export class EntryResolver {
     @Arg("data") data: GetEntriesByUpdatedById,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<EntriesWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await Entry.findAndCount({
       where: { createdById: data.id },
       take,

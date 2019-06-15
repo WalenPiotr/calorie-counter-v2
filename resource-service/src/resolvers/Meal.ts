@@ -17,6 +17,7 @@ import { Meal } from "../entity/Meal";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
 import { EntriesWithCount } from "./Entry";
+import { transformAndValidate } from "class-transformer-validator";
 
 @ObjectType()
 class MealsWithCount implements ListWithCount<Meal> {
@@ -93,7 +94,9 @@ export class MealResolver {
     @Arg("data") data: GetMealsByCreatedById,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<MealsWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await Meal.findAndCount({
       where: { createdById: data.id },
       take,
@@ -111,7 +114,9 @@ export class MealResolver {
     @Arg("data") data: GetMealsByUpdatedById,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<MealsWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await Meal.findAndCount({
       where: { createdById: data.id },
       take,
@@ -158,7 +163,9 @@ export class MealResolver {
     @Root() meal: Meal,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<EntriesWithCount> {
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformAndValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const [items, count] = await Entry.findAndCount({
       where: {
         meal: { id: meal.id },
