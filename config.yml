@@ -36,7 +36,9 @@ services:
       - auth-service
       - gateway
       # - admin-client
-
+    logging:
+      driver: "none"
+      
   resource-service:
     build: ./resource-service
     image: resource-service
