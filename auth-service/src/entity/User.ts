@@ -1,12 +1,5 @@
-import { plainToClass } from "class-transformer";
-import { Min, validate } from "class-validator";
-import {
-  ArgumentValidationError,
-  ObjectType,
-  Field,
-  ID,
-  registerEnumType,
-} from "type-graphql";
+import { Min } from "class-validator";
+import { Field, ID, ObjectType, registerEnumType } from "type-graphql";
 import {
   BaseEntity,
   Column,

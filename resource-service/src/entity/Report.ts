@@ -1,10 +1,4 @@
-import {
-  Field,
-  ID,
-  ObjectType,
-  registerEnumType,
-  ArgumentValidationError,
-} from "type-graphql";
+import { Field, ID, ObjectType, registerEnumType } from "type-graphql";
 import {
   BaseEntity,
   Column,
@@ -15,9 +9,6 @@ import {
   Unique,
 } from "typeorm";
 import { Product } from "./Product";
-import { plainToClass } from "class-transformer";
-import { validate } from "class-validator";
-import { RecursivePartial } from "../types/RecursivePartial";
 
 export enum ReportStatus {
   OPEN,
