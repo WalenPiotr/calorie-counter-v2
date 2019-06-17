@@ -48,7 +48,7 @@ class Users extends Component<UsersProps> {
                   />
                 )}
               </Formik>
-              {data && data.searchUser ? (
+              {data && data.searchUser.items ? (
                 <Table
                   fields={[
                     { field: "id" },
@@ -60,7 +60,7 @@ class Users extends Component<UsersProps> {
                     { field: "createdAt" },
                     { field: "updatedAt" },
                   ]}
-                  rows={data.searchUser}
+                  rows={data.searchUser.items}
                 />
               ) : null}
             </>
