@@ -39,7 +39,10 @@ export default function EntityTable({ rows, fields }: TableProps) {
               <TableHead>
                 <TableRow>
                   {fields.map((f, i) => (
-                    <TableCell align={i === 0 ? "inherit" : "right"}>
+                    <TableCell
+                      align={i === 0 ? "inherit" : "right"}
+                      key={f.field}
+                    >
                       {f.name ? f.name : f.field}
                     </TableCell>
                   ))}
@@ -49,7 +52,10 @@ export default function EntityTable({ rows, fields }: TableProps) {
                 {rows.map(row => (
                   <TableRow key={row.id} hover>
                     {fields.map((f, i) => (
-                      <TableCell align={i === 0 ? "inherit" : "right"}>
+                      <TableCell
+                        align={i === 0 ? "inherit" : "right"}
+                        key={f.field}
+                      >
                         {row[f.field]}
                       </TableCell>
                     ))}
