@@ -2,23 +2,25 @@ import { gql } from "apollo-boost";
 
 export const searchProducts = gql`
   query searchProducts($name: String!) {
-    searchProducts(name: $name) {
-      id
-      name
-      createdAt
-      createdBy {
+    searchProducts(data: { name: $name }) {
+      count
+      items {
         id
         name
+        createdAt
+        createdBy {
+          id
+          displayName
+        }
+        updatedAt
+        updatedBy {
+          id
+          displayName
+        }
+        reports {
+          id
+        }
       }
-      updatedAt
-      updatedBy {
-        id
-        name
-      }
-      reports {
-        id
-      }
-      
     }
   }
 `;

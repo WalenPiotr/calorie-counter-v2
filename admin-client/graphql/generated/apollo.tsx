@@ -35,6 +35,12 @@ export type DeleteProductInput = {
   id: Scalars["ID"];
 };
 
+export type EntriesWithCount = {
+  __typename?: "EntriesWithCount";
+  items: Array<Entry>;
+  count: Scalars["Float"];
+};
+
 export type Entry = {
   __typename?: "Entry";
   id: Scalars["ID"];
@@ -55,6 +61,62 @@ export type EntryInput = {
   quantity: Scalars["Float"];
 };
 
+export type GetEntriesByCreatedById = {
+  id: Scalars["ID"];
+};
+
+export type GetEntriesByMealId = {
+  mealId: Scalars["ID"];
+};
+
+export type GetEntriesByUpdatedById = {
+  id: Scalars["ID"];
+};
+
+export type GetMealByDateArgs = {
+  date: Scalars["DateTime"];
+};
+
+export type GetMealsByCreatedById = {
+  id: Scalars["ID"];
+};
+
+export type GetMealsByUpdatedById = {
+  id: Scalars["ID"];
+};
+
+export type GetProductsByCreatedById = {
+  id: Scalars["ID"];
+};
+
+export type GetProductsByUpdatedById = {
+  id: Scalars["ID"];
+};
+
+export type GetReportArgs = {
+  productId?: Maybe<Scalars["Float"]>;
+};
+
+export type GetReportsByCreatedById = {
+  id: Scalars["ID"];
+};
+
+export type GetUnitsByCreatedById = {
+  id: Scalars["ID"];
+};
+
+export type GetUnitsByProductIdArgs = {
+  productId: Scalars["ID"];
+};
+
+export type GetUnitsByUpdatedById = {
+  id: Scalars["ID"];
+};
+
+export type GetUserInput = {
+  id: Scalars["ID"];
+};
+
 export type Meal = {
   __typename?: "Meal";
   id: Scalars["ID"];
@@ -69,9 +131,19 @@ export type Meal = {
   updatedBy?: Maybe<User>;
 };
 
+export type MealEntriesArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
 export type MealInput = {
   name: Scalars["String"];
   date: Scalars["DateTime"];
+};
+
+export type MealsWithCount = {
+  __typename?: "MealsWithCount";
+  items: Array<Meal>;
+  count: Scalars["Float"];
 };
 
 export type MeInput = {
@@ -84,13 +156,13 @@ export type Mutation = {
   removeEntry: Scalars["Boolean"];
   addMeal: Meal;
   removeMeal: Scalars["Boolean"];
-  addProduct: Product;
-  deleteProduct: Scalars["Boolean"];
-  updateProduct: Scalars["Boolean"];
   setReportStatus: Scalars["Boolean"];
   reportProduct: Scalars["Boolean"];
   addUnit: Unit;
   removeUnit: Scalars["Boolean"];
+  addProduct: Product;
+  deleteProduct: Scalars["Boolean"];
+  updateProduct: Scalars["Boolean"];
   updateMe: Scalars["Boolean"];
   updateUser: Scalars["Boolean"];
 };
@@ -111,18 +183,6 @@ export type MutationRemoveMealArgs = {
   data: RemoveMealInput;
 };
 
-export type MutationAddProductArgs = {
-  data: AddProductInput;
-};
-
-export type MutationDeleteProductArgs = {
-  data: DeleteProductInput;
-};
-
-export type MutationUpdateProductArgs = {
-  data: UpdateProductInput;
-};
-
 export type MutationSetReportStatusArgs = {
   data: ValidateReportInput;
 };
@@ -139,12 +199,29 @@ export type MutationRemoveUnitArgs = {
   data: RemoveUnitInput;
 };
 
+export type MutationAddProductArgs = {
+  data: AddProductInput;
+};
+
+export type MutationDeleteProductArgs = {
+  data: DeleteProductInput;
+};
+
+export type MutationUpdateProductArgs = {
+  data: UpdateProductInput;
+};
+
 export type MutationUpdateMeArgs = {
   data: UpdateMeInput;
 };
 
 export type MutationUpdateUserArgs = {
   data: UpdateUserInput;
+};
+
+export type PaginationInput = {
+  skip?: Maybe<Scalars["Int"]>;
+  take?: Maybe<Scalars["Int"]>;
 };
 
 export type Product = {
@@ -163,8 +240,26 @@ export type Product = {
   updatedBy?: Maybe<User>;
 };
 
+export type ProductUnitsArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
+export type ProductEntriesArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
+export type ProductReportsArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
 export type ProductInput = {
   name: Scalars["String"];
+};
+
+export type ProductsWithCount = {
+  __typename?: "ProductsWithCount";
+  count: Scalars["Float"];
+  items: Array<Product>;
 };
 
 export enum Provider {
@@ -173,87 +268,102 @@ export enum Provider {
 
 export type Query = {
   __typename?: "Query";
-  getEntriesByMealId: Array<Entry>;
-  getEntriesByCreatedById: Array<Entry>;
-  getEntriesByUpdatedById: Array<Entry>;
+  getMyEntriesByMealId: EntriesWithCount;
+  getEntriesByCreatedById: EntriesWithCount;
+  getEntriesByUpdatedById: EntriesWithCount;
   getMealsByDate: Array<Meal>;
-  getMealsByCreatedById: Array<Meal>;
-  getMealsByUpdatedById: Array<Meal>;
-  searchProducts: Array<Product>;
-  getProductsByCreatedById: Array<Product>;
-  getProductsByUpdatedById: Array<Product>;
-  getReports: Report;
-  getReportsByCreatedById: Array<Report>;
-  getUnitsByProductId: Array<Unit>;
-  getUnitsByCreatedById: Array<Unit>;
-  getUnitsByUpdatedById: Array<Unit>;
+  getMealsByCreatedById: MealsWithCount;
+  getMealsByUpdatedById: MealsWithCount;
+  getReports: ReportsWithCount;
+  getReportsByCreatedById: ReportsWithCount;
+  getUnitsByProductId: UnitsWithCount;
+  getUnitsByCreatedById: UnitsWithCount;
+  getUnitsByUpdatedById: UnitsWithCount;
+  searchProducts: ProductsWithCount;
+  getProductsByCreatedById: ProductsWithCount;
+  getProductsByUpdatedById: ProductsWithCount;
   me?: Maybe<User>;
-  searchUser: Array<User>;
+  searchUser: UsersWithCount;
   getUserById: User;
 };
 
-export type QueryGetEntriesByMealIdArgs = {
-  mealId: Scalars["ID"];
+export type QueryGetMyEntriesByMealIdArgs = {
+  pagination?: Maybe<PaginationInput>;
+  data: GetEntriesByMealId;
 };
 
 export type QueryGetEntriesByCreatedByIdArgs = {
-  id: Scalars["ID"];
+  pagination?: Maybe<PaginationInput>;
+  data: GetEntriesByCreatedById;
 };
 
 export type QueryGetEntriesByUpdatedByIdArgs = {
-  id: Scalars["ID"];
+  pagination?: Maybe<PaginationInput>;
+  data: GetEntriesByUpdatedById;
 };
 
 export type QueryGetMealsByDateArgs = {
-  date: Scalars["DateTime"];
+  pagination?: Maybe<PaginationInput>;
+  data: GetMealByDateArgs;
 };
 
 export type QueryGetMealsByCreatedByIdArgs = {
-  id: Scalars["ID"];
+  pagination?: Maybe<PaginationInput>;
+  data: GetMealsByCreatedById;
 };
 
 export type QueryGetMealsByUpdatedByIdArgs = {
-  id: Scalars["ID"];
-};
-
-export type QuerySearchProductsArgs = {
-  name: Scalars["String"];
-};
-
-export type QueryGetProductsByCreatedByIdArgs = {
-  id: Scalars["ID"];
-};
-
-export type QueryGetProductsByUpdatedByIdArgs = {
-  id: Scalars["ID"];
+  pagination?: Maybe<PaginationInput>;
+  data: GetMealsByUpdatedById;
 };
 
 export type QueryGetReportsArgs = {
-  productId?: Maybe<Scalars["Float"]>;
+  pagination?: Maybe<PaginationInput>;
+  data: GetReportArgs;
 };
 
 export type QueryGetReportsByCreatedByIdArgs = {
-  id: Scalars["ID"];
+  pagination?: Maybe<PaginationInput>;
+  data: GetReportsByCreatedById;
 };
 
 export type QueryGetUnitsByProductIdArgs = {
-  productId: Scalars["ID"];
+  pagination?: Maybe<PaginationInput>;
+  data: GetUnitsByProductIdArgs;
 };
 
 export type QueryGetUnitsByCreatedByIdArgs = {
-  id: Scalars["ID"];
+  pagination?: Maybe<PaginationInput>;
+  data: GetUnitsByCreatedById;
 };
 
 export type QueryGetUnitsByUpdatedByIdArgs = {
-  id: Scalars["ID"];
+  pagination?: Maybe<PaginationInput>;
+  data: GetUnitsByUpdatedById;
+};
+
+export type QuerySearchProductsArgs = {
+  pagination?: Maybe<PaginationInput>;
+  data: SearchProductsInput;
+};
+
+export type QueryGetProductsByCreatedByIdArgs = {
+  pagination?: Maybe<PaginationInput>;
+  data: GetProductsByCreatedById;
+};
+
+export type QueryGetProductsByUpdatedByIdArgs = {
+  pagination?: Maybe<PaginationInput>;
+  data: GetProductsByUpdatedById;
 };
 
 export type QuerySearchUserArgs = {
-  email: Scalars["String"];
+  pagination?: Maybe<PaginationInput>;
+  data: SearchUserInput;
 };
 
 export type QueryGetUserByIdArgs = {
-  id: Scalars["ID"];
+  data: GetUserInput;
 };
 
 export type RemoveEntryInput = {
@@ -299,10 +409,24 @@ export enum ReportStatus {
   Closed = "CLOSED"
 }
 
+export type ReportsWithCount = {
+  __typename?: "ReportsWithCount";
+  items: Array<Report>;
+  count: Scalars["Float"];
+};
+
 export enum Role {
   User = "USER",
   Admin = "ADMIN"
 }
+
+export type SearchProductsInput = {
+  name: Scalars["String"];
+};
+
+export type SearchUserInput = {
+  email: Scalars["String"];
+};
 
 export enum Status {
   Ok = "OK",
@@ -326,6 +450,12 @@ export type Unit = {
 export type UnitInput = {
   name: Scalars["String"];
   energy: Scalars["Float"];
+};
+
+export type UnitsWithCount = {
+  __typename?: "UnitsWithCount";
+  items: Array<Unit>;
+  count: Scalars["Float"];
 };
 
 export type UpdateMeInput = {
@@ -352,21 +482,27 @@ export type User = {
   createdAt: Scalars["DateTime"];
   updatedAt: Scalars["DateTime"];
   status: Status;
-  createdEntries?: Maybe<Array<Maybe<Entry>>>;
-  updatedEntries?: Maybe<Array<Maybe<Entry>>>;
-  createdMeals?: Maybe<Array<Maybe<Meal>>>;
-  updatedMeals?: Maybe<Array<Maybe<Meal>>>;
-  createdProducts?: Maybe<Array<Maybe<Product>>>;
-  updatedProducts?: Maybe<Array<Maybe<Product>>>;
-  createdReports?: Maybe<Array<Maybe<Report>>>;
-  createdUnits?: Maybe<Array<Maybe<Unit>>>;
-  updatedUnits?: Maybe<Array<Maybe<Unit>>>;
+  createdEntries?: Maybe<EntriesWithCount>;
+  updatedEntries?: Maybe<EntriesWithCount>;
+  createdMeals?: Maybe<MealsWithCount>;
+  updatedMeals?: Maybe<MealsWithCount>;
+  createdProducts?: Maybe<ProductsWithCount>;
+  updatedProducts?: Maybe<ProductsWithCount>;
+  createdReports?: Maybe<ReportsWithCount>;
+  createdUnits?: Maybe<UnitsWithCount>;
+  updatedUnits?: Maybe<UnitsWithCount>;
 };
 
 export type UserInput = {
   displayName: Scalars["String"];
   status: Status;
   role: Role;
+};
+
+export type UsersWithCount = {
+  __typename?: "UsersWithCount";
+  items: Array<User>;
+  count: Scalars["Float"];
 };
 
 export type ValidateReportInput = {
@@ -384,24 +520,57 @@ export type MeQuery = { __typename?: "Query" } & {
   >;
 };
 
+export type SearchProductsQueryVariables = {
+  name: Scalars["String"];
+};
+
+export type SearchProductsQuery = { __typename?: "Query" } & {
+  searchProducts: { __typename?: "ProductsWithCount" } & Pick<
+    ProductsWithCount,
+    "count"
+  > & {
+      items: Array<
+        { __typename?: "Product" } & Pick<
+          Product,
+          "id" | "name" | "createdAt" | "updatedAt"
+        > & {
+            createdBy: Maybe<
+              { __typename?: "User" } & Pick<User, "id" | "displayName">
+            >;
+            updatedBy: Maybe<
+              { __typename?: "User" } & Pick<User, "id" | "displayName">
+            >;
+            reports: Maybe<
+              Array<{ __typename?: "Report" } & Pick<Report, "id">>
+            >;
+          }
+      >;
+    };
+};
+
 export type SearchUserQueryVariables = {
   email: Scalars["String"];
 };
 
 export type SearchUserQuery = { __typename?: "Query" } & {
-  searchUser: Array<
-    { __typename?: "User" } & Pick<
-      User,
-      | "id"
-      | "email"
-      | "displayName"
-      | "role"
-      | "provider"
-      | "status"
-      | "createdAt"
-      | "updatedAt"
-    >
-  >;
+  searchUser: { __typename?: "UsersWithCount" } & Pick<
+    UsersWithCount,
+    "count"
+  > & {
+      items: Array<
+        { __typename?: "User" } & Pick<
+          User,
+          | "id"
+          | "email"
+          | "displayName"
+          | "role"
+          | "provider"
+          | "status"
+          | "createdAt"
+          | "updatedAt"
+        >
+      >;
+    };
 };
 
 export const MeDocument = gql`
@@ -445,17 +614,81 @@ export function withMe<TProps, TChildProps = {}>(
     ...operationOptions
   });
 }
+export const SearchProductsDocument = gql`
+  query searchProducts($name: String!) {
+    searchProducts(data: { name: $name }) {
+      count
+      items {
+        id
+        name
+        createdAt
+        createdBy {
+          id
+          displayName
+        }
+        updatedAt
+        updatedBy {
+          id
+          displayName
+        }
+        reports {
+          id
+        }
+      }
+    }
+  }
+`;
+export type SearchProductsComponentProps = Omit<
+  ReactApollo.QueryProps<SearchProductsQuery, SearchProductsQueryVariables>,
+  "query"
+> &
+  ({ variables: SearchProductsQueryVariables; skip?: false } | { skip: true });
+
+export const SearchProductsComponent = (
+  props: SearchProductsComponentProps
+) => (
+  <ReactApollo.Query<SearchProductsQuery, SearchProductsQueryVariables>
+    query={SearchProductsDocument}
+    {...props}
+  />
+);
+
+export type SearchProductsProps<TChildProps = {}> = Partial<
+  ReactApollo.DataProps<SearchProductsQuery, SearchProductsQueryVariables>
+> &
+  TChildProps;
+export function withSearchProducts<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    SearchProductsQuery,
+    SearchProductsQueryVariables,
+    SearchProductsProps<TChildProps>
+  >
+) {
+  return ReactApollo.withQuery<
+    TProps,
+    SearchProductsQuery,
+    SearchProductsQueryVariables,
+    SearchProductsProps<TChildProps>
+  >(SearchProductsDocument, {
+    alias: "withSearchProducts",
+    ...operationOptions
+  });
+}
 export const SearchUserDocument = gql`
   query searchUser($email: String!) {
-    searchUser(email: $email) {
-      id
-      email
-      displayName
-      role
-      provider
-      status
-      createdAt
-      updatedAt
+    searchUser(data: { email: $email }) {
+      count
+      items {
+        id
+        email
+        displayName
+        role
+        provider
+        status
+        createdAt
+        updatedAt
+      }
     }
   }
 `;
