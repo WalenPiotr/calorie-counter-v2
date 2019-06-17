@@ -28,11 +28,9 @@ export class Product extends BaseEntity {
   @MaxLength(20)
   name: string;
 
-  @Field(() => [Unit])
   @OneToMany(() => Unit, u => u.product)
   units: Unit[];
 
-  @Field(() => [Entry])
   @OneToMany(() => Entry, e => e.product)
   entries: Entry[];
 
@@ -52,7 +50,6 @@ export class Product extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Field(() => [Report], { nullable: true })
   @OneToMany(() => Report, r => r.product)
   reports: Report[];
 }

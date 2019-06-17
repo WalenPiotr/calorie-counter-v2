@@ -21,7 +21,6 @@ export class Meal extends BaseEntity {
   @Column({ unique: true })
   name: string;
 
-  @Field(() => [Entry])
   @ManyToOne(() => Entry, e => e.meal)
   entries: Entry[];
 
