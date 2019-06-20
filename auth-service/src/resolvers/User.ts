@@ -1,4 +1,3 @@
-import { transformAndValidate } from "class-transformer-validator";
 import { Max, Min } from "class-validator";
 import {
   Arg,
@@ -13,6 +12,7 @@ import {
   Resolver,
 } from "type-graphql";
 import { Role, Status, User } from "../entity/User";
+import { transformValidate } from "../helpers/validate";
 
 @InputType()
 class SearchUserInput implements Partial<User> {
@@ -77,7 +77,7 @@ export class UserResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UsersWithCount> {
     const { take, skip } = pagination
-      ? await transformAndValidate(PaginationInput, pagination)
+      ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const [items, count] = await User.createQueryBuilder()
       .where("LOWER(email) LIKE LOWER(:email)", {
@@ -100,7 +100,7 @@ export class UserResolver {
   @Authorized([Role.ADMIN])
   async updateUser(@Arg("data") input: UpdateUserInput): Promise<Boolean> {
     await User.findOneOrFail({ id: input.id });
-    await transformAndValidate(User, input.user);
+    await transformValidate(User, input.user);
     await User.update({ id: input.id }, { ...input.user });
     return true;
   }

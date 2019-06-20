@@ -1,4 +1,3 @@
-import { transformAndValidate } from "class-transformer-validator";
 import {
   Arg,
   Authorized,
@@ -18,6 +17,7 @@ import { Meal } from "../entity/Meal";
 import { Product } from "../entity/Product";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
+import { transformValidate } from "../helpers/validate";
 
 @ObjectType()
 export class EntriesWithCount implements ListWithCount<Entry> {
@@ -80,7 +80,7 @@ export class EntryResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<EntriesWithCount> {
     const { take, skip } = pagination
-      ? await transformAndValidate(PaginationInput, pagination)
+      ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const { mealId } = data;
     const userId = ctx.req.session!.passport.user.id;
@@ -105,7 +105,7 @@ export class EntryResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<EntriesWithCount> {
     const { take, skip } = pagination
-      ? await transformAndValidate(PaginationInput, pagination)
+      ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const [items, count] = await Entry.findAndCount({
       where: { createdById: data.id },
@@ -123,7 +123,7 @@ export class EntryResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<EntriesWithCount> {
     const { take, skip } = pagination
-      ? await transformAndValidate(PaginationInput, pagination)
+      ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const [items, count] = await Entry.findAndCount({
       where: { createdById: data.id },
@@ -153,7 +153,7 @@ export class EntryResolver {
         id: newEntry.productId,
       },
     };
-    await transformAndValidate(Entry, entry);
+    await transformValidate(Entry, entry);
     return Entry.create(entry).save();
   }
 

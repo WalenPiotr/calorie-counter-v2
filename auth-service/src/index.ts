@@ -41,7 +41,7 @@ const main = async () => {
   const schema = await buildSchema({
     resolvers: [UserResolver, MeResolver],
     authChecker: authChecker,
-    validate: true,
+    validate: false,
   });
 
   const apolloServer = new ApolloServer({

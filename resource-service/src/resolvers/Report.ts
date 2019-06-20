@@ -1,4 +1,3 @@
-import { transformAndValidate } from "class-transformer-validator";
 import {
   Arg,
   Authorized,
@@ -18,6 +17,7 @@ import { Report, ReportReason, ReportStatus } from "../entity/Report";
 import { Role } from "../helpers/authChecker";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
+import { transformValidate } from "../helpers/validate";
 
 @ObjectType()
 export class ReportsWithCount implements ListWithCount<Report> {
@@ -70,7 +70,7 @@ export class ReportResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<ReportsWithCount> {
     const { take, skip } = pagination
-      ? await transformAndValidate(PaginationInput, pagination)
+      ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const [items, count] = await Report.findAndCount({
       where: {
@@ -94,7 +94,7 @@ export class ReportResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<ReportsWithCount> {
     const { take, skip } = pagination
-      ? await transformAndValidate(PaginationInput, pagination)
+      ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const [items, count] = await Report.findAndCount({
       where: { createdById: data.id },
@@ -132,7 +132,7 @@ export class ReportResolver {
       createdById: userId,
       status: ReportStatus.OPEN,
     };
-    await transformAndValidate(Report, report);
+    await transformValidate(Report, report);
     await Report.create(report).save();
     return true;
   }

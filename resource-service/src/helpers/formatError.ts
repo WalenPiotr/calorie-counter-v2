@@ -18,6 +18,7 @@ export const formatError = (error: GraphQLError): GraphQLFormattedError => {
       path,
     };
   }
+
   if (error.originalError instanceof UnauthorizedError) {
     const { extensions, locations, message, path } = error;
     error.extensions!.code = "AUTHENTICATION_FAILED";

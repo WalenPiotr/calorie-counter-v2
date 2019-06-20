@@ -1,0 +1,45 @@
+{
+  "PaginationInput": {
+    "properties": {
+      "skip": { "minimum": 0, "type": "number" },
+      "take": { "maximum": 50, "type": "number", "minimum": 1 }
+    },
+    "type": "object",
+    "required": ["skip", "take"]
+  },
+  "Unit": {
+    "properties": {
+      "name": { "maxLength": 20, "type": "string", "minLength": 1 },
+      "energy": { "exclusiveMinimum": true, "minimum": 0, "type": "number" }
+    },
+    "type": "object",
+    "required": ["name", "energy"]
+  },
+  "Product": {
+    "properties": {
+      "name": { "maxLength": 20, "type": "string", "minLength": 3 }
+    },
+    "type": "object",
+    "required": ["name"]
+  },
+  "UnitInput": {
+    "properties": {
+      "name": { "type": "string", "maxLength": 20, "minLength": 1 },
+      "energy": { "type": "number", "exclusiveMinimum": true, "minimum": 0 }
+    },
+    "type": "object",
+    "required": ["name", "energy"]
+  },
+  "ProductInput": {
+    "properties": {
+      "name": { "maxLength": 20, "type": "string", "minLength": 3 }
+    },
+    "type": "object",
+    "required": ["name"]
+  },
+  "AddProductWithUnitsInput": {
+    "properties": { "newProduct": { "$ref": "#/definitions/ProductInput" } },
+    "type": "object",
+    "required": ["newProduct"]
+  }
+}

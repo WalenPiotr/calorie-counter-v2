@@ -11,9 +11,11 @@ import {
   MethodAndPropDecorator,
 } from "type-graphql/dist/decorators/types";
 
-// class ValidateInputOptions {
-//   nullable?: boolean = false;
-// }
+import {
+  transformAndValidate,
+  TransformValidationOptions,
+} from "class-transformer-validator";
+import { ClassType } from "class-transformer/ClassTransformer";
 
 export function ValidateInput<T>(field: string, clz: new (obj?: any) => T) {
   return createMethodDecorator(async ({ args }, next) => {
@@ -43,4 +45,16 @@ export function NestedField(
     validateNestedFn(target, propertyKey as string);
   };
   return func as MethodAndPropDecorator;
+}
+
+export async function transformValidate<T extends object>(
+  clz: ClassType<T>,
+  obj: Object,
+  options?: TransformValidationOptions,
+): Promise<T> {
+  try {
+    return await transformAndValidate(clz, obj, options);
+  } catch (e) {
+    throw new ArgumentValidationError(e);
+  }
 }

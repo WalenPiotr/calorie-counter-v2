@@ -1,4 +1,3 @@
-import { transformAndValidate } from "class-transformer-validator";
 import {
   Arg,
   Authorized,
@@ -18,6 +17,14 @@ import { Unit } from "../entity/Unit";
 import { Role } from "../helpers/authChecker";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
+import { transformValidate } from "../helpers/validate";
+import {
+  MinLength,
+  MaxLength,
+  IsPositive,
+  IsNumber,
+  IsString,
+} from "class-validator";
 
 @ObjectType()
 export class UnitsWithCount implements ListWithCount<Unit> {
@@ -29,11 +36,16 @@ export class UnitsWithCount implements ListWithCount<Unit> {
 }
 
 @InputType()
-class UnitInput {
+export class UnitInput {
   @Field()
+  @MinLength(1)
+  @MaxLength(20)
+  @IsString()
   name: string;
 
   @Field()
+  @IsPositive()
+  @IsNumber()
   energy: number;
 }
 
@@ -79,7 +91,7 @@ export class UnitResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UnitsWithCount> {
     const { take, skip } = pagination
-      ? await transformAndValidate(PaginationInput, pagination)
+      ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const { productId } = data;
     const [items, count] = await Unit.findAndCount({
@@ -101,7 +113,7 @@ export class UnitResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UnitsWithCount> {
     const { take, skip } = pagination
-      ? await transformAndValidate(PaginationInput, pagination)
+      ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const [items, count] = await Unit.findAndCount({
       where: { createdById: data.id },
@@ -120,7 +132,7 @@ export class UnitResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<UnitsWithCount> {
     const { take, skip } = pagination
-      ? await transformAndValidate(PaginationInput, pagination)
+      ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const [items, count] = await Unit.findAndCount({
       where: { updatedById: data.id },
@@ -149,7 +161,7 @@ export class UnitResolver {
         id: productId,
       },
     };
-    await transformAndValidate(Unit, unit);
+    await transformValidate(Unit, unit);
     return Unit.create(unit).save();
   }
 

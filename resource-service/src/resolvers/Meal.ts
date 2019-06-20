@@ -1,4 +1,3 @@
-import { transformAndValidate } from "class-transformer-validator";
 import {
   Arg,
   Authorized,
@@ -18,6 +17,7 @@ import { Meal } from "../entity/Meal";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
 import { EntriesWithCount } from "./Entry";
+import { transformValidate } from "../helpers/validate";
 
 @ObjectType()
 class MealsWithCount implements ListWithCount<Meal> {
@@ -95,7 +95,7 @@ export class MealResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<MealsWithCount> {
     const { take, skip } = pagination
-      ? await transformAndValidate(PaginationInput, pagination)
+      ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const [items, count] = await Meal.findAndCount({
       where: { createdById: data.id },
@@ -115,7 +115,7 @@ export class MealResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<MealsWithCount> {
     const { take, skip } = pagination
-      ? await transformAndValidate(PaginationInput, pagination)
+      ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const [items, count] = await Meal.findAndCount({
       where: { createdById: data.id },
@@ -141,7 +141,7 @@ export class MealResolver {
       createdById: userId,
       updatedById: userId,
     };
-    await transformAndValidate(Meal, meal);
+    await transformValidate(Meal, meal);
     return Meal.create(meal).save();
   }
 
@@ -164,7 +164,7 @@ export class MealResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<EntriesWithCount> {
     const { take, skip } = pagination
-      ? await transformAndValidate(PaginationInput, pagination)
+      ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const [items, count] = await Entry.findAndCount({
       where: {

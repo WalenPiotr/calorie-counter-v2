@@ -10,7 +10,7 @@ import {
 } from "type-graphql";
 import { User } from "../entity/User";
 import { ContextType } from "../types/ContextType";
-import { transformAndValidate } from "class-transformer-validator";
+import { transformValidate } from "../helpers/validate";
 
 @InputType()
 class MeInput {
@@ -47,7 +47,7 @@ export class MeResolver {
   ): Promise<Boolean> {
     const userId = ctx.req.session!.passport.user.id;
     await User.findOneOrFail({ id: userId });
-    await transformAndValidate(User, input.me);
+    await transformValidate(User, input.me);
     await User.update({ id: userId }, { ...input.me });
     return true;
   }
