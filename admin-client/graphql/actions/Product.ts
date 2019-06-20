@@ -1,8 +1,11 @@
 import { gql } from "apollo-boost";
 
 export const searchProducts = gql`
-  query searchProducts($name: String!) {
-    searchProducts(data: { name: $name }) {
+  query searchProducts($name: String!, $skip: Int, $take: Int) {
+    searchProducts(
+      data: { name: $name }
+      pagination: { take: $take, skip: $skip }
+    ) {
       count
       items {
         id
@@ -18,7 +21,7 @@ export const searchProducts = gql`
           displayName
         }
         reports {
-          id
+          count
         }
       }
     }

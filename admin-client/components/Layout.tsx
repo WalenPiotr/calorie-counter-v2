@@ -178,6 +178,11 @@ const links: { text: string; href: string; icon: React.ReactNode }[][] = [
       href: "/user",
       icon: <InboxIcon />,
     },
+    {
+      text: "Product",
+      href: "/product",
+      icon: <InboxIcon />,
+    },
   ],
 ];
 
@@ -219,8 +224,8 @@ const LayoutDrawer = ({ isOpen, close, isLoggedIn }: LayoutDrawerProps) => (
         {isLoggedIn ? (
           <>
             {links.map((group, index) => (
-              <>
-                <List key={"list" + index}>
+              <React.Fragment key={index}>
+                <List>
                   {group.map(link => (
                     <ListItem
                       button
@@ -235,7 +240,7 @@ const LayoutDrawer = ({ isOpen, close, isLoggedIn }: LayoutDrawerProps) => (
                   ))}
                 </List>
                 {links.length > 1 ? <Divider key={"divider" + index} /> : null}
-              </>
+              </React.Fragment>
             ))}
           </>
         ) : null}

@@ -121,12 +121,12 @@ export type Meal = {
   __typename?: "Meal";
   id: Scalars["ID"];
   name: Scalars["String"];
-  entries: Array<Entry>;
   date: Scalars["DateTime"];
   createdById: Scalars["ID"];
   createdAt: Scalars["DateTime"];
   updatedById: Scalars["ID"];
   updatedAt?: Maybe<Scalars["DateTime"]>;
+  entries: EntriesWithCount;
   createdBy?: Maybe<User>;
   updatedBy?: Maybe<User>;
 };
@@ -228,13 +228,13 @@ export type Product = {
   __typename?: "Product";
   id: Scalars["ID"];
   name: Scalars["String"];
-  units: Array<Unit>;
-  entries: Array<Entry>;
   createdById: Scalars["ID"];
   createdAt: Scalars["DateTime"];
   updatedById: Scalars["ID"];
   updatedAt?: Maybe<Scalars["DateTime"]>;
-  reports?: Maybe<Array<Report>>;
+  units: UnitsWithCount;
+  reports: ReportsWithCount;
+  entries: EntriesWithCount;
   hasBeenReportedByMe: Scalars["Boolean"];
   createdBy?: Maybe<User>;
   updatedBy?: Maybe<User>;
@@ -244,11 +244,11 @@ export type ProductUnitsArgs = {
   pagination?: Maybe<PaginationInput>;
 };
 
-export type ProductEntriesArgs = {
+export type ProductReportsArgs = {
   pagination?: Maybe<PaginationInput>;
 };
 
-export type ProductReportsArgs = {
+export type ProductEntriesArgs = {
   pagination?: Maybe<PaginationInput>;
 };
 
@@ -522,6 +522,8 @@ export type MeQuery = { __typename?: "Query" } & {
 
 export type SearchProductsQueryVariables = {
   name: Scalars["String"];
+  skip?: Maybe<Scalars["Int"]>;
+  take?: Maybe<Scalars["Int"]>;
 };
 
 export type SearchProductsQuery = { __typename?: "Query" } & {
@@ -540,8 +542,9 @@ export type SearchProductsQuery = { __typename?: "Query" } & {
             updatedBy: Maybe<
               { __typename?: "User" } & Pick<User, "id" | "displayName">
             >;
-            reports: Maybe<
-              Array<{ __typename?: "Report" } & Pick<Report, "id">>
+            reports: { __typename?: "ReportsWithCount" } & Pick<
+              ReportsWithCount,
+              "count"
             >;
           }
       >;
@@ -615,8 +618,11 @@ export function withMe<TProps, TChildProps = {}>(
   });
 }
 export const SearchProductsDocument = gql`
-  query searchProducts($name: String!) {
-    searchProducts(data: { name: $name }) {
+  query searchProducts($name: String!, $skip: Int, $take: Int) {
+    searchProducts(
+      data: { name: $name }
+      pagination: { take: $take, skip: $skip }
+    ) {
       count
       items {
         id
@@ -632,7 +638,7 @@ export const SearchProductsDocument = gql`
           displayName
         }
         reports {
-          id
+          count
         }
       }
     }
