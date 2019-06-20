@@ -3,7 +3,6 @@ import { PaginationInput, ProductInput, UnitInput } from "./apollo";
 
 export class ProductInputWithValidation implements ProductInput {
   @MinLength(3)
-  @IsUppercase()
   name: string;
 }
 

@@ -12,6 +12,7 @@ import {
   ProductInputWithValidation,
   UnitInputWithValidation,
 } from "../../graphql/generated/withValidation";
+import { validate } from "class-validator";
 
 const Style = createStyle((theme: Theme) => ({
   paper: {
@@ -54,7 +55,9 @@ const Style = createStyle((theme: Theme) => ({
 
 interface UnitFormControllerPassedProps {
   unitFormValues: UnitFormValues[];
+  unitErrorValues: UnitFormError[];
   productFormValues: ProductFormValues;
+  productErrorValues: ProductFormError;
   handleUnitChange: (
     index: number,
   ) => (
@@ -80,9 +83,9 @@ class UnitFormValues {
   [key: string]: string;
 }
 class UnitFormError {
-  name: string[] | null = null;
-  energy: string[] | null = null;
-  [key: string]: string[] | null;
+  name: string[] = [];
+  energy: string[] = [];
+  [key: string]: string[];
 }
 
 class ProductFormValues {
@@ -90,12 +93,12 @@ class ProductFormValues {
   [key: string]: string;
 }
 class ProductFormError {
-  name: string[] | null = null;
-  [key: string]: string[] | null;
+  name: string[] = [];
+  [key: string]: string[];
 }
 
 class FormErrors {
-  units: UnitFormError[] = [];
+  units: UnitFormError[] = [new UnitFormError()];
   product: ProductFormError = new ProductFormError();
 }
 
@@ -106,6 +109,7 @@ class FormValues {
 
 class FormControllerState {
   values: FormValues = new FormValues();
+  errors: FormErrors = new FormErrors();
 }
 
 class FormController extends React.Component<
@@ -115,11 +119,15 @@ class FormController extends React.Component<
   static defaultProps = new FormControllerProps();
   state = new FormControllerState();
 
-  handleProductChange = (
+  async componentDidMount() {
+    this.validate();
+  }
+
+  handleProductChange = async (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     event.persist();
-    this.setState(prevState => ({
+    await this.setState(prevState => ({
       ...prevState,
       values: {
         ...prevState.values,
@@ -129,13 +137,14 @@ class FormController extends React.Component<
         },
       },
     }));
+    this.validate();
   };
 
   handleUnitChange = (index: number) => async (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     event.persist();
-    this.setState(prevState => {
+    await this.setState(prevState => {
       let unitFormValues = [...prevState.values.units];
       unitFormValues[index] = {
         ...unitFormValues[index],
@@ -149,9 +158,10 @@ class FormController extends React.Component<
         },
       };
     });
+    this.validate();
   };
-  addFormGroup = () => {
-    this.setState(prevState => {
+  addFormGroup = async () => {
+    await this.setState(prevState => {
       return {
         ...prevState,
         values: {
@@ -160,9 +170,10 @@ class FormController extends React.Component<
         },
       };
     });
+    this.validate();
   };
-  deleteFormGroup = (index: number) => () => {
-    this.setState(prevState => {
+  deleteFormGroup = (index: number) => async () => {
+    await this.setState(prevState => {
       if (prevState.values.units.length > 1) {
         let unitFormValues = [...prevState.values.units];
         unitFormValues.splice(index, 1);
@@ -176,9 +187,10 @@ class FormController extends React.Component<
       }
       return prevState;
     });
+    this.validate();
   };
 
-  validate = async (): Promise<FormErrors> => {
+  validate = async () => {
     let errors = new FormErrors();
     errors.units = this.state.values.units.map(_ => new UnitFormError());
     try {
@@ -211,17 +223,15 @@ class FormController extends React.Component<
         }
       }
     }
-    return errors;
+    this.setState({ errors });
   };
   render() {
-    this.validate()
-      .then(errors => console.log())
-      .catch(err => console.error(err));
-
-    console.log(this.state);
+    console.log(this.state.errors);
     return this.props.children({
       productFormValues: this.state.values.product,
+      productErrorValues: this.state.errors.product,
       unitFormValues: this.state.values.units,
+      unitErrorValues: this.state.errors.units,
       handleProductChange: this.handleProductChange,
       handleUnitChange: this.handleUnitChange,
       addFormGroup: this.addFormGroup,
@@ -243,8 +253,10 @@ class ProductNew extends React.Component<NewProductProps> {
         <FormController>
           {({
             unitFormValues,
+            unitErrorValues,
             handleUnitChange,
             productFormValues,
+            productErrorValues,
             handleProductChange,
             addFormGroup,
             deleteFormGroup,
@@ -270,6 +282,12 @@ class ProductNew extends React.Component<NewProductProps> {
                     label="name"
                     name="name"
                     value={productFormValues.name}
+                    error={productErrorValues.name.length > 0}
+                    helperText={
+                      productErrorValues.name.length > 0
+                        ? productErrorValues.name.toString()
+                        : ""
+                    }
                     onChange={handleProductChange}
                     margin="normal"
                     variant="outlined"
@@ -316,6 +334,12 @@ class ProductNew extends React.Component<NewProductProps> {
                         variant="outlined"
                         className={classes.field}
                         onChange={handleUnitChange(i)}
+                        error={unitErrorValues[i].name.length > 0}
+                        helperText={
+                          unitErrorValues[i].name.length > 0
+                            ? unitErrorValues[i].name.toString()
+                            : ""
+                        }
                       />
                       <TextField
                         value={values.energy}
@@ -326,6 +350,12 @@ class ProductNew extends React.Component<NewProductProps> {
                         variant="outlined"
                         className={classes.field}
                         onChange={handleUnitChange(i)}
+                        error={unitErrorValues[i].energy.length > 0}
+                        helperText={
+                          unitErrorValues[i].energy.length > 0
+                            ? unitErrorValues[i].energy.toString()
+                            : ""
+                        }
                       />
                     </div>
                   ))}
