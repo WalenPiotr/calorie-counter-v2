@@ -90,6 +90,12 @@ class GetProductsByUpdatedById {
   id: number;
 }
 
+@InputType()
+class GetProductInput {
+  @Field(() => ID)
+  id: number;
+}
+
 @Resolver(Product)
 export class ProductResolver {
   @Query(() => ProductsWithCount)
@@ -107,6 +113,11 @@ export class ProductResolver {
       .skip(skip)
       .getManyAndCount();
     return { items: products, count };
+  }
+
+  @Query(() => Product)
+  async getProduct(@Arg("data") data: GetProductInput) {
+    return Product.findOneOrFail({ id: data.id });
   }
 
   @Query(() => ProductsWithCount)

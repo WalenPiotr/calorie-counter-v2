@@ -35,3 +35,7 @@ export const addProductWithUnits = gql`
     }
   }
 `
+
+export const getProduct = gql`
+  query
+`

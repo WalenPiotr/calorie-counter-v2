@@ -3,6 +3,7 @@ import { GraphQLError, GraphQLFormattedError } from "graphql";
 import "reflect-metadata";
 import { ArgumentValidationError, UnauthorizedError } from "type-graphql";
 import { QueryFailedError } from "typeorm";
+import { EntityNotFoundError } from "typeorm/error/EntityNotFoundError";
 
 export const formatError = (error: GraphQLError): GraphQLFormattedError => {
   if (error.originalError instanceof ApolloError) {
@@ -42,6 +43,18 @@ export const formatError = (error: GraphQLError): GraphQLFormattedError => {
       };
     }
   }
+
+  if (error.originalError instanceof EntityNotFoundError) {
+    const { extensions, locations, message, path } = error;
+    error.extensions!.code = "ENTITY_NOT_FOUND";
+    return {
+      extensions,
+      locations,
+      message,
+      path,
+    };
+  }
+
   error.message = "Internal Server Error";
   return error;
 };
