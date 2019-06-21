@@ -33,8 +33,8 @@ function create(initialState: any, { getToken }: Options) {
         console.log(
           `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
         );
-        if (isBrowser && message.includes("not authenticated")) {
-          Router.replace("/access-denied");
+        if (isBrowser && message.includes("Access denied")) {
+          Router.push("/access-denied");
         }
       });
     if (networkError) console.log(`[Network error]: ${networkError}`);
@@ -52,6 +52,17 @@ function create(initialState: any, { getToken }: Options) {
 
   // Check out https://github.com/zeit/next.js/pull/4611 if you want to use the AWSAppSyncClient
   return new ApolloClient({
+    defaultOptions: {
+      watchQuery: {
+        errorPolicy: "all",
+      },
+      query: {
+        errorPolicy: "all",
+      },
+      mutate: {
+        errorPolicy: "all",
+      },
+    },
     connectToDevTools: isBrowser,
     ssrMode: !isBrowser, // Disables forceFetch on the server (so queries are only run once)
     link: errorLink.concat(authLink.concat(httpLink)),

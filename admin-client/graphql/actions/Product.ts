@@ -27,3 +27,11 @@ export const searchProducts = gql`
     }
   }
 `;
+
+export const addProductWithUnits = gql`
+  mutation addProductWithUnits($newUnits: [UnitInput!]!, $newProduct: ProductInput!) {
+    addProductWithUnits(data: {newUnits: $newUnits, newProduct: $newProduct}) {
+      id
+    }
+  }
+`

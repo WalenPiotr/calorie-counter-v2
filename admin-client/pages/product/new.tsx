@@ -12,7 +12,10 @@ import {
   ProductInputWithValidation,
   UnitInputWithValidation,
 } from "../../graphql/generated/withValidation";
-import { validate } from "class-validator";
+import { validate, validateSync } from "class-validator";
+import { plainToClassFromExist, plainToClass } from "class-transformer";
+import { AddProductWithUnitsComponent } from "../../graphql/generated/apollo";
+import { Router } from "../../dist/routes";
 
 const Style = createStyle((theme: Theme) => ({
   paper: {
@@ -71,10 +74,15 @@ interface UnitFormControllerPassedProps {
   isDeleteButtonDisabled: boolean;
   isAddUnitButtonDisabled: boolean;
   isSubmitButtonDisabled: boolean;
+  handleSubmit: () => void;
 }
 
 class FormControllerProps {
   maxUnits: number = 5;
+  handleSubmit: (
+    values: FormValues,
+    setErrors: (errors: Partial<FormErrors>) => void,
+  ) => void;
   children!: (props: UnitFormControllerPassedProps) => React.ReactNode;
 }
 class UnitFormValues {
@@ -112,7 +120,7 @@ class FormControllerState {
   errors: FormErrors = new FormErrors();
 }
 
-class FormController extends React.Component<
+class FormController extends React.PureComponent<
   FormControllerProps,
   FormControllerState
 > {
@@ -120,24 +128,30 @@ class FormController extends React.Component<
   state = new FormControllerState();
 
   async componentDidMount() {
-    this.validate();
+    this.setState(prevState => {
+      const errors = this.validate(prevState.values);
+      return { ...prevState, errors };
+    });
   }
-
   handleProductChange = async (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     event.persist();
-    await this.setState(prevState => ({
-      ...prevState,
-      values: {
+    await this.setState(prevState => {
+      const values = {
         ...prevState.values,
         product: {
           ...prevState.values.product,
           [event.target.name]: event.target.value,
         },
-      },
-    }));
-    this.validate();
+      };
+      const errors = this.validate(values);
+      return {
+        ...prevState,
+        errors,
+        values,
+      };
+    });
   };
 
   handleUnitChange = (index: number) => async (
@@ -150,83 +164,110 @@ class FormController extends React.Component<
         ...unitFormValues[index],
         [event.target.name]: event.target.value,
       };
+      const values = {
+        ...prevState.values,
+        units: unitFormValues,
+      };
+      const errors = this.validate(values);
       return {
         ...prevState,
-        values: {
-          ...prevState.values,
-          units: unitFormValues,
-        },
+        values,
+        errors,
       };
     });
-    this.validate();
   };
   addFormGroup = async () => {
     await this.setState(prevState => {
+      const values = {
+        ...prevState.values,
+        units: [...prevState.values.units, new UnitFormValues()],
+      };
+      const errors = this.validate(values);
       return {
         ...prevState,
-        values: {
-          ...prevState.values,
-          units: [...prevState.values.units, new UnitFormValues()],
-        },
+        values,
+        errors,
       };
     });
-    this.validate();
   };
   deleteFormGroup = (index: number) => async () => {
     await this.setState(prevState => {
       if (prevState.values.units.length > 1) {
         let unitFormValues = [...prevState.values.units];
         unitFormValues.splice(index, 1);
+        const values = {
+          ...prevState.values,
+          units: unitFormValues,
+        };
+        const errors = this.validate(values);
         return {
           ...prevState,
-          values: {
-            ...prevState.values,
-            units: unitFormValues,
-          },
+          values,
+          errors,
         };
       }
       return prevState;
     });
-    this.validate();
   };
 
-  validate = async () => {
+  validate = (values: FormValues): FormErrors => {
     let errors = new FormErrors();
-    errors.units = this.state.values.units.map(_ => new UnitFormError());
-    try {
-      await transformAndValidate(
-        ProductInputWithValidation,
-        this.state.values.product,
+    errors.units = values.units.map(_ => new UnitFormError());
+    const err = validateSync(
+      plainToClass(ProductInputWithValidation, values.product),
+    );
+    for (const e of err) {
+      errors.product[e.property] = Object.entries(e.constraints).map(
+        ([k, v]) => v as string,
       );
-    } catch (err) {
-      for (const e of err) {
-        errors.product[e.property] = Object.entries(e.constraints).map(
-          ([k, v]) => v as string,
-        );
-      }
     }
-
-    for (const [index, unitFormValue] of this.state.values.units.entries()) {
-      console.log(index);
-
+    for (const [index, unitFormValue] of values.units.entries()) {
       const obj = {
         name: unitFormValue.name,
         energy: parseFloat(unitFormValue.energy),
       };
-      try {
-        await transformAndValidate(UnitInputWithValidation, obj);
-      } catch (err) {
-        for (const e of err) {
-          errors.units[index][e.property] = Object.entries(e.constraints).map(
-            ([k, v]) => v as string,
-          );
+      const err = validateSync(plainToClass(UnitInputWithValidation, obj));
+      for (const e of err) {
+        errors.units[index][e.property] = Object.entries(e.constraints).map(
+          ([k, v]) => v as string,
+        );
+      }
+    }
+    return errors;
+  };
+
+  setErrors = (errors: Partial<FormErrors>) => {
+    this.setState(prevState => ({
+      ...prevState,
+      errors: { ...prevState.errors, ...errors },
+    }));
+  };
+
+  handleSubmit = () => {
+    if (this.areValuesValid()) {
+      this.props.handleSubmit(this.state.values, this.setErrors);
+    }
+  };
+
+  areValuesValid = (): boolean => {
+    for (const e of Object.entries(this.state.errors.product)) {
+      const [_, v] = e;
+      if (v.length > 0) {
+        return false;
+      }
+    }
+    for (const unitErrors of this.state.errors.units) {
+      for (const e of Object.entries(unitErrors)) {
+        const [_, v] = e;
+        if (v.length > 0) {
+          return false;
         }
       }
     }
-    this.setState({ errors });
+    return true;
   };
+
   render() {
-    console.log(this.state.errors);
     return this.props.children({
       productFormValues: this.state.values.product,
       productErrorValues: this.state.errors.product,
@@ -239,144 +280,182 @@ class FormController extends React.Component<
       isDeleteButtonDisabled: this.state.values.units.length <= 1,
       isAddUnitButtonDisabled:
         this.state.values.units.length >= this.props.maxUnits,
-      isSubmitButtonDisabled: false,
+      isSubmitButtonDisabled: !this.areValuesValid(),
+      handleSubmit: this.handleSubmit,
     });
   }
 }
 
 class NewProductProps {}
 
-class ProductNew extends React.Component<NewProductProps> {
+class ProductNew extends React.PureComponent<NewProductProps> {
   render() {
     return (
       <Layout>
-        <FormController>
-          {({
-            unitFormValues,
-            unitErrorValues,
-            handleUnitChange,
-            productFormValues,
-            productErrorValues,
-            handleProductChange,
-            addFormGroup,
-            deleteFormGroup,
-            isDeleteButtonDisabled,
-            isAddUnitButtonDisabled,
-            isSubmitButtonDisabled,
-          }) => (
-            <Style>
-              {({ classes }) => (
-                <Paper className={classes.paper}>
-                  <Typography variant="h6" className={classes.title}>
-                    Add new product
-                  </Typography>
-                  <Divider
-                    variant="fullWidth"
-                    className={classes.mainDivider}
-                  />
-                  <Typography variant="subtitle1">
-                    Please enter product's data
-                  </Typography>
-
-                  <TextField
-                    label="name"
-                    name="name"
-                    value={productFormValues.name}
-                    error={productErrorValues.name.length > 0}
-                    helperText={
-                      productErrorValues.name.length > 0
-                        ? productErrorValues.name.toString()
-                        : ""
+        <AddProductWithUnitsComponent>
+          {(addProduct, { loading, error }) => (
+            <FormController
+              handleSubmit={async (values, setErrors) => {
+                try {
+                  const result = await addProduct({
+                    variables: {
+                      newProduct: values.product,
+                      newUnits: values.units.map(u => ({
+                        name: u.name,
+                        energy: parseFloat(u.energy),
+                      })),
+                    },
+                  });
+                  if (!loading && result && result.data) {
+                    Router.push("/product");
+                  } else if (!loading && result && result.errors) {
+                    const { errors } = result;
+                    for (const gqlErr of errors) {
+                      if (gqlErr.extensions!.code === "DUPLICATE_KEY_VALUE") {
+                        setErrors({
+                          product: {
+                            name: ["product with given name already exists"],
+                          },
+                        });
+                      }
                     }
-                    onChange={handleProductChange}
-                    margin="normal"
-                    variant="outlined"
-                    fullWidth
-                    className={classes.field}
-                  />
-                  <Divider
-                    variant="fullWidth"
-                    className={classes.mainDivider}
-                  />
-                  <div className={classes.titleGroup}>
-                    <Typography variant="subtitle1">
-                      Please enter product's units
-                    </Typography>
-                    <Button
-                      color="primary"
-                      onClick={addFormGroup}
-                      disabled={isAddUnitButtonDisabled}
-                    >
-                      Add next unit
-                    </Button>
-                  </div>
-                  {unitFormValues.map((values, i) => (
-                    <div key={i}>
+                  } else {
+                    // Router.push("/error");
+                  }
+                } catch (e) {
+                  Router.push("/error");
+                }
+              }}
+            >
+              {({
+                unitFormValues,
+                unitErrorValues,
+                handleUnitChange,
+                productFormValues,
+                productErrorValues,
+                handleProductChange,
+                addFormGroup,
+                deleteFormGroup,
+                isDeleteButtonDisabled,
+                isAddUnitButtonDisabled,
+                isSubmitButtonDisabled,
+                handleSubmit,
+              }) => (
+                <Style>
+                  {({ classes }) => (
+                    <Paper className={classes.paper}>
+                      <Typography variant="h6" className={classes.title}>
+                        Add new product
+                      </Typography>
                       <Divider
                         variant="fullWidth"
-                        className={classes.divider}
+                        className={classes.mainDivider}
                       />
-                      <div className={classes.titleGroup}>
-                        <Typography>Please enter unit's data</Typography>
-                        <Button
-                          onClick={deleteFormGroup(i)}
-                          disabled={isDeleteButtonDisabled}
-                          className={classes.deleteIcon}
-                        >
-                          Delete Unit
-                        </Button>
-                      </div>
+                      <Typography variant="subtitle1">
+                        Please enter product's data
+                      </Typography>
                       <TextField
-                        value={values.name}
                         label="name"
                         name="name"
-                        fullWidth
-                        variant="outlined"
-                        className={classes.field}
-                        onChange={handleUnitChange(i)}
-                        error={unitErrorValues[i].name.length > 0}
+                        value={productFormValues.name}
+                        error={productErrorValues.name.length > 0}
                         helperText={
-                          unitErrorValues[i].name.length > 0
-                            ? unitErrorValues[i].name.toString()
+                          productErrorValues.name.length > 0
+                            ? productErrorValues.name.toString()
                             : ""
                         }
-                      />
-                      <TextField
-                        value={values.energy}
-                        label="energy"
-                        name="energy"
-                        type="number"
-                        fullWidth
+                        onChange={handleProductChange}
+                        margin="normal"
                         variant="outlined"
+                        fullWidth
                         className={classes.field}
-                        onChange={handleUnitChange(i)}
-                        error={unitErrorValues[i].energy.length > 0}
-                        helperText={
-                          unitErrorValues[i].energy.length > 0
-                            ? unitErrorValues[i].energy.toString()
-                            : ""
-                        }
                       />
-                    </div>
-                  ))}
-                  <Divider
-                    variant="fullWidth"
-                    className={classes.mainDivider}
-                  />
-                  <Button
-                    variant="contained"
-                    size="large"
-                    color="primary"
-                    fullWidth
-                    disabled={isSubmitButtonDisabled}
-                  >
-                    Add new product
-                  </Button>
-                </Paper>
+                      <Divider
+                        variant="fullWidth"
+                        className={classes.mainDivider}
+                      />
+                      <div className={classes.titleGroup}>
+                        <Typography variant="subtitle1">
+                          Please enter product's units
+                        </Typography>
+                        <Button
+                          color="primary"
+                          onClick={addFormGroup}
+                          disabled={isAddUnitButtonDisabled}
+                        >
+                          Add next unit
+                        </Button>
+                      </div>
+                      {unitFormValues.map((values, i) => (
+                        <div key={i}>
+                          <Divider
+                            variant="fullWidth"
+                            className={classes.divider}
+                          />
+                          <div className={classes.titleGroup}>
+                            <Typography>Please enter unit's data</Typography>
+                            <Button
+                              onClick={deleteFormGroup(i)}
+                              disabled={isDeleteButtonDisabled}
+                              className={classes.deleteIcon}
+                            >
+                              Delete Unit
+                            </Button>
+                          </div>
+                          <TextField
+                            value={values.name}
+                            label="name"
+                            name="name"
+                            fullWidth
+                            variant="outlined"
+                            className={classes.field}
+                            onChange={handleUnitChange(i)}
+                            error={unitErrorValues[i].name.length > 0}
+                            helperText={
+                              unitErrorValues[i].name.length > 0
+                                ? unitErrorValues[i].name.toString()
+                                : ""
+                            }
+                          />
+                          <TextField
+                            value={values.energy}
+                            label="energy"
+                            name="energy"
+                            type="number"
+                            fullWidth
+                            variant="outlined"
+                            className={classes.field}
+                            onChange={handleUnitChange(i)}
+                            error={unitErrorValues[i].energy.length > 0}
+                            helperText={
+                              unitErrorValues[i].energy.length > 0
+                                ? unitErrorValues[i].energy.toString()
+                                : ""
+                            }
+                          />
+                        </div>
+                      ))}
+                      <Divider
+                        variant="fullWidth"
+                        className={classes.mainDivider}
+                      />
+                      <Button
+                        variant="contained"
+                        size="large"
+                        color="primary"
+                        fullWidth
+                        disabled={isSubmitButtonDisabled}
+                        onClick={handleSubmit}
+                      >
+                        Add new product
+                      </Button>
+                    </Paper>
+                  )}
+                </Style>
               )}
-            </Style>
+            </FormController>
           )}
-        </FormController>
+        </AddProductWithUnitsComponent>
       </Layout>
     );
   }

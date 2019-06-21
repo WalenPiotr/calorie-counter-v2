@@ -26,6 +26,11 @@ export type AddProductInput = {
   newProduct: ProductInput;
 };
 
+export type AddProductWithUnitsInput = {
+  newProduct: ProductInput;
+  newUnits: Array<UnitInput>;
+};
+
 export type AddUnitInput = {
   newUnit: UnitInput;
   productId: Scalars["ID"];
@@ -161,6 +166,7 @@ export type Mutation = {
   addUnit: Unit;
   removeUnit: Scalars["Boolean"];
   addProduct: Product;
+  addProductWithUnits: Product;
   deleteProduct: Scalars["Boolean"];
   updateProduct: Scalars["Boolean"];
   updateMe: Scalars["Boolean"];
@@ -201,6 +207,10 @@ export type MutationRemoveUnitArgs = {
 
 export type MutationAddProductArgs = {
   data: AddProductInput;
+};
+
+export type MutationAddProductWithUnitsArgs = {
+  data: AddProductWithUnitsInput;
 };
 
 export type MutationDeleteProductArgs = {
@@ -551,6 +561,15 @@ export type SearchProductsQuery = { __typename?: "Query" } & {
     };
 };
 
+export type AddProductWithUnitsMutationVariables = {
+  newUnits: Array<UnitInput>;
+  newProduct: ProductInput;
+};
+
+export type AddProductWithUnitsMutation = { __typename?: "Mutation" } & {
+  addProductWithUnits: { __typename?: "Product" } & Pick<Product, "id">;
+};
+
 export type SearchUserQueryVariables = {
   email: Scalars["String"];
 };
@@ -678,6 +697,67 @@ export function withSearchProducts<TProps, TChildProps = {}>(
     SearchProductsProps<TChildProps>
   >(SearchProductsDocument, {
     alias: "withSearchProducts",
+    ...operationOptions
+  });
+}
+export const AddProductWithUnitsDocument = gql`
+  mutation addProductWithUnits(
+    $newUnits: [UnitInput!]!
+    $newProduct: ProductInput!
+  ) {
+    addProductWithUnits(
+      data: { newUnits: $newUnits, newProduct: $newProduct }
+    ) {
+      id
+    }
+  }
+`;
+export type AddProductWithUnitsMutationFn = ReactApollo.MutationFn<
+  AddProductWithUnitsMutation,
+  AddProductWithUnitsMutationVariables
+>;
+export type AddProductWithUnitsComponentProps = Omit<
+  ReactApollo.MutationProps<
+    AddProductWithUnitsMutation,
+    AddProductWithUnitsMutationVariables
+  >,
+  "mutation"
+>;
+
+export const AddProductWithUnitsComponent = (
+  props: AddProductWithUnitsComponentProps
+) => (
+  <ReactApollo.Mutation<
+    AddProductWithUnitsMutation,
+    AddProductWithUnitsMutationVariables
+  >
+    mutation={AddProductWithUnitsDocument}
+    {...props}
+  />
+);
+
+export type AddProductWithUnitsProps<TChildProps = {}> = Partial<
+  ReactApollo.MutateProps<
+    AddProductWithUnitsMutation,
+    AddProductWithUnitsMutationVariables
+  >
+> &
+  TChildProps;
+export function withAddProductWithUnits<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    AddProductWithUnitsMutation,
+    AddProductWithUnitsMutationVariables,
+    AddProductWithUnitsProps<TChildProps>
+  >
+) {
+  return ReactApollo.withMutation<
+    TProps,
+    AddProductWithUnitsMutation,
+    AddProductWithUnitsMutationVariables,
+    AddProductWithUnitsProps<TChildProps>
+  >(AddProductWithUnitsDocument, {
+    alias: "withAddProductWithUnits",
     ...operationOptions
   });
 }
