@@ -1,4 +1,4 @@
-import { MinLength, MaxLength } from "class-validator";
+import { MaxLength, MinLength } from "class-validator";
 import {
   Arg,
   Authorized,
@@ -196,12 +196,12 @@ export class ProductResolver {
   @Authorized()
   @Mutation(() => Product)
   async addProductWithUnits(
-    @Arg("data") data: UpdateProductWithUnitsInput,
+    @Arg("data") data: AddProductWithUnitsInput,
     @Ctx() ctx: ContextType,
   ): Promise<Product> {
     await transformValidate(AddProductWithUnitsInput, data);
     const userId = ctx.req.session!.passport.user.id;
-    const { id, newProduct, newUnits } = data;
+    const { newProduct, newUnits } = data;
     const product: Partial<Product> = {
       name: newProduct.name,
       createdById: userId,
