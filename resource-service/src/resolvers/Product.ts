@@ -79,6 +79,18 @@ class UpdateProductInput {
 }
 
 @InputType()
+class UpdateProductWithUnitsInput {
+  @Field(() => ID)
+  id: number;
+
+  @Field(() => ProductInput)
+  newProduct: ProductInput;
+
+  @Field(() => UnitInput)
+  newUnits: UnitInput[];
+}
+
+@InputType()
 class GetProductsByCreatedById {
   @Field(() => ID)
   id: number;
@@ -184,43 +196,45 @@ export class ProductResolver {
   @Authorized()
   @Mutation(() => Product)
   async addProductWithUnits(
-    @Arg("data") data: AddProductWithUnitsInput,
+    @Arg("data") data: UpdateProductWithUnitsInput,
     @Ctx() ctx: ContextType,
   ): Promise<Product> {
     await transformValidate(AddProductWithUnitsInput, data);
     const userId = ctx.req.session!.passport.user.id;
-    const { newProduct, newUnits } = data;
+    const { id, newProduct, newUnits } = data;
     const product: Partial<Product> = {
       name: newProduct.name,
       createdById: userId,
       updatedById: userId,
     };
     let productId: null | number = null;
-    try {
-      await transformValidate(Product, product);
-      const dbProduct = await Product.create(product).save();
-      productId = dbProduct.id;
-      for (const newUnit of newUnits) {
-        const unit = {
-          ...newUnit,
-          createdById: userId,
-          updatedById: userId,
-          product: {
-            id: productId,
-          },
-        };
-        await transformValidate(Unit, unit);
-        Unit.create(unit).save();
-      }
-      return Product.findOneOrFail({ id: productId }, { relations: ["units"] });
-    } catch (err) {
-      // Cleanup if one of the steps failed
-      if (productId !== null) {
-        Unit.delete({ product: { id: productId } });
-        Product.delete({ id: productId });
-      }
-      throw err;
+
+    await transformValidate(Product, product);
+    for (const newUnit of newUnits) {
+      const unit = {
+        ...newUnit,
+        createdById: userId,
+        updatedById: userId,
+        product: {
+          id: productId,
+        },
+      };
+      await transformValidate(Unit, unit);
     }
+    const dbProduct = await Product.create(product).save();
+    productId = dbProduct.id;
+    for (const newUnit of newUnits) {
+      const unit = {
+        ...newUnit,
+        createdById: userId,
+        updatedById: userId,
+        product: {
+          id: productId,
+        },
+      };
+      Unit.create(unit).save();
+    }
+    return Product.findOneOrFail({ id: productId }, { relations: ["units"] });
   }
 
   @Authorized(Role.ADMIN)
@@ -248,6 +262,51 @@ export class ProductResolver {
     };
     await transformValidate(Product, product);
     await Product.update({ id }, product);
+    return true;
+  }
+
+  @Authorized(Role.ADMIN)
+  @Mutation(() => Boolean)
+  async updateProductWithUnits(
+    @Arg("data") data: UpdateProductWithUnitsInput,
+    @Ctx() ctx: ContextType,
+  ): Promise<Boolean> {
+    await transformValidate(UpdateProductWithUnitsInput, data);
+    const { newProduct, newUnits, id } = data;
+    const userId = ctx.req.session!.passport.user.id;
+    const product: Partial<Product> = {
+      name: newProduct.name,
+      updatedById: userId,
+    };
+    await transformValidate(Product, product);
+    for (const newUnit of newUnits) {
+      const unit = {
+        ...newUnit,
+        createdById: userId,
+        updatedById: userId,
+        product: {
+          id,
+        },
+      };
+      await transformValidate(Unit, unit);
+    }
+    await Product.update({ id }, product);
+    await Unit.delete({
+      product: {
+        id,
+      },
+    });
+    for (const newUnit of newUnits) {
+      const unit = {
+        ...newUnit,
+        createdById: userId,
+        updatedById: userId,
+        product: {
+          id,
+        },
+      };
+      Unit.create(unit).save();
+    }
     return true;
   }
 
