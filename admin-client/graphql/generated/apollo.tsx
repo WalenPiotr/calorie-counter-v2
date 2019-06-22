@@ -90,6 +90,10 @@ export type GetMealsByUpdatedById = {
   id: Scalars["ID"];
 };
 
+export type GetProductInput = {
+  id: Scalars["ID"];
+};
+
 export type GetProductsByCreatedById = {
   id: Scalars["ID"];
 };
@@ -169,6 +173,7 @@ export type Mutation = {
   addProductWithUnits: Product;
   deleteProduct: Scalars["Boolean"];
   updateProduct: Scalars["Boolean"];
+  updateProductWithUnits: Scalars["Boolean"];
   updateMe: Scalars["Boolean"];
   updateUser: Scalars["Boolean"];
 };
@@ -219,6 +224,10 @@ export type MutationDeleteProductArgs = {
 
 export type MutationUpdateProductArgs = {
   data: UpdateProductInput;
+};
+
+export type MutationUpdateProductWithUnitsArgs = {
+  data: UpdateProductWithUnitsInput;
 };
 
 export type MutationUpdateMeArgs = {
@@ -290,6 +299,7 @@ export type Query = {
   getUnitsByCreatedById: UnitsWithCount;
   getUnitsByUpdatedById: UnitsWithCount;
   searchProducts: ProductsWithCount;
+  getProduct: Product;
   getProductsByCreatedById: ProductsWithCount;
   getProductsByUpdatedById: ProductsWithCount;
   me?: Maybe<User>;
@@ -355,6 +365,10 @@ export type QueryGetUnitsByUpdatedByIdArgs = {
 export type QuerySearchProductsArgs = {
   pagination?: Maybe<PaginationInput>;
   data: SearchProductsInput;
+};
+
+export type QueryGetProductArgs = {
+  data: GetProductInput;
 };
 
 export type QueryGetProductsByCreatedByIdArgs = {
@@ -477,6 +491,12 @@ export type UpdateProductInput = {
   newProduct: ProductInput;
 };
 
+export type UpdateProductWithUnitsInput = {
+  id: Scalars["ID"];
+  newProduct: ProductInput;
+  newUnits: Array<UnitInput>;
+};
+
 export type UpdateUserInput = {
   user: UserInput;
   id: Scalars["ID"];
@@ -569,6 +589,67 @@ export type AddProductWithUnitsMutationVariables = {
 export type AddProductWithUnitsMutation = { __typename?: "Mutation" } & {
   addProductWithUnits: { __typename?: "Product" } & Pick<Product, "id">;
 };
+
+export type GetProductQueryVariables = {
+  id: Scalars["ID"];
+};
+
+export type GetProductQuery = { __typename?: "Query" } & {
+  getProduct: { __typename?: "Product" } & Pick<
+    Product,
+    "id" | "name" | "createdAt"
+  > & {
+      createdBy: Maybe<
+        { __typename?: "User" } & Pick<User, "id" | "displayName" | "email">
+      >;
+      reports: { __typename?: "ReportsWithCount" } & Pick<
+        ReportsWithCount,
+        "count"
+      > & {
+          items: Array<
+            { __typename?: "Report" } & Pick<
+              Report,
+              "id" | "reason" | "message" | "status" | "createdAt"
+            > & {
+                createdBy: Maybe<
+                  { __typename?: "User" } & Pick<
+                    User,
+                    "id" | "displayName" | "email"
+                  >
+                >;
+              }
+          >;
+        };
+      units: { __typename?: "UnitsWithCount" } & Pick<
+        UnitsWithCount,
+        "count"
+      > & {
+          items: Array<
+            { __typename?: "Unit" } & Pick<Unit, "id" | "name" | "energy">
+          >;
+        };
+    };
+};
+
+export type DeleteProductMutationVariables = {
+  id: Scalars["ID"];
+};
+
+export type DeleteProductMutation = { __typename?: "Mutation" } & Pick<
+  Mutation,
+  "deleteProduct"
+>;
+
+export type UpdateProductWithUnitsMutationVariables = {
+  id: Scalars["ID"];
+  newUnits: Array<UnitInput>;
+  newProduct: ProductInput;
+};
+
+export type UpdateProductWithUnitsMutation = { __typename?: "Mutation" } & Pick<
+  Mutation,
+  "updateProductWithUnits"
+>;
 
 export type SearchUserQueryVariables = {
   email: Scalars["String"];
@@ -758,6 +839,184 @@ export function withAddProductWithUnits<TProps, TChildProps = {}>(
     AddProductWithUnitsProps<TChildProps>
   >(AddProductWithUnitsDocument, {
     alias: "withAddProductWithUnits",
+    ...operationOptions
+  });
+}
+export const GetProductDocument = gql`
+  query getProduct($id: ID!) {
+    getProduct(data: { id: $id }) {
+      id
+      name
+      createdAt
+      createdBy {
+        id
+        displayName
+        email
+      }
+      reports {
+        count
+        items {
+          id
+          reason
+          message
+          status
+          createdBy {
+            id
+            displayName
+            email
+          }
+          createdAt
+        }
+      }
+      units {
+        count
+        items {
+          id
+          name
+          energy
+        }
+      }
+    }
+  }
+`;
+export type GetProductComponentProps = Omit<
+  ReactApollo.QueryProps<GetProductQuery, GetProductQueryVariables>,
+  "query"
+> &
+  ({ variables: GetProductQueryVariables; skip?: false } | { skip: true });
+
+export const GetProductComponent = (props: GetProductComponentProps) => (
+  <ReactApollo.Query<GetProductQuery, GetProductQueryVariables>
+    query={GetProductDocument}
+    {...props}
+  />
+);
+
+export type GetProductProps<TChildProps = {}> = Partial<
+  ReactApollo.DataProps<GetProductQuery, GetProductQueryVariables>
+> &
+  TChildProps;
+export function withGetProduct<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    GetProductQuery,
+    GetProductQueryVariables,
+    GetProductProps<TChildProps>
+  >
+) {
+  return ReactApollo.withQuery<
+    TProps,
+    GetProductQuery,
+    GetProductQueryVariables,
+    GetProductProps<TChildProps>
+  >(GetProductDocument, {
+    alias: "withGetProduct",
+    ...operationOptions
+  });
+}
+export const DeleteProductDocument = gql`
+  mutation deleteProduct($id: ID!) {
+    deleteProduct(data: { id: $id })
+  }
+`;
+export type DeleteProductMutationFn = ReactApollo.MutationFn<
+  DeleteProductMutation,
+  DeleteProductMutationVariables
+>;
+export type DeleteProductComponentProps = Omit<
+  ReactApollo.MutationProps<
+    DeleteProductMutation,
+    DeleteProductMutationVariables
+  >,
+  "mutation"
+>;
+
+export const DeleteProductComponent = (props: DeleteProductComponentProps) => (
+  <ReactApollo.Mutation<DeleteProductMutation, DeleteProductMutationVariables>
+    mutation={DeleteProductDocument}
+    {...props}
+  />
+);
+
+export type DeleteProductProps<TChildProps = {}> = Partial<
+  ReactApollo.MutateProps<DeleteProductMutation, DeleteProductMutationVariables>
+> &
+  TChildProps;
+export function withDeleteProduct<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    DeleteProductMutation,
+    DeleteProductMutationVariables,
+    DeleteProductProps<TChildProps>
+  >
+) {
+  return ReactApollo.withMutation<
+    TProps,
+    DeleteProductMutation,
+    DeleteProductMutationVariables,
+    DeleteProductProps<TChildProps>
+  >(DeleteProductDocument, {
+    alias: "withDeleteProduct",
+    ...operationOptions
+  });
+}
+export const UpdateProductWithUnitsDocument = gql`
+  mutation updateProductWithUnits(
+    $id: ID!
+    $newUnits: [UnitInput!]!
+    $newProduct: ProductInput!
+  ) {
+    updateProductWithUnits(
+      data: { id: $id, newProduct: $newProduct, newUnits: $newUnits }
+    )
+  }
+`;
+export type UpdateProductWithUnitsMutationFn = ReactApollo.MutationFn<
+  UpdateProductWithUnitsMutation,
+  UpdateProductWithUnitsMutationVariables
+>;
+export type UpdateProductWithUnitsComponentProps = Omit<
+  ReactApollo.MutationProps<
+    UpdateProductWithUnitsMutation,
+    UpdateProductWithUnitsMutationVariables
+  >,
+  "mutation"
+>;
+
+export const UpdateProductWithUnitsComponent = (
+  props: UpdateProductWithUnitsComponentProps
+) => (
+  <ReactApollo.Mutation<
+    UpdateProductWithUnitsMutation,
+    UpdateProductWithUnitsMutationVariables
+  >
+    mutation={UpdateProductWithUnitsDocument}
+    {...props}
+  />
+);
+
+export type UpdateProductWithUnitsProps<TChildProps = {}> = Partial<
+  ReactApollo.MutateProps<
+    UpdateProductWithUnitsMutation,
+    UpdateProductWithUnitsMutationVariables
+  >
+> &
+  TChildProps;
+export function withUpdateProductWithUnits<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    UpdateProductWithUnitsMutation,
+    UpdateProductWithUnitsMutationVariables,
+    UpdateProductWithUnitsProps<TChildProps>
+  >
+) {
+  return ReactApollo.withMutation<
+    TProps,
+    UpdateProductWithUnitsMutation,
+    UpdateProductWithUnitsMutationVariables,
+    UpdateProductWithUnitsProps<TChildProps>
+  >(UpdateProductWithUnitsDocument, {
+    alias: "withUpdateProductWithUnits",
     ...operationOptions
   });
 }

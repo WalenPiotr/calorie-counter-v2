@@ -7,4 +7,5 @@ export const Link = routes.Link;
 // routes.add("confirm", "/user/confirm/:token");
 // routes.add("change-password", "/user/change-password/:token");
 
-routes.add("user/view", "/user/:id");
+routes.add("user/view", "/user/view/:id");
+routes.add("product/view", "/product/view/:id");

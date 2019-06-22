@@ -5,14 +5,14 @@ import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import { authorized } from "../lib/nextjs/authorized";
 import { Role } from "../graphql/generated/apollo";
-import { NextContext } from "next";
+import { Context } from "../types/Context";
 
 const IndexStyled = createStyled(() => ({
   root: {},
 }));
 
 class Index extends React.Component {
-  static async getInitialProps(props: NextContext) {
+  static async getInitialProps(props: Context) {
     await authorized(props, [Role.Admin]);
     return {};
   }

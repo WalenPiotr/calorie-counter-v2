@@ -16,6 +16,7 @@ const checkMe = (apolloClient: ApolloClient<any>) =>
           }
         }
       `,
+      fetchPolicy: "no-cache",
     })
     .then(({ data }) => {
       return data;
