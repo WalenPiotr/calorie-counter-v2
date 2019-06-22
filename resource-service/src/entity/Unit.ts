@@ -9,8 +9,10 @@ import {
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
+  OneToMany,
 } from "typeorm";
 import { Product } from "./Product";
+import { Entry } from "./Entry";
 
 @ObjectType()
 @Entity()
@@ -34,6 +36,9 @@ export class Unit extends BaseEntity {
   @Column({ type: "float" })
   @IsPositive()
   energy: number;
+
+  @OneToMany(() => Entry, e => e.unit)
+  entries: Entry[];
 
   @Field(() => ID)
   @Column()

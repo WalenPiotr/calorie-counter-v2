@@ -11,7 +11,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { Meal } from "./Meal";
-import { Product } from "./Product";
+import { Unit } from "./Unit";
 
 @ObjectType()
 @Entity()
@@ -20,10 +20,10 @@ export class Entry extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(() => Product)
-  @ManyToOne(() => Product, p => p.entries)
+  @Field(() => Unit)
+  @ManyToOne(() => Unit, u => u.entries)
   @JoinTable()
-  product: Product;
+  unit: Unit;
 
   @Field()
   @Column({ type: "float" })

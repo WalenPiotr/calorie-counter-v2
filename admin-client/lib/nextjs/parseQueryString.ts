@@ -7,11 +7,8 @@ export const parseRowsPerPage = (
     if (parsedRows && acceptedValues.indexOf(parsedRows) >= 0) {
       return parsedRows;
     }
-    if (acceptedValues.length > 0) {
-      return acceptedValues[0];
-    }
   }
-  return 5;
+  return acceptedValues[0];
 };
 
 export const parseString = (val: string | string[] | undefined): string => {

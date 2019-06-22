@@ -25,6 +25,8 @@ import {
   IsNumber,
   IsString,
 } from "class-validator";
+import { EntriesWithCount } from "./Entry";
+import { Entry } from "src/entity/Entry";
 
 @ObjectType()
 export class UnitsWithCount implements ListWithCount<Unit> {
@@ -180,5 +182,25 @@ export class UnitResolver {
       { relations: ["product"] },
     );
     return product;
+  }
+
+  @Authorized(Role.ADMIN)
+  @FieldResolver(() => EntriesWithCount)
+  async entries(
+    @Root() unit: Unit,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
+  ): Promise<EntriesWithCount> {
+    const { take, skip } = pagination
+      ? await transformValidate(PaginationInput, pagination)
+      : new PaginationInput();
+    const [items, count] = await Entry.findAndCount({
+      where: { unit: { id: unit.id } },
+      take,
+      skip,
+      order: {
+        id: "ASC",
+      },
+    });
+    return { items, count };
   }
 }

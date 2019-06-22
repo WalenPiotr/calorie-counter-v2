@@ -13,7 +13,6 @@ import {
   Resolver,
   Root,
 } from "type-graphql";
-import { Entry } from "../entity/Entry";
 import { Product } from "../entity/Product";
 import { Report } from "../entity/Report";
 import { Unit } from "../entity/Unit";
@@ -21,7 +20,6 @@ import { Role } from "../helpers/authChecker";
 import { NestedField, transformValidate } from "../helpers/validate";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
-import { EntriesWithCount } from "./Entry";
 import { ReportsWithCount } from "./Report";
 import { UnitInput, UnitsWithCount } from "./Unit";
 
@@ -339,26 +337,6 @@ export class ProductResolver {
       ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const [items, count] = await Report.findAndCount({
-      where: { product: { id: product.id } },
-      take,
-      skip,
-      order: {
-        id: "ASC",
-      },
-    });
-    return { items, count };
-  }
-
-  @Authorized(Role.ADMIN)
-  @FieldResolver(() => EntriesWithCount)
-  async entries(
-    @Root() product: Product,
-    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
-  ): Promise<EntriesWithCount> {
-    const { take, skip } = pagination
-      ? await transformValidate(PaginationInput, pagination)
-      : new PaginationInput();
-    const [items, count] = await Entry.findAndCount({
       where: { product: { id: product.id } },
       take,
       skip,

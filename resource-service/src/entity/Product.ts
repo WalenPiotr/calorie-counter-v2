@@ -10,7 +10,6 @@ import {
   Unique,
   UpdateDateColumn,
 } from "typeorm";
-import { Entry } from "./Entry";
 import { Report } from "./Report";
 import { Unit } from "./Unit";
 
@@ -30,9 +29,6 @@ export class Product extends BaseEntity {
 
   @OneToMany(() => Unit, u => u.product)
   units: Unit[];
-
-  @OneToMany(() => Entry, e => e.product)
-  entries: Entry[];
 
   @Field(() => ID)
   @Column()
