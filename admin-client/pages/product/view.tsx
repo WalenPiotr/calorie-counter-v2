@@ -28,6 +28,8 @@ import { parseString } from "../../lib/nextjs/parseQueryString";
 import { Context } from "../../types/Context";
 import { redirect } from "../../lib/nextjs/redirect";
 import Router from "next/router";
+import BaseInfo from "../../components/BaseInfo";
+import EntityTable from "../../components/Table";
 
 const Style = createStyle((theme: Theme) => ({
   table: { width: "auto" },
@@ -73,164 +75,146 @@ export default class ProductView extends React.Component<ProductViewProps> {
     const { data } = this.props;
     return (
       <Layout>
-        <Style>
-          {({ classes }) => (
-            <Paper className={classes.paper}>
-              <Typography variant="h4" className={classes.title}>
-                Product
-              </Typography>
-              <Table className={classes.table}>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>
-                      <Typography variant="body1" className={classes.header}>
-                        name
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{data!.getProduct.name}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <Typography variant="body1" className={classes.header}>
-                        createdAt
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{data!.getProduct.createdAt}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <Typography variant="body1" className={classes.header}>
-                        createdBy (displayName)
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      {data!.getProduct.createdBy!.displayName}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-              <Typography variant="h6" className={classes.title}>
-                Products Units
-              </Typography>
-              <Table className={classes.table}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>
-                      <Typography variant="body1" className={classes.header}>
-                        id
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body1" className={classes.header}>
-                        name
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body1" className={classes.header}>
-                        energy
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody className={classes.table}>
-                  {data!.getProduct.units.items.map((u, i) => (
+        {data ? (
+          <Style>
+            {({ classes }) => (
+              <Paper className={classes.paper}>
+                <Typography variant="h4" className={classes.title}>
+                  Product
+                </Typography>
+                <BaseInfo
+                  data={[
+                    { name: "id", value: data.getProduct.id },
+                    { name: "name", value: data.getProduct.name },
+                    { name: "createdAt", value: data.getProduct.createdAt },
+                    {
+                      name: "createdBy (displayName)",
+                      value: data.getProduct.createdBy!.displayName,
+                      link: `/user/view?id=${data.getProduct.createdBy!.id}`,
+                    },
+                  ]}
+                />
+                <Typography variant="h6" className={classes.title}>
+                  Products Units
+                </Typography>
+                <EntityTable
+                  headers={[
+                    { text: "id" },
+                    { text: "name" },
+                    { text: "energy" },
+                  ]}
+                  rows={data.getProduct.units.items.map(u => [
+                    { name: "id", value: u.id },
+                    { name: "name", value: u.name },
+                    { name: "energy", value: u.energy.toString() },
+                  ])}
+                  pagination={{
+                    count: data.getProduct.units.count,
+                    page: 0,
+                    rowsPerPage: 5,
+                    rowsOptions: [5],
+                    handleChangePage: () => {},
+                    handleChangeRowsPerPage: () => {},
+                  }}
+                />
+                <Typography variant="h6" className={classes.title}>
+                  Products Reports
+                </Typography>
+                <Table className={classes.table}>
+                  <TableHead>
                     <TableRow>
-                      <TableCell>{u.id}</TableCell>
-                      <TableCell>{u.name}</TableCell>
-                      <TableCell>{u.energy}</TableCell>
+                      <TableCell>
+                        <Typography variant="body1" className={classes.header}>
+                          id
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body1" className={classes.header}>
+                          reason
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body1" className={classes.header}>
+                          message
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body1" className={classes.header}>
+                          status
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body1" className={classes.header}>
+                          createdAt
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body1" className={classes.header}>
+                          createdBy (displayName)
+                        </Typography>
+                      </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <Typography variant="h6" className={classes.title}>
-                Products Reports
-              </Typography>
-              <Table className={classes.table}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>
-                      <Typography variant="body1" className={classes.header}>
-                        id
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body1" className={classes.header}>
-                        reason
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body1" className={classes.header}>
-                        message
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body1" className={classes.header}>
-                        status
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body1" className={classes.header}>
-                        createdAt
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body1" className={classes.header}>
-                        createdBy (displayName)
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody className={classes.table}>
-                  {data!.getProduct.reports.items.map((r, i) => (
-                    <TableRow>
-                      <TableCell>{r.id}</TableCell>
-                      <TableCell>{r.reason}</TableCell>
-                      <TableCell>{r.message}</TableCell>
-                      <TableCell>{r.status}</TableCell>
-                      <TableCell>{r.createdAt}</TableCell>
-                      <TableCell>{r.createdBy!.displayName}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <Typography variant="h6" className={classes.title}>
-                Actions
-              </Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                className={classes.button}
-                onClick={async () => {
-                  Router.push(
-                    `/product/edit?id=${this.props.data.getProduct.id}`,
-                  );
-                }}
-              >
-                Edit
-              </Button>
-
-              <DeleteProductComponent>
-                {deleteProduct => (
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    size="large"
-                    className={classes.button}
-                    onClick={async () => {
-                      await deleteProduct({
-                        variables: { id: this.props.data.getProduct.id },
-                      });
-                      Router.push("/product");
-                    }}
-                  >
-                    Delete
-                  </Button>
-                )}
-              </DeleteProductComponent>
-            </Paper>
-          )}
-        </Style>
+                  </TableHead>
+                  <TableBody className={classes.table}>
+                    {data!.getProduct.reports.items.map((r, i) => (
+                      <TableRow>
+                        <TableCell>{r.id}</TableCell>
+                        <TableCell>{r.reason}</TableCell>
+                        <TableCell>{r.message}</TableCell>
+                        <TableCell>{r.status}</TableCell>
+                        <TableCell>{r.createdAt}</TableCell>
+                        <TableCell>{r.createdBy!.displayName}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <Typography variant="h6" className={classes.title}>
+                  Actions
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="default"
+                  size="large"
+                  className={classes.button}
+                  onClick={async () => {
+                    Router.push(
+                      `/product/edit?id=${this.props.data.getProduct.id}`,
+                    );
+                  }}
+                >
+                  Edit
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  className={classes.button}
+                  onClick={async () => {}}
+                >
+                  Report
+                </Button>
+                <DeleteProductComponent>
+                  {deleteProduct => (
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      size="large"
+                      className={classes.button}
+                      onClick={async () => {
+                        await deleteProduct({
+                          variables: { id: this.props.data.getProduct.id },
+                        });
+                        Router.push("/product");
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  )}
+                </DeleteProductComponent>
+              </Paper>
+            )}
+          </Style>
+        ) : null}
       </Layout>
     );
   }

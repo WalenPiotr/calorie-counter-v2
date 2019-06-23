@@ -17,6 +17,7 @@ import {
   parseString,
 } from "../../lib/nextjs/parseQueryString";
 import { redirect } from "../../lib/nextjs/redirect";
+import Paper from "@material-ui/core/Paper";
 
 interface ProductsProps {
   data: SearchProductsQuery;
@@ -106,46 +107,50 @@ class Products extends Component<ProductsProps> {
             />
           )}
         </Formik>
-        {data && data.searchProducts && data.searchProducts.items ? (
-          <>
-            <Table
-              headers={[
-                { text: "id" },
-                { text: "name" },
-                { text: "createdAt" },
-                { text: "createdBy (displayName)" },
-                { text: "createdBy" },
-                { text: "updatedBy (displayName)" },
-                { text: "reports (count)" },
-                { text: "view" },
-              ]}
-              rows={data.searchProducts.items.map(i => [
-                { value: i.id },
-                { value: i.name },
-                { value: i.createdAt },
-                {
-                  value: i.createdBy!.displayName,
-                  link: `/user/${i.createdBy!.id}`,
-                },
-                { value: i.updatedAt },
-                {
-                  value: i.updatedBy!.displayName,
-                  link: `/user/${i.createdBy!.id}`,
-                },
-                { value: i.reports.count },
-                { value: "view", link: `/product/view?id=${i.id}` },
-              ])}
-              pagination={{
-                count: data.searchProducts.count,
-                page: this.props.page,
-                rowsPerPage: this.props.rowsPerPage,
-                handleChangePage: this.handleChangePage,
-                handleChangeRowsPerPage: this.handleChangeRowsPerPage,
-                rowsOptions: this.props.rowsOptions,
-              }}
-            />
-          </>
-        ) : null}
+        <Paper>
+          {data && data.searchProducts && data.searchProducts.items ? (
+            <>
+              <Table
+                headers={[
+                  { text: "id" },
+                  { text: "name" },
+                  { text: "createdAt" },
+                  { text: "createdBy (displayName)" },
+                  { text: "createdBy" },
+                  { text: "updatedBy (displayName)" },
+                  { text: "reports (count)" },
+                  { text: "units (count)" },
+                  { text: "view" },
+                ]}
+                rows={data.searchProducts.items.map(i => [
+                  { value: i.id },
+                  { value: i.name },
+                  { value: i.createdAt },
+                  {
+                    value: i.createdBy!.displayName,
+                    link: `/user/view?id=${i.createdBy!.id}`,
+                  },
+                  { value: i.updatedAt },
+                  {
+                    value: i.updatedBy!.displayName,
+                    link: `/user/view?id=${i.createdBy!.id}`,
+                  },
+                  { value: i.reports.count },
+                  { value: i.units.count },
+                  { value: "view", link: `/product/view?id=${i.id}` },
+                ])}
+                pagination={{
+                  count: data.searchProducts.count,
+                  page: this.props.page,
+                  rowsPerPage: this.props.rowsPerPage,
+                  handleChangePage: this.handleChangePage,
+                  handleChangeRowsPerPage: this.handleChangeRowsPerPage,
+                  rowsOptions: this.props.rowsOptions,
+                }}
+              />
+            </>
+          ) : null}
+        </Paper>
       </Layout>
     );
   }

@@ -49,7 +49,7 @@ export type EntriesWithCount = {
 export type Entry = {
   __typename?: "Entry";
   id: Scalars["ID"];
-  product: Product;
+  unit: Unit;
   quantity: Scalars["Float"];
   meal: Meal;
   createdById: Scalars["ID"];
@@ -61,7 +61,7 @@ export type Entry = {
 };
 
 export type EntryInput = {
-  productId: Scalars["ID"];
+  unitId: Scalars["ID"];
   mealId: Scalars["ID"];
   quantity: Scalars["Float"];
 };
@@ -253,7 +253,6 @@ export type Product = {
   updatedAt?: Maybe<Scalars["DateTime"]>;
   units: UnitsWithCount;
   reports: ReportsWithCount;
-  entries: EntriesWithCount;
   hasBeenReportedByMe: Scalars["Boolean"];
   createdBy?: Maybe<User>;
   updatedBy?: Maybe<User>;
@@ -264,10 +263,6 @@ export type ProductUnitsArgs = {
 };
 
 export type ProductReportsArgs = {
-  pagination?: Maybe<PaginationInput>;
-};
-
-export type ProductEntriesArgs = {
   pagination?: Maybe<PaginationInput>;
 };
 
@@ -290,7 +285,7 @@ export type Query = {
   getMyEntriesByMealId: EntriesWithCount;
   getEntriesByCreatedById: EntriesWithCount;
   getEntriesByUpdatedById: EntriesWithCount;
-  getMealsByDate: Array<Meal>;
+  getMealsByDate: MealsWithCount;
   getMealsByCreatedById: MealsWithCount;
   getMealsByUpdatedById: MealsWithCount;
   getReports: ReportsWithCount;
@@ -467,8 +462,13 @@ export type Unit = {
   createdAt: Scalars["DateTime"];
   updatedById: Scalars["ID"];
   updatedAt?: Maybe<Scalars["DateTime"]>;
+  entries: EntriesWithCount;
   createdBy?: Maybe<User>;
   updatedBy?: Maybe<User>;
+};
+
+export type UnitEntriesArgs = {
+  pagination?: Maybe<PaginationInput>;
 };
 
 export type UnitInput = {
@@ -523,6 +523,42 @@ export type User = {
   updatedUnits?: Maybe<UnitsWithCount>;
 };
 
+export type UserCreatedEntriesArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
+export type UserUpdatedEntriesArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
+export type UserCreatedMealsArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
+export type UserUpdatedMealsArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
+export type UserCreatedProductsArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
+export type UserUpdatedProductsArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
+export type UserCreatedReportsArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
+export type UserCreatedUnitsArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
+export type UserUpdatedUnitsArgs = {
+  pagination?: Maybe<PaginationInput>;
+};
+
 export type UserInput = {
   displayName: Scalars["String"];
   status: Status;
@@ -574,6 +610,10 @@ export type SearchProductsQuery = { __typename?: "Query" } & {
             >;
             reports: { __typename?: "ReportsWithCount" } & Pick<
               ReportsWithCount,
+              "count"
+            >;
+            units: { __typename?: "UnitsWithCount" } & Pick<
+              UnitsWithCount,
               "count"
             >;
           }
@@ -676,6 +716,63 @@ export type SearchUserQuery = { __typename?: "Query" } & {
     };
 };
 
+export type GetUserQueryVariables = {
+  id: Scalars["ID"];
+  productPagination?: Maybe<PaginationInput>;
+  reportPagination?: Maybe<PaginationInput>;
+};
+
+export type GetUserQuery = { __typename?: "Query" } & {
+  getUserById: { __typename?: "User" } & Pick<
+    User,
+    | "id"
+    | "email"
+    | "displayName"
+    | "role"
+    | "provider"
+    | "status"
+    | "createdAt"
+    | "updatedAt"
+  > & {
+      createdProducts: Maybe<
+        { __typename?: "ProductsWithCount" } & Pick<
+          ProductsWithCount,
+          "count"
+        > & {
+            items: Array<
+              { __typename?: "Product" } & Pick<
+                Product,
+                "id" | "name" | "createdAt"
+              > & {
+                  units: { __typename?: "UnitsWithCount" } & Pick<
+                    UnitsWithCount,
+                    "count"
+                  >;
+                }
+            >;
+          }
+      >;
+      createdReports: Maybe<
+        { __typename?: "ReportsWithCount" } & Pick<
+          ReportsWithCount,
+          "count"
+        > & {
+            items: Array<
+              { __typename?: "Report" } & Pick<
+                Report,
+                "id" | "reason" | "message" | "status" | "createdAt"
+              > & {
+                  product: { __typename?: "Product" } & Pick<
+                    Product,
+                    "id" | "name"
+                  >;
+                }
+            >;
+          }
+      >;
+    };
+};
+
 export const MeDocument = gql`
   query Me {
     me {
@@ -738,6 +835,9 @@ export const SearchProductsDocument = gql`
           displayName
         }
         reports {
+          count
+        }
+        units {
           count
         }
       }
@@ -1069,6 +1169,84 @@ export function withSearchUser<TProps, TChildProps = {}>(
     SearchUserProps<TChildProps>
   >(SearchUserDocument, {
     alias: "withSearchUser",
+    ...operationOptions
+  });
+}
+export const GetUserDocument = gql`
+  query getUser(
+    $id: ID!
+    $productPagination: PaginationInput
+    $reportPagination: PaginationInput
+  ) {
+    getUserById(data: { id: $id }) {
+      id
+      email
+      displayName
+      role
+      provider
+      status
+      createdAt
+      updatedAt
+      createdProducts(pagination: $productPagination) {
+        count
+        items {
+          id
+          name
+          createdAt
+          units {
+            count
+          }
+        }
+      }
+      createdReports(pagination: $reportPagination) {
+        count
+        items {
+          id
+          reason
+          message
+          status
+          createdAt
+          product {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+`;
+export type GetUserComponentProps = Omit<
+  ReactApollo.QueryProps<GetUserQuery, GetUserQueryVariables>,
+  "query"
+> &
+  ({ variables: GetUserQueryVariables; skip?: false } | { skip: true });
+
+export const GetUserComponent = (props: GetUserComponentProps) => (
+  <ReactApollo.Query<GetUserQuery, GetUserQueryVariables>
+    query={GetUserDocument}
+    {...props}
+  />
+);
+
+export type GetUserProps<TChildProps = {}> = Partial<
+  ReactApollo.DataProps<GetUserQuery, GetUserQueryVariables>
+> &
+  TChildProps;
+export function withGetUser<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    GetUserQuery,
+    GetUserQueryVariables,
+    GetUserProps<TChildProps>
+  >
+) {
+  return ReactApollo.withQuery<
+    TProps,
+    GetUserQuery,
+    GetUserQueryVariables,
+    GetUserProps<TChildProps>
+  >(GetUserDocument, {
+    alias: "withGetUser",
     ...operationOptions
   });
 }

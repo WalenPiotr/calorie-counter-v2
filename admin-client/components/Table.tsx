@@ -147,56 +147,54 @@ export default function EntityTable({ rows, headers, pagination }: TableProps) {
     <Style>
       {({ classes }) => (
         <div className={classes.root}>
-          <Paper className={classes.paper}>
-            <Table className={classes.table}>
-              <TableHead>
-                <TableRow>
-                  {headers.map((header, i) => (
-                    <TableCell
-                      align={i === 0 ? "inherit" : "right"}
-                      key={header.text}
-                    >
-                      {header.text}
+          <Table className={classes.table}>
+            <TableHead>
+              <TableRow>
+                {headers.map((header, i) => (
+                  <TableCell
+                    align={i === 0 ? "inherit" : "right"}
+                    key={header.text}
+                  >
+                    {header.text}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((row, i) => (
+                <TableRow key={i} hover>
+                  {row.map((field, j) => (
+                    <TableCell align={j === 0 ? "inherit" : "right"} key={j}>
+                      {field.link ? (
+                        <Link href={field.link}>
+                          <a>{field.value}</a>
+                        </Link>
+                      ) : (
+                        <span>{field.value}</span>
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((row, i) => (
-                  <TableRow key={i} hover>
-                    {row.map((field, j) => (
-                      <TableCell align={j === 0 ? "inherit" : "right"} key={j}>
-                        {field.link ? (
-                          <Link href={field.link}>
-                            <a>{field.value}</a>
-                          </Link>
-                        ) : (
-                          <span>{field.value}</span>
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    rowsPerPageOptions={pagination.rowsOptions}
-                    count={pagination.count}
-                    rowsPerPage={pagination.rowsPerPage}
-                    page={pagination.page}
-                    SelectProps={{
-                      inputProps: { "aria-label": "Rows per page" },
-                      native: true,
-                    }}
-                    onChangePage={pagination.handleChangePage}
-                    onChangeRowsPerPage={pagination.handleChangeRowsPerPage}
-                    ActionsComponent={TablePaginationActions}
-                  />
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </Paper>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TablePagination
+                  rowsPerPageOptions={pagination.rowsOptions}
+                  count={pagination.count}
+                  rowsPerPage={pagination.rowsPerPage}
+                  page={pagination.page}
+                  SelectProps={{
+                    inputProps: { "aria-label": "Rows per page" },
+                    native: true,
+                  }}
+                  onChangePage={pagination.handleChangePage}
+                  onChangeRowsPerPage={pagination.handleChangeRowsPerPage}
+                  ActionsComponent={TablePaginationActions}
+                />
+              </TableRow>
+            </TableFooter>
+          </Table>
         </div>
       )}
     </Style>

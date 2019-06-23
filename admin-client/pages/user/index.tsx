@@ -12,6 +12,7 @@ import {
   parsePage,
   parseRowsPerPage,
 } from "../../lib/nextjs/parseQueryString";
+import Paper from "@material-ui/core/Paper";
 
 interface UsersProps {
   email: string;
@@ -85,38 +86,42 @@ class Users extends Component<UsersProps> {
                   />
                 )}
               </Formik>
-              {data && data.searchUser && data.searchUser.items ? (
-                <Table
-                  headers={[
-                    { text: "id" },
-                    { text: "displayName" },
-                    { text: "email" },
-                    { text: "role" },
-                    { text: "status" },
-                    { text: "provider" },
-                    { text: "createdAt" },
-                    { text: "updatedAt" },
-                  ]}
-                  rows={data.searchUser.items.map(i => [
-                    { value: i.id },
-                    { value: i.displayName },
-                    { value: i.email },
-                    { value: i.role },
-                    { value: i.status },
-                    { value: i.provider },
-                    { value: i.createdAt },
-                    { value: i.updatedAt },
-                  ])}
-                  pagination={{
-                    count: data.searchUser.count,
-                    page: this.props.page,
-                    rowsPerPage: this.props.rowsPerPage,
-                    handleChangePage: this.handleChangePage,
-                    handleChangeRowsPerPage: this.handleChangeRowsPerPage,
-                    rowsOptions: this.props.rowsOptions,
-                  }}
-                />
-              ) : null}
+              <Paper>
+                {data && data.searchUser && data.searchUser.items ? (
+                  <Table
+                    headers={[
+                      { text: "id" },
+                      { text: "displayName" },
+                      { text: "email" },
+                      { text: "role" },
+                      { text: "status" },
+                      { text: "provider" },
+                      { text: "createdAt" },
+                      { text: "updatedAt" },
+                      { text: "view" },
+                    ]}
+                    rows={data.searchUser.items.map(i => [
+                      { value: i.id },
+                      { value: i.displayName },
+                      { value: i.email },
+                      { value: i.role },
+                      { value: i.status },
+                      { value: i.provider },
+                      { value: i.createdAt },
+                      { value: i.updatedAt },
+                      { value: "view", link: `/user/view?id=${i.id}` },
+                    ])}
+                    pagination={{
+                      count: data.searchUser.count,
+                      page: this.props.page,
+                      rowsPerPage: this.props.rowsPerPage,
+                      handleChangePage: this.handleChangePage,
+                      handleChangeRowsPerPage: this.handleChangeRowsPerPage,
+                      rowsOptions: this.props.rowsOptions,
+                    }}
+                  />
+                ) : null}
+              </Paper>
             </>
           )}
         </SearchUserComponent>

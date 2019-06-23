@@ -23,6 +23,9 @@ export const searchProducts = gql`
         reports {
           count
         }
+        units {
+          count
+        }
       }
     }
   }
@@ -86,7 +89,11 @@ export const deleteProduct = gql`
 `;
 
 export const updateProductWithUnits = gql`
-  mutation updateProductWithUnits($id: ID!, $newUnits: [UnitInput!]!, $newProduct: ProductInput!) {
+  mutation updateProductWithUnits(
+    $id: ID!
+    $newUnits: [UnitInput!]!
+    $newProduct: ProductInput!
+  ) {
     updateProductWithUnits(
       data: { id: $id, newProduct: $newProduct, newUnits: $newUnits }
     )
