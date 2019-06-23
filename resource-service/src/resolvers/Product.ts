@@ -22,6 +22,7 @@ import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
 import { ReportsWithCount } from "./Report";
 import { UnitInput, UnitsWithCount } from "./Unit";
+import { Entry } from "../entity/Entry";
 
 @InputType()
 class ProductInput {
@@ -287,6 +288,10 @@ export class ProductResolver {
         },
       };
       await transformValidate(Unit, unit);
+    }
+    const oldUnits = await Unit.find({ product: { id } });
+    for (const oldUnit of oldUnits) {
+      await Entry.delete({ unit: { id: oldUnit.id } });
     }
     await Product.update({ id }, product);
     await Unit.delete({
