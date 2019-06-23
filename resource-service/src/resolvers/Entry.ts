@@ -14,10 +14,10 @@ import {
 } from "type-graphql";
 import { Entry } from "../entity/Entry";
 import { Meal } from "../entity/Meal";
-import { Product } from "../entity/Product";
+import { Unit } from "../entity/Unit";
+import { transformValidate } from "../helpers/validate";
 import { ContextType } from "../types/ContextType";
 import { ListWithCount, PaginationInput } from "../types/Pagination";
-import { transformValidate } from "../helpers/validate";
 
 @ObjectType()
 export class EntriesWithCount implements ListWithCount<Entry> {
@@ -31,7 +31,7 @@ export class EntriesWithCount implements ListWithCount<Entry> {
 @InputType()
 class EntryInput {
   @Field(() => ID)
-  productId: number;
+  unitId: number;
 
   @Field(() => ID)
   mealId: number;
@@ -149,8 +149,8 @@ export class EntryResolver {
       meal: {
         id: newEntry.mealId,
       },
-      product: {
-        id: newEntry.productId,
+      unit: {
+        id: newEntry.unitId,
       },
     };
     await transformValidate(Entry, entry);
@@ -178,12 +178,12 @@ export class EntryResolver {
     return meal;
   }
 
-  @FieldResolver(() => Product)
-  async product(@Root() entry: Entry): Promise<Product> {
-    const { product } = await Entry.findOneOrFail(
+  @FieldResolver(() => Unit)
+  async unit(@Root() entry: Entry): Promise<Unit> {
+    const { unit } = await Entry.findOneOrFail(
       { id: entry.id },
-      { relations: ["product"] },
+      { relations: ["unit"] },
     );
-    return product;
+    return unit;
   }
 }

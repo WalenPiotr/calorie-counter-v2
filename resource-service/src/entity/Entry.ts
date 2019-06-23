@@ -6,7 +6,6 @@ import {
   Entity,
   JoinTable,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
@@ -30,7 +29,7 @@ export class Entry extends BaseEntity {
   quantity: number;
 
   @Field(() => Meal)
-  @OneToMany(() => Meal, m => m.entries)
+  @ManyToOne(() => Meal, m => m.entries)
   meal: Meal;
 
   @Field(() => ID)

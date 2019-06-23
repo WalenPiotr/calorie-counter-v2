@@ -69,7 +69,7 @@ class GetMealsByUpdatedById {
 @Resolver(Meal)
 export class MealResolver {
   @Authorized()
-  @Query(() => [Meal])
+  @Query(() => MealsWithCount)
   async getMealsByDate(
     @Arg("data") data: GetMealByDateArgs,
     @Ctx() ctx: ContextType,
@@ -77,8 +77,14 @@ export class MealResolver {
   ): Promise<MealsWithCount> {
     const userId = ctx.req.session!.passport.user.id;
     const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { date } = data;
     const [items, count] = await Meal.findAndCount({
-      where: { date: data.date, createdById: userId },
+      where: {
+        date: new Date(
+          Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+        ),
+        createdById: userId,
+      },
       take,
       skip,
       order: {
@@ -97,6 +103,7 @@ export class MealResolver {
     const { take, skip } = pagination
       ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
+
     const [items, count] = await Meal.findAndCount({
       where: { createdById: data.id },
       take,
@@ -136,8 +143,12 @@ export class MealResolver {
   ): Promise<Meal> {
     const userId = ctx.req.session!.passport.user.id;
     const { newMeal } = data;
+    const { date } = newMeal;
     const meal = {
       ...newMeal,
+      date: new Date(
+        Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+      ),
       createdById: userId,
       updatedById: userId,
     };
@@ -166,6 +177,7 @@ export class MealResolver {
     const { take, skip } = pagination
       ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
+    console.log({ mealID: meal.id });
     const [items, count] = await Entry.findAndCount({
       where: {
         meal: { id: meal.id },
@@ -176,6 +188,7 @@ export class MealResolver {
         id: "ASC",
       },
     });
+    console.log({ entries: items });
     return { items, count };
   }
 }

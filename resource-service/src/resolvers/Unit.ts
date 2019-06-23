@@ -26,7 +26,7 @@ import {
   IsString,
 } from "class-validator";
 import { EntriesWithCount } from "./Entry";
-import { Entry } from "src/entity/Entry";
+import { Entry } from "../entity/Entry";
 
 @ObjectType()
 export class UnitsWithCount implements ListWithCount<Unit> {
