@@ -45,7 +45,11 @@ export const addProductWithUnits = gql`
 `;
 
 export const getProduct = gql`
-  query getProduct($id: ID!) {
+  query getProduct(
+    $id: ID!
+    $reportPagination: PaginationInput
+    $unitPagination: PaginationInput
+  ) {
     getProduct(data: { id: $id }) {
       id
       name
@@ -55,7 +59,7 @@ export const getProduct = gql`
         displayName
         email
       }
-      reports {
+      reports(pagination: $reportPagination) {
         count
         items {
           id
@@ -70,7 +74,7 @@ export const getProduct = gql`
           createdAt
         }
       }
-      units {
+      units(pagination: $unitPagination) {
         count
         items {
           id

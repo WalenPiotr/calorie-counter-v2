@@ -632,6 +632,8 @@ export type AddProductWithUnitsMutation = { __typename?: "Mutation" } & {
 
 export type GetProductQueryVariables = {
   id: Scalars["ID"];
+  reportPagination?: Maybe<PaginationInput>;
+  unitPagination?: Maybe<PaginationInput>;
 };
 
 export type GetProductQuery = { __typename?: "Query" } & {
@@ -943,7 +945,11 @@ export function withAddProductWithUnits<TProps, TChildProps = {}>(
   });
 }
 export const GetProductDocument = gql`
-  query getProduct($id: ID!) {
+  query getProduct(
+    $id: ID!
+    $reportPagination: PaginationInput
+    $unitPagination: PaginationInput
+  ) {
     getProduct(data: { id: $id }) {
       id
       name
@@ -953,7 +959,7 @@ export const GetProductDocument = gql`
         displayName
         email
       }
-      reports {
+      reports(pagination: $reportPagination) {
         count
         items {
           id
@@ -968,7 +974,7 @@ export const GetProductDocument = gql`
           createdAt
         }
       }
-      units {
+      units(pagination: $unitPagination) {
         count
         items {
           id

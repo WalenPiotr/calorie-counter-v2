@@ -1,35 +1,23 @@
+import Button from "@material-ui/core/Button";
+import Paper from "@material-ui/core/Paper";
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import Typography from "@material-ui/core/Typography";
+import Router from "next/router";
 import React from "react";
+import BaseInfo from "../../components/BaseInfo";
 import Layout from "../../components/Layout";
+import EntityTable, { Pagination } from "../../components/Table";
+import createStyle from "../../faacs/Style";
 import {
-  GetProductComponent,
-  Role,
+  DeleteProductComponent,
   GetProductDocument,
   GetProductQuery,
-  DeleteProductComponent,
+  Role,
 } from "../../graphql/generated/apollo";
-import Paper from "@material-ui/core/Paper";
-import Typography from "@material-ui/core/Typography";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
-import ListItemText from "@material-ui/core/ListItemText";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import createStyle from "../../faacs/Style";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import Button from "@material-ui/core/Button";
 import { authorized } from "../../lib/nextjs/authorized";
-import { parseString } from "../../lib/nextjs/parseQueryString";
-import { Context } from "../../types/Context";
+import { parsePage, parseString } from "../../lib/nextjs/parseQueryString";
 import { redirect } from "../../lib/nextjs/redirect";
-import Router from "next/router";
-import BaseInfo from "../../components/BaseInfo";
-import EntityTable from "../../components/Table";
+import { Context } from "../../types/Context";
 
 const Style = createStyle((theme: Theme) => ({
   table: { width: "auto" },
@@ -54,25 +42,48 @@ const Style = createStyle((theme: Theme) => ({
 
 class ProductViewProps {
   data: GetProductQuery;
+  unitPagination: Pagination;
+  reportPagination: Pagination;
 }
 export default class ProductView extends React.Component<ProductViewProps> {
   static async getInitialProps(props: Context) {
     await authorized(props, [Role.Admin]);
     const id = parseString(props.query.id);
+    const unitPagination = {
+      ...new Pagination(),
+      page: parsePage(props.query.unitPage),
+    };
+    const reportPagination = {
+      ...new Pagination(),
+      page: parsePage(props.query.reportPage),
+    };
     const { apolloClient } = props;
+
     const { data, errors } = await apolloClient.query({
       query: GetProductDocument,
-      variables: { id },
+      variables: {
+        id,
+        unitPagination: {
+          take: unitPagination.rowsPerPage,
+          skip: unitPagination.page * unitPagination.rowsPerPage,
+        },
+        reportPagination: {
+          take: reportPagination.rowsPerPage,
+          skip: reportPagination.page * reportPagination.rowsPerPage,
+        },
+      },
     });
     if (errors && errors.length > 0) {
       redirect(props, "/error");
     }
     return {
       data,
+      unitPagination,
+      reportPagination,
     };
   }
   render() {
-    const { data } = this.props;
+    const { data, unitPagination, reportPagination } = this.props;
     return (
       <Layout>
         {data ? (
@@ -110,64 +121,58 @@ export default class ProductView extends React.Component<ProductViewProps> {
                   ])}
                   pagination={{
                     count: data.getProduct.units.count,
-                    page: 0,
-                    rowsPerPage: 5,
-                    rowsOptions: [5],
-                    handleChangePage: () => {},
+                    page: unitPagination.page,
+                    rowsPerPage: unitPagination.rowsPerPage,
+                    rowsOptions: unitPagination.rowsOptions,
+                    handleChangePage: (event, newPage) => {
+                      Router.push(
+                        `product/view?id=${
+                          data.getProduct.id
+                        }&unitPage=${newPage}&reportPage=${
+                          reportPagination.page
+                        }`,
+                      );
+                    },
                     handleChangeRowsPerPage: () => {},
                   }}
                 />
                 <Typography variant="h6" className={classes.title}>
                   Products Reports
                 </Typography>
-                <Table className={classes.table}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>
-                        <Typography variant="body1" className={classes.header}>
-                          id
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body1" className={classes.header}>
-                          reason
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body1" className={classes.header}>
-                          message
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body1" className={classes.header}>
-                          status
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body1" className={classes.header}>
-                          createdAt
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body1" className={classes.header}>
-                          createdBy (displayName)
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody className={classes.table}>
-                    {data!.getProduct.reports.items.map((r, i) => (
-                      <TableRow>
-                        <TableCell>{r.id}</TableCell>
-                        <TableCell>{r.reason}</TableCell>
-                        <TableCell>{r.message}</TableCell>
-                        <TableCell>{r.status}</TableCell>
-                        <TableCell>{r.createdAt}</TableCell>
-                        <TableCell>{r.createdBy!.displayName}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <EntityTable
+                  headers={[
+                    { text: "id" },
+                    { text: "reason" },
+                    { text: "message" },
+                    { text: "status" },
+                    { text: "createdAt" },
+                    { text: "createdBy" },
+                  ]}
+                  rows={data.getProduct.reports.items.map(r => [
+                    { name: "id", value: r.id },
+                    { name: "reason", value: r.reason },
+                    { name: "message", value: r.message },
+                    { name: "status", value: r.status },
+                    { name: "createdAt", value: r.createdAt },
+                    { name: "createdBy", value: r.createdBy!.displayName },
+                  ])}
+                  pagination={{
+                    count: data.getProduct.reports.count,
+                    page: reportPagination.page,
+                    rowsPerPage: reportPagination.rowsPerPage,
+                    rowsOptions: reportPagination.rowsOptions,
+                    handleChangePage: (event, newPage) => {
+                      Router.push(
+                        `product/view?id=${
+                          data.getProduct.id
+                        }&unitPage=${newPage}&reportPage=${
+                          reportPagination.page
+                        }`,
+                      );
+                    },
+                    handleChangeRowsPerPage: () => {},
+                  }}
+                />
                 <Typography variant="h6" className={classes.title}>
                   Actions
                 </Typography>

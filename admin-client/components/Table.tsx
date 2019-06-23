@@ -124,6 +124,13 @@ interface Field {
 interface Header {
   text: string;
 }
+
+export class Pagination {
+  page: number = 0;
+  rowsPerPage: number = 5;
+  rowsOptions: number[] = [5];
+}
+
 interface TableProps {
   headers: Header[];
   rows: Field[][];
@@ -131,6 +138,7 @@ interface TableProps {
     count: number;
     page: number;
     rowsPerPage: number;
+    rowsOptions: number[];
     handleChangePage: (
       event: React.MouseEvent<HTMLButtonElement, MouseEvent> | null,
       newPage: number,
@@ -138,7 +146,6 @@ interface TableProps {
     handleChangeRowsPerPage: (
       event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => void;
-    rowsOptions: number[];
   };
 }
 
