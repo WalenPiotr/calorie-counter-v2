@@ -16,15 +16,15 @@ const main = async () => {
 
   const linkTypeDefs = `
     extend type User {
-      createdEntries: EntriesWithCount
-      updatedEntries: EntriesWithCount
-      createdMeals: MealsWithCount
-      updatedMeals: MealsWithCount
-      createdProducts: ProductsWithCount
-      updatedProducts: ProductsWithCount
-      createdReports: ReportsWithCount
-      createdUnits: UnitsWithCount
-      updatedUnits: UnitsWithCount
+      createdEntries(pagination: PaginationInput): EntriesWithCount
+      updatedEntries(pagination: PaginationInput): EntriesWithCount
+      createdMeals(pagination: PaginationInput): MealsWithCount
+      updatedMeals(pagination: PaginationInput): MealsWithCount
+      createdProducts(pagination: PaginationInput): ProductsWithCount
+      updatedProducts(pagination: PaginationInput): ProductsWithCount
+      createdReports(pagination: PaginationInput): ReportsWithCount
+      createdUnits(pagination: PaginationInput): UnitsWithCount
+      updatedUnits(pagination: PaginationInput): UnitsWithCount
     }
 
     extend type Entry {
