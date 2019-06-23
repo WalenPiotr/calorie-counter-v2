@@ -283,7 +283,7 @@ interface LayoutProps {
 }
 const Layout = ({ children }: LayoutProps) => {
   return (
-    <MeComponent>
+    <MeComponent fetchPolicy="no-cache">
       {({ data }) => (
         <Toggle>
           {({ isOpen, toggle, close }) => (
