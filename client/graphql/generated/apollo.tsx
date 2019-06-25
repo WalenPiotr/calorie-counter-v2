@@ -693,6 +693,17 @@ export type UpdateProductWithUnitsMutation = { __typename?: "Mutation" } & Pick<
   "updateProductWithUnits"
 >;
 
+export type ReportProductMutationVariables = {
+  id: Scalars["ID"];
+  message: Scalars["String"];
+  reason: ReportReason;
+};
+
+export type ReportProductMutation = { __typename?: "Mutation" } & Pick<
+  Mutation,
+  "reportProduct"
+>;
+
 export type SearchUserQueryVariables = {
   email: Scalars["String"];
 };
@@ -1123,6 +1134,52 @@ export function withUpdateProductWithUnits<TProps, TChildProps = {}>(
     UpdateProductWithUnitsProps<TChildProps>
   >(UpdateProductWithUnitsDocument, {
     alias: "withUpdateProductWithUnits",
+    ...operationOptions
+  });
+}
+export const ReportProductDocument = gql`
+  mutation reportProduct($id: ID!, $message: String!, $reason: ReportReason!) {
+    reportProduct(data: { productId: $id, message: $message, reason: $reason })
+  }
+`;
+export type ReportProductMutationFn = ReactApollo.MutationFn<
+  ReportProductMutation,
+  ReportProductMutationVariables
+>;
+export type ReportProductComponentProps = Omit<
+  ReactApollo.MutationProps<
+    ReportProductMutation,
+    ReportProductMutationVariables
+  >,
+  "mutation"
+>;
+
+export const ReportProductComponent = (props: ReportProductComponentProps) => (
+  <ReactApollo.Mutation<ReportProductMutation, ReportProductMutationVariables>
+    mutation={ReportProductDocument}
+    {...props}
+  />
+);
+
+export type ReportProductProps<TChildProps = {}> = Partial<
+  ReactApollo.MutateProps<ReportProductMutation, ReportProductMutationVariables>
+> &
+  TChildProps;
+export function withReportProduct<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    ReportProductMutation,
+    ReportProductMutationVariables,
+    ReportProductProps<TChildProps>
+  >
+) {
+  return ReactApollo.withMutation<
+    TProps,
+    ReportProductMutation,
+    ReportProductMutationVariables,
+    ReportProductProps<TChildProps>
+  >(ReportProductDocument, {
+    alias: "withReportProduct",
     ...operationOptions
   });
 }
