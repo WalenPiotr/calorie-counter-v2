@@ -32,11 +32,21 @@ export interface Me {
   role: string;
 }
 
-export const authorized = async (props: any, roles: Role[]): Promise<void> => {
+export interface AuthData {
+  isLoggedIn: boolean;
+  role: Role;
+}
+
+export const authorized = async (
+  props: any,
+  roles: Role[],
+): Promise<AuthData> => {
   const data = await checkMe(props.apolloClient);
   if (data && data.me && roles.indexOf(data.me.role) >= 0) {
-    return;
+    return { isLoggedIn: true, role: data.me.role };
   }
-  redirect(props, "/access-denied");
-  return;
+  return {
+    isLoggedIn: false,
+    role: data && data.me && data.me.role ? data.me.role : Role.User,
+  };
 };

@@ -1,15 +1,36 @@
 import Router from "next/router";
 import React from "react";
-import Layout from "../../../components/Layout";
-import { AddProductWithUnitsComponent } from "../../../graphql/generated/apollo";
-import { FormController, FormView } from "../../../components/product/Form";
+import Layout from "../../components/common/Layout";
+import {
+  AddProductWithUnitsComponent,
+  Role,
+} from "../../graphql/generated/apollo";
+import {
+  FormController,
+  FormView,
+} from "../../components/default/product/Form";
+import { authorized, AuthData } from "../../lib/nextjs/authorized";
+import { Context } from "../../types/Context";
+import { redirect } from "../../lib/nextjs/redirect";
 
-class NewProductProps {}
+class NewProductProps {
+  authData: AuthData;
+}
 
 class ProductNew extends React.PureComponent<NewProductProps> {
+  async getInitialProps(props: Context) {
+    const authData = await authorized(props, [Role.Admin]);
+    if (!authData.isLoggedIn) {
+      redirect(props, "/access-denied");
+      return;
+    }
+    return { authData };
+  }
+
   render() {
+    const { authData } = this.props;
     return (
-      <Layout>
+      <Layout authData={authData}>
         <AddProductWithUnitsComponent>
           {(addProduct, { loading, error }) => (
             <FormController
@@ -25,7 +46,7 @@ class ProductNew extends React.PureComponent<NewProductProps> {
                     },
                   });
                   if (!loading && result && result.data) {
-                    Router.push("/product");
+                    Router.push("/admin/product");
                   } else if (!loading && result && result.errors) {
                     const { errors } = result;
                     for (const gqlErr of errors) {

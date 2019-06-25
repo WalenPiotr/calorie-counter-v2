@@ -1,7 +1,10 @@
 import Router from "next/router";
 import React from "react";
-import Layout from "../../../components/Layout";
-import { FormController, FormView } from "../../../components/product/Form";
+import AdminLayout from "../../../components/common/Layout";
+import {
+  FormController,
+  FormView,
+} from "../../../components/default/product/Form";
 import {
   UpdateProductWithUnitsComponent,
   Role,
@@ -9,17 +12,22 @@ import {
   GetProductQuery,
 } from "../../../graphql/generated/apollo";
 import { Context } from "../../../types/Context";
-import { authorized } from "../../../lib/nextjs/authorized";
+import { authorized, AuthData } from "../../../lib/nextjs/authorized";
 import { parseString } from "../../../lib/nextjs/parseQueryString";
 import { redirect } from "../../../lib/nextjs/redirect";
 
 class ProductEditProps {
   data: GetProductQuery;
+  authData: AuthData;
 }
 
 class ProductEdit extends React.PureComponent<ProductEditProps> {
   static async getInitialProps(props: Context) {
-    await authorized(props, [Role.Admin]);
+    const authData = await authorized(props, [Role.Admin]);
+    if (!authData.isLoggedIn) {
+      redirect(props, "/access-denied");
+      return;
+    }
     const id = parseString(props.query.id);
     const { apolloClient } = props;
     const { data, errors } = await apolloClient.query({
@@ -28,15 +36,17 @@ class ProductEdit extends React.PureComponent<ProductEditProps> {
     });
     if (errors && errors.length > 0) {
       redirect(props, "/error");
+      return;
     }
     return {
       data,
+      authData,
     };
   }
 
   render() {
     return (
-      <Layout>
+      <AdminLayout authData={this.props.authData}>
         <UpdateProductWithUnitsComponent>
           {(updateProduct, { loading, error }) => (
             <FormController
@@ -60,7 +70,7 @@ class ProductEdit extends React.PureComponent<ProductEditProps> {
                     },
                   });
                   if (!loading && result && result.data) {
-                    Router.push("/product");
+                    Router.push("/admin/product");
                   } else if (!loading && result && result.errors) {
                     const { errors } = result;
                     // setErrors on form if necessary
@@ -82,7 +92,7 @@ class ProductEdit extends React.PureComponent<ProductEditProps> {
             </FormController>
           )}
         </UpdateProductWithUnitsComponent>
-      </Layout>
+      </AdminLayout>
     );
   }
 }

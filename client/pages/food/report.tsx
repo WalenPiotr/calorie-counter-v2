@@ -10,9 +10,12 @@ import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import { Formik } from "formik";
 import React from "react";
-import Layout from "../../../components/Layout";
-import createStyle from "../../../faacs/Style";
-import { ReportReason } from "../../../graphql/generated/apollo";
+import Layout from "../../components/common/Layout";
+import createStyle from "../../faacs/Style";
+import { ReportReason, Role } from "../../graphql/generated/apollo";
+import { Context } from "../../types/Context";
+import { redirect } from "../../lib/nextjs/redirect";
+import { authorized, AuthData } from "../../lib/nextjs/authorized";
 
 const Style = createStyle((theme: Theme) => ({
   paper: {
@@ -49,12 +52,23 @@ class ReportValues {
   reason: string = "";
 }
 
-interface ReportProductProps {}
+interface ReportProductProps {
+  authData: AuthData;
+}
 
 export default class ReportProduct extends React.Component<ReportProductProps> {
+  async getInitialProps(props: Context) {
+    const authData = await authorized(props, [Role.User, Role.Admin]);
+    if (!authData.isLoggedIn) {
+      redirect(props, "/access-denied");
+      return;
+    }
+    return { authData };
+  }
   render() {
+    const { authData } = this.props;
     return (
-      <Layout>
+      <Layout authData={authData}>
         <Formik initialValues={new ReportValues()} onSubmit={() => {}}>
           {({ values, handleChange }) => (
             <Style>

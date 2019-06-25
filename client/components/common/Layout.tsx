@@ -1,4 +1,5 @@
 import AppBar from "@material-ui/core/AppBar";
+import Button from "@material-ui/core/Button";
 import Divider from "@material-ui/core/Divider";
 import Drawer from "@material-ui/core/Drawer";
 import IconButton from "@material-ui/core/IconButton";
@@ -6,24 +7,23 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
+import AccountCircle from "@material-ui/icons/AccountCircle";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
-import MailIcon from "@material-ui/icons/Mail";
 import MenuIcon from "@material-ui/icons/Menu";
 import InboxIcon from "@material-ui/icons/MoveToInbox";
 import clsx from "clsx";
-import React from "react";
-import createStyle from "../faacs/Style";
-import Toggle from "../faacs/Toggle";
-import { MeComponent } from "../graphql/generated/apollo";
-import AccountCircle from "@material-ui/icons/AccountCircle";
-import Button from "@material-ui/core/Button";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import MenuController from "../faacs/Menu";
 import Link from "next/link";
+import React from "react";
+import MenuController from "../../faacs/Menu";
+import createStyle from "../../faacs/Style";
+import Toggle from "../../faacs/Toggle";
+import { Role } from "../../graphql/generated/apollo";
+import { AuthData } from "../../lib/nextjs/authorized";
 
 const loginURI = "http://localhost:8080/auth/google/login";
 const logoutURI = "http://localhost:8080/auth/logout";
@@ -60,10 +60,11 @@ const LayoutBarStyle = createStyle(theme => ({
 
 interface LayoutBarProps {
   isLoggedIn?: boolean;
+  role?: Role;
   isOpen: boolean;
   toggle: () => void;
 }
-const LayoutBar = ({ toggle, isOpen, isLoggedIn }: LayoutBarProps) => (
+const LayoutBar = ({ toggle, isOpen, isLoggedIn, role }: LayoutBarProps) => (
   <LayoutBarStyle>
     {({ classes }) => (
       <AppBar
@@ -71,20 +72,24 @@ const LayoutBar = ({ toggle, isOpen, isLoggedIn }: LayoutBarProps) => (
         className={clsx(classes.appBar, {
           [classes.appBarShift]: isOpen,
         })}
+        color={role === Role.Admin ? "secondary" : "primary"}
       >
         <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="Open drawer"
-            onClick={toggle}
-            edge="start"
-            className={clsx(classes.menuButton, isOpen && classes.hide)}
-            disabled={!isLoggedIn}
-          >
-            <MenuIcon />
-          </IconButton>
+          {role === Role.Admin ? (
+            <IconButton
+              color="inherit"
+              aria-label="Open drawer"
+              onClick={toggle}
+              edge="start"
+              className={clsx(classes.menuButton, isOpen && classes.hide)}
+              disabled={!isLoggedIn}
+            >
+              <MenuIcon />
+            </IconButton>
+          ) : null}
+
           <Typography variant="h6" noWrap>
-            Admin Panel
+            {role === Role.Admin ? "Admin Panel" : "Calorie Counter"}
           </Typography>
           {isLoggedIn ? (
             <MenuController>
@@ -116,7 +121,11 @@ const LayoutBar = ({ toggle, isOpen, isLoggedIn }: LayoutBarProps) => (
                     open={Boolean(anchorEl)}
                     onClose={handleClose}
                   >
-                    <MenuItem onClick={handleClose}>My account</MenuItem>
+                    <MenuItem>
+                      <Link href="/me">
+                        <a className={classes.link}>My account</a>
+                      </Link>
+                    </MenuItem>
                     <MenuItem>
                       <a className={classes.link} href={logoutURI}>
                         Logout
@@ -162,25 +171,20 @@ const LayoutDrawerStyle = createStyle(theme => ({
 const links: { text: string; href: string; icon: React.ReactNode }[][] = [
   [
     {
-      text: "Index",
-      href: "/",
-      icon: <InboxIcon />,
-    },
-    {
-      text: "Access Denied",
-      href: "/access-denied",
+      text: "Admin",
+      href: "/admin",
       icon: <InboxIcon />,
     },
   ],
   [
     {
       text: "User",
-      href: "/user",
+      href: "/admin/user",
       icon: <InboxIcon />,
     },
     {
       text: "Product",
-      href: "/product",
+      href: "/admin/product",
       icon: <InboxIcon />,
     },
   ],
@@ -189,7 +193,6 @@ const links: { text: string; href: string; icon: React.ReactNode }[][] = [
 interface LayoutDrawerProps {
   close: () => void;
   isOpen: boolean;
-  isLoggedIn: boolean;
 }
 
 const ButtonLink = React.forwardRef(
@@ -199,7 +202,7 @@ const ButtonLink = React.forwardRef(
     </Link>
   ),
 );
-const LayoutDrawer = ({ isOpen, close, isLoggedIn }: LayoutDrawerProps) => (
+const LayoutDrawer = ({ isOpen, close }: LayoutDrawerProps) => (
   <LayoutDrawerStyle>
     {({ classes, theme }) => (
       <Drawer
@@ -221,29 +224,27 @@ const LayoutDrawer = ({ isOpen, close, isLoggedIn }: LayoutDrawerProps) => (
           </IconButton>
         </div>
         <Divider />
-        {isLoggedIn ? (
-          <>
-            {links.map((group, index) => (
-              <React.Fragment key={index}>
-                <List>
-                  {group.map(link => (
-                    <ListItem
-                      button
-                      key={link.text}
-                      component={ButtonLink}
-                      href={link.href}
-                      onClick={close}
-                    >
-                      <ListItemIcon>{link.icon as any}</ListItemIcon>
-                      <ListItemText primary={link.text} />
-                    </ListItem>
-                  ))}
-                </List>
-                {links.length > 1 ? <Divider key={"divider" + index} /> : null}
-              </React.Fragment>
-            ))}
-          </>
-        ) : null}
+        <>
+          {links.map((group, index) => (
+            <React.Fragment key={index}>
+              <List>
+                {group.map(link => (
+                  <ListItem
+                    button
+                    key={link.text}
+                    component={ButtonLink}
+                    href={link.href}
+                    onClick={close}
+                  >
+                    <ListItemIcon>{link.icon as any}</ListItemIcon>
+                    <ListItemText primary={link.text} />
+                  </ListItem>
+                ))}
+              </List>
+              {links.length > 1 ? <Divider key={"divider" + index} /> : null}
+            </React.Fragment>
+          ))}
+        </>
       </Drawer>
     )}
   </LayoutDrawerStyle>
@@ -276,45 +277,48 @@ const LayoutStyle = createStyle(theme => ({
     }),
     marginLeft: 0,
   },
+  contentBase: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+  },
 }));
 
 interface LayoutProps {
+  authData: AuthData;
   children: React.ReactNode;
 }
-const Layout = ({ children }: LayoutProps) => {
+const Layout = ({ children, authData }: LayoutProps) => {
+  const { isLoggedIn, role } = authData;
   return (
-    <MeComponent fetchPolicy="no-cache">
-      {({ data }) => (
-        <Toggle>
-          {({ isOpen, toggle, close }) => (
-            <LayoutStyle>
-              {({ classes }) => (
-                <div className={classes.root}>
-                  <LayoutBar
-                    toggle={toggle}
-                    isOpen={isOpen}
-                    isLoggedIn={Boolean(data && data.me)}
-                  />
-                  <LayoutDrawer
-                    isOpen={isOpen}
-                    close={close}
-                    isLoggedIn={Boolean(data && data.me)}
-                  />
-                  <main
-                    className={clsx(classes.content, {
-                      [classes.contentShift]: isOpen,
-                    })}
-                  >
-                    <div className={classes.drawerHeader} />
-                    {children}
-                  </main>
-                </div>
-              )}
-            </LayoutStyle>
+    <Toggle>
+      {({ isOpen, toggle, close }) => (
+        <LayoutStyle>
+          {({ classes }) => (
+            <div className={classes.root}>
+              <LayoutBar
+                toggle={toggle}
+                isOpen={isOpen}
+                isLoggedIn={isLoggedIn}
+                role={role}
+              />
+              {isLoggedIn && role === Role.Admin ? (
+                <LayoutDrawer isOpen={isOpen} close={close} />
+              ) : null}
+              <main
+                className={clsx(classes.contentBase, {
+                  [classes.content]: isLoggedIn && role === Role.Admin,
+                  [classes.contentShift]:
+                    isLoggedIn && role === Role.Admin && isOpen,
+                })}
+              >
+                <div className={classes.drawerHeader} />
+                {children}
+              </main>
+            </div>
           )}
-        </Toggle>
+        </LayoutStyle>
       )}
-    </MeComponent>
+    </Toggle>
   );
 };
 

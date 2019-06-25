@@ -23,7 +23,7 @@ class MyApp extends App<any> {
         <ApolloProvider client={apolloClient}>
           {/* Wrap every page in Jss and Theme providers */}
           <Head>
-            <title>Admin Client</title>
+            <title>Calorie Counter</title>
           </Head>
           <ThemeProvider theme={theme}>
             {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}

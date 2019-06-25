@@ -621,6 +621,32 @@ export type SearchProductsQuery = { __typename?: "Query" } & {
     };
 };
 
+export type SearchFoodsQueryVariables = {
+  name: Scalars["String"];
+  skip?: Maybe<Scalars["Int"]>;
+  take?: Maybe<Scalars["Int"]>;
+};
+
+export type SearchFoodsQuery = { __typename?: "Query" } & {
+  searchProducts: { __typename?: "ProductsWithCount" } & Pick<
+    ProductsWithCount,
+    "count"
+  > & {
+      items: Array<
+        { __typename?: "Product" } & Pick<Product, "id" | "name"> & {
+            units: { __typename?: "UnitsWithCount" } & Pick<
+              UnitsWithCount,
+              "count"
+            > & {
+                items: Array<
+                  { __typename?: "Unit" } & Pick<Unit, "id" | "name" | "energy">
+                >;
+              };
+          }
+      >;
+    };
+};
+
 export type AddProductWithUnitsMutationVariables = {
   newUnits: Array<UnitInput>;
   newProduct: ProductInput;
@@ -891,6 +917,63 @@ export function withSearchProducts<TProps, TChildProps = {}>(
     SearchProductsProps<TChildProps>
   >(SearchProductsDocument, {
     alias: "withSearchProducts",
+    ...operationOptions
+  });
+}
+export const SearchFoodsDocument = gql`
+  query searchFoods($name: String!, $skip: Int, $take: Int) {
+    searchProducts(
+      data: { name: $name }
+      pagination: { take: $take, skip: $skip }
+    ) {
+      count
+      items {
+        id
+        name
+        units {
+          count
+          items {
+            id
+            name
+            energy
+          }
+        }
+      }
+    }
+  }
+`;
+export type SearchFoodsComponentProps = Omit<
+  ReactApollo.QueryProps<SearchFoodsQuery, SearchFoodsQueryVariables>,
+  "query"
+> &
+  ({ variables: SearchFoodsQueryVariables; skip?: false } | { skip: true });
+
+export const SearchFoodsComponent = (props: SearchFoodsComponentProps) => (
+  <ReactApollo.Query<SearchFoodsQuery, SearchFoodsQueryVariables>
+    query={SearchFoodsDocument}
+    {...props}
+  />
+);
+
+export type SearchFoodsProps<TChildProps = {}> = Partial<
+  ReactApollo.DataProps<SearchFoodsQuery, SearchFoodsQueryVariables>
+> &
+  TChildProps;
+export function withSearchFoods<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    SearchFoodsQuery,
+    SearchFoodsQueryVariables,
+    SearchFoodsProps<TChildProps>
+  >
+) {
+  return ReactApollo.withQuery<
+    TProps,
+    SearchFoodsQuery,
+    SearchFoodsQueryVariables,
+    SearchFoodsProps<TChildProps>
+  >(SearchFoodsDocument, {
+    alias: "withSearchFoods",
     ...operationOptions
   });
 }

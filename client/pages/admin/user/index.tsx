@@ -1,20 +1,22 @@
-import { Component } from "react";
-import Layout from "../../../components/Layout";
-import { Role, SearchUserComponent } from "../../../graphql/generated/apollo";
-import { authorized, Me } from "../../../lib/nextjs/authorized";
-import Table from "../../../components/Table";
+import Paper from "@material-ui/core/Paper";
 import { Formik } from "formik";
-import SearchBar from "../../../components/SearchBar";
 import { NextContext } from "next";
 import Router from "next/router";
+import { Component } from "react";
+import Layout from "../../../components/common/Layout";
+import SearchBar from "../../../components/common/SearchBar";
+import Table from "../../../components/common/Table";
+import { Role, SearchUserComponent } from "../../../graphql/generated/apollo";
+import { authorized, AuthData } from "../../../lib/nextjs/authorized";
 import {
-  parseString,
   parsePage,
   parseRowsPerPage,
+  parseString,
 } from "../../../lib/nextjs/parseQueryString";
-import Paper from "@material-ui/core/Paper";
+import { redirect } from "../../../lib/nextjs/redirect";
 
 interface UsersProps {
+  authData: AuthData;
   email: string;
   page: number;
   rowsPerPage: number;
@@ -23,7 +25,11 @@ interface UsersProps {
 
 class Users extends Component<UsersProps> {
   static async getInitialProps(props: NextContext) {
-    await authorized(props, [Role.Admin]);
+    const authData = await authorized(props, [Role.Admin]);
+    if (!authData.isLoggedIn) {
+      redirect(props, "/access-denied");
+      return;
+    }
     const { email, page, rowsPerPage } = props.query;
     const rowsOptions = [5, 10, 15];
     return {
@@ -31,6 +37,7 @@ class Users extends Component<UsersProps> {
       page: parsePage(page),
       rowsPerPage: parseRowsPerPage(rowsPerPage, rowsOptions),
       rowsOptions,
+      authData,
     };
   }
   handleChangePage = (
@@ -38,7 +45,7 @@ class Users extends Component<UsersProps> {
     newPage: number,
   ) => {
     Router.push({
-      pathname: "/user",
+      pathname: "/admin/user",
       query: {
         email: this.props.email,
         page: newPage,
@@ -50,7 +57,7 @@ class Users extends Component<UsersProps> {
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     Router.push({
-      pathname: "/user",
+      pathname: "/admin/user",
       query: {
         email: this.props.email,
         page: 0,
@@ -59,8 +66,9 @@ class Users extends Component<UsersProps> {
     });
   };
   render() {
+    const { authData } = this.props;
     return (
-      <Layout>
+      <Layout authData={authData}>
         <SearchUserComponent variables={{ email: this.props.email }}>
           {({ data }) => (
             <>
@@ -69,7 +77,7 @@ class Users extends Component<UsersProps> {
                 onSubmit={async ({ email }, { setSubmitting }) => {
                   setSubmitting(true);
                   Router.push({
-                    pathname: "/user",
+                    pathname: "/admin/user",
                     query: { email },
                   });
                   setSubmitting(false);
@@ -109,7 +117,7 @@ class Users extends Component<UsersProps> {
                       { value: i.provider },
                       { value: i.createdAt },
                       { value: i.updatedAt },
-                      { value: "view", link: `/user/view?id=${i.id}` },
+                      { value: "view", link: `/admin/user/view?id=${i.id}` },
                     ])}
                     pagination={{
                       count: data.searchUser.count,

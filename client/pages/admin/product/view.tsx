@@ -4,9 +4,9 @@ import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Typography from "@material-ui/core/Typography";
 import Router from "next/router";
 import React from "react";
-import BaseInfo from "../../../components/BaseInfo";
-import Layout from "../../../components/Layout";
-import EntityTable, { Pagination } from "../../../components/Table";
+import BaseInfo from "../../../components/common/BaseInfo";
+import Layout from "../../../components/common/Layout";
+import EntityTable, { Pagination } from "../../../components/common/Table";
 import createStyle from "../../../faacs/Style";
 import {
   DeleteProductComponent,
@@ -14,7 +14,7 @@ import {
   GetProductQuery,
   Role,
 } from "../../../graphql/generated/apollo";
-import { authorized } from "../../../lib/nextjs/authorized";
+import { authorized, AuthData } from "../../../lib/nextjs/authorized";
 import { parsePage, parseString } from "../../../lib/nextjs/parseQueryString";
 import { redirect } from "../../../lib/nextjs/redirect";
 import { Context } from "../../../types/Context";
@@ -41,6 +41,7 @@ const Style = createStyle((theme: Theme) => ({
 }));
 
 class ProductViewProps {
+  authData: AuthData;
   data: GetProductQuery;
   unitPagination: Pagination;
   reportPagination: Pagination;
@@ -48,6 +49,11 @@ class ProductViewProps {
 export default class ProductView extends React.Component<ProductViewProps> {
   static async getInitialProps(props: Context) {
     await authorized(props, [Role.Admin]);
+    const authData = await authorized(props, [Role.Admin]);
+    if (!authData.isLoggedIn) {
+      redirect(props, "/access-denied");
+      return;
+    }
     const id = parseString(props.query.id);
     const unitPagination = {
       ...new Pagination(),
@@ -75,17 +81,19 @@ export default class ProductView extends React.Component<ProductViewProps> {
     });
     if (errors && errors.length > 0) {
       redirect(props, "/error");
+      return;
     }
     return {
+      authData,
       data,
       unitPagination,
       reportPagination,
     };
   }
   render() {
-    const { data, unitPagination, reportPagination } = this.props;
+    const { data, unitPagination, reportPagination, authData } = this.props;
     return (
-      <Layout>
+      <Layout authData={authData}>
         {data ? (
           <Style>
             {({ classes }) => (
@@ -101,7 +109,9 @@ export default class ProductView extends React.Component<ProductViewProps> {
                     {
                       name: "createdBy (displayName)",
                       value: data.getProduct.createdBy!.displayName,
-                      link: `/user/view?id=${data.getProduct.createdBy!.id}`,
+                      link: `/admin/user/view?id=${
+                        data.getProduct.createdBy!.id
+                      }`,
                     },
                   ]}
                 />
@@ -126,7 +136,7 @@ export default class ProductView extends React.Component<ProductViewProps> {
                     rowsOptions: unitPagination.rowsOptions,
                     handleChangePage: (event, newPage) => {
                       Router.push(
-                        `product/view?id=${
+                        `/admin/product/view?id=${
                           data.getProduct.id
                         }&unitPage=${newPage}&reportPage=${
                           reportPagination.page
@@ -163,7 +173,7 @@ export default class ProductView extends React.Component<ProductViewProps> {
                     rowsOptions: reportPagination.rowsOptions,
                     handleChangePage: (event, newPage) => {
                       Router.push(
-                        `product/view?id=${
+                        `/admin/product/view?id=${
                           data.getProduct.id
                         }&unitPage=${newPage}&reportPage=${
                           reportPagination.page
@@ -183,7 +193,7 @@ export default class ProductView extends React.Component<ProductViewProps> {
                   className={classes.button}
                   onClick={async () => {
                     Router.push(
-                      `/product/edit?id=${this.props.data.getProduct.id}`,
+                      `/admin/product/edit?id=${this.props.data.getProduct.id}`,
                     );
                   }}
                 >
@@ -209,7 +219,7 @@ export default class ProductView extends React.Component<ProductViewProps> {
                         await deleteProduct({
                           variables: { id: this.props.data.getProduct.id },
                         });
-                        Router.push("/product");
+                        Router.push("/admin/product");
                       }}
                     >
                       Delete

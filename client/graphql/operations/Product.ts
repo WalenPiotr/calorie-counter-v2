@@ -31,6 +31,29 @@ export const searchProducts = gql`
   }
 `;
 
+export const searchFoods = gql`
+  query searchFoods($name: String!, $skip: Int, $take: Int) {
+    searchProducts(
+      data: { name: $name }
+      pagination: { take: $take, skip: $skip }
+    ) {
+      count
+      items {
+        id
+        name
+        units {
+          count
+          items {
+            id
+            name
+            energy
+          }
+        }
+      }
+    }
+  }
+`;
+
 export const addProductWithUnits = gql`
   mutation addProductWithUnits(
     $newUnits: [UnitInput!]!

@@ -7,11 +7,11 @@ import Typography from "@material-ui/core/Typography";
 import { plainToClass } from "class-transformer";
 import { validateSync } from "class-validator";
 import React from "react";
-import createStyle from "../../faacs/Style";
+import createStyle from "../../../faacs/Style";
 import {
   ProductInputWithValidation,
   UnitInputWithValidation,
-} from "../../graphql/generated/withValidation";
+} from "../../../graphql/generated/withValidation";
 
 interface FormControllerPassedProps {
   unitFormValues: UnitFormValues[];

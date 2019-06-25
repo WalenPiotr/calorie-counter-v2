@@ -4,16 +4,16 @@ import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Typography from "@material-ui/core/Typography";
 import Router from "next/router";
 import React from "react";
-import BaseInfo from "../../../components/BaseInfo";
-import Layout from "../../../components/Layout";
-import EntityTable, { Pagination } from "../../../components/Table";
+import BaseInfo from "../../../components/common/BaseInfo";
+import Layout from "../../../components/common/Layout";
+import EntityTable, { Pagination } from "../../../components/common/Table";
 import createStyle from "../../../faacs/Style";
 import {
   GetUserDocument,
   GetUserQuery,
   Role,
 } from "../../../graphql/generated/apollo";
-import { authorized } from "../../../lib/nextjs/authorized";
+import { authorized, AuthData } from "../../../lib/nextjs/authorized";
 import { parsePage, parseString } from "../../../lib/nextjs/parseQueryString";
 import { redirect } from "../../../lib/nextjs/redirect";
 import { Context } from "../../../types/Context";
@@ -40,13 +40,18 @@ const Style = createStyle((theme: Theme) => ({
 }));
 
 class UserViewProps {
+  authData: AuthData;
   data: GetUserQuery;
   productPagination: Pagination;
   reportPagination: Pagination;
 }
 export default class UserView extends React.Component<UserViewProps> {
   static async getInitialProps(props: Context) {
-    await authorized(props, [Role.Admin]);
+    const authData = await authorized(props, [Role.Admin]);
+    if (!authData.isLoggedIn) {
+      redirect(props, "/access-denied");
+      return;
+    }
     const id = parseString(props.query.id);
     const productPagination = {
       ...new Pagination(),
@@ -72,20 +77,21 @@ export default class UserView extends React.Component<UserViewProps> {
         },
       },
     });
-
     if (errors && errors.length > 0) {
       redirect(props, "/error");
+      return;
     }
     return {
+      authData,
       data,
       productPagination,
       reportPagination,
     };
   }
   render() {
-    const { data, productPagination, reportPagination } = this.props;
+    const { data, productPagination, reportPagination, authData } = this.props;
     return (
-      <Layout>
+      <Layout authData={authData}>
         <Style>
           {({ classes }) => (
             <Paper className={classes.paper}>
@@ -130,7 +136,7 @@ export default class UserView extends React.Component<UserViewProps> {
                   },
                   {
                     value: "view",
-                    link: `/product/view?id=${p.id}`,
+                    link: `/admin/product/view?id=${p.id}`,
                   },
                 ])}
                 pagination={{
@@ -138,7 +144,7 @@ export default class UserView extends React.Component<UserViewProps> {
                   ...productPagination,
                   handleChangePage: (event, newPage) => {
                     Router.push(
-                      `/user/view?id=${
+                      `/admin/user/view?id=${
                         data.getUserById.id
                       }&productPage=${newPage}&reportPage=${
                         this.props.reportPagination.page
@@ -183,7 +189,7 @@ export default class UserView extends React.Component<UserViewProps> {
                   },
                   {
                     value: "view",
-                    link: `/report/view?id=${r.id}`,
+                    link: `/admin/report/view?id=${r.id}`,
                   },
                 ])}
                 pagination={{
@@ -191,7 +197,7 @@ export default class UserView extends React.Component<UserViewProps> {
                   ...reportPagination,
                   handleChangePage: (event, newPage) => {
                     Router.push(
-                      `/user/view?id=${data.getUserById.id}&productPage=${
+                      `/admin/user/view?id=${data.getUserById.id}&productPage=${
                         this.props.reportPagination.page
                       }&reportPage=${newPage}`,
                     );
@@ -210,7 +216,7 @@ export default class UserView extends React.Component<UserViewProps> {
                 className={classes.button}
                 onClick={async () => {
                   Router.push(
-                    `/user/edit?id=${this.props.data.getUserById.id}`,
+                    `/admin/user/edit?id=${this.props.data.getUserById.id}`,
                   );
                 }}
               >

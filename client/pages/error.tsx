@@ -3,9 +3,10 @@ import createStyle from "../faacs/Style";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import ErrorIcon from "@material-ui/icons/ErrorOutline";
-import { Role } from "../graphql/generated/apollo";
+import { parseString } from "../lib/nextjs/parseQueryString";
 import { Context } from "../types/Context";
 import { authorized, AuthData } from "../lib/nextjs/authorized";
+import { Role } from "../graphql/generated/apollo";
 import Layout from "../components/common/Layout";
 
 const Style = createStyle(theme => ({
@@ -26,17 +27,19 @@ const Style = createStyle(theme => ({
   },
 }));
 
-interface AccessDeniedProps {
+interface ErrorPageProps {
   authData: AuthData;
+  message: string;
 }
 
-export default class extends Component<AccessDeniedProps> {
+export default class extends Component<ErrorPageProps> {
   static async getInitialProps(props: Context) {
     const authData = await authorized(props, [Role.User, Role.Admin]);
-    return { authData };
+    const message = parseString(props.query.message);
+    return { message, authData };
   }
   render() {
-    const { authData } = this.props;
+    const { authData, message } = this.props;
     return (
       <Layout authData={authData}>
         <Style>
@@ -44,14 +47,14 @@ export default class extends Component<AccessDeniedProps> {
             <Paper className={classes.root}>
               <ErrorIcon className={classes.icon} color="error" />
               <Typography variant="h3" color="error">
-                Access Denied
+                Error
               </Typography>
               <Typography
                 variant="subtitle1"
                 color="error"
                 className={classes.subtitle}
               >
-                You need to be service administrator to access this page
+                {message ? message : "Something went wrong"}
               </Typography>
             </Paper>
           )}

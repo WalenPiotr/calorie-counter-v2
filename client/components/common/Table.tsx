@@ -14,7 +14,7 @@ import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
 import LastPageIcon from "@material-ui/icons/LastPage";
 import Link from "next/link";
 import React from "react";
-import createStyle from "../faacs/Style";
+import createStyle from "../../faacs/Style";
 
 interface TablePaginationActionsProps {
   count: number;
@@ -120,6 +120,7 @@ const Style = createStyle((theme: Theme) => ({
 interface Field {
   value: string;
   link?: string;
+  component?: React.ReactNode;
 }
 interface Header {
   text: string;
@@ -176,6 +177,8 @@ export default function EntityTable({ rows, headers, pagination }: TableProps) {
                         <Link href={field.link}>
                           <a>{field.value}</a>
                         </Link>
+                      ) : field.component ? (
+                        field.component
                       ) : (
                         <span>{field.value}</span>
                       )}
