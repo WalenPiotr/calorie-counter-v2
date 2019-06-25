@@ -1,17 +1,17 @@
 import { Component } from "react";
-import Layout from "../../components/Layout";
-import { Role, SearchUserComponent } from "../../graphql/generated/apollo";
-import { authorized, Me } from "../../lib/nextjs/authorized";
-import Table from "../../components/Table";
+import Layout from "../../../components/Layout";
+import { Role, SearchUserComponent } from "../../../graphql/generated/apollo";
+import { authorized, Me } from "../../../lib/nextjs/authorized";
+import Table from "../../../components/Table";
 import { Formik } from "formik";
-import SearchBar from "../../components/SearchBar";
+import SearchBar from "../../../components/SearchBar";
 import { NextContext } from "next";
 import Router from "next/router";
 import {
   parseString,
   parsePage,
   parseRowsPerPage,
-} from "../../lib/nextjs/parseQueryString";
+} from "../../../lib/nextjs/parseQueryString";
 import Paper from "@material-ui/core/Paper";
 
 interface UsersProps {

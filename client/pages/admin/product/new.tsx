@@ -1,8 +1,8 @@
 import Router from "next/router";
 import React from "react";
-import Layout from "../../components/Layout";
-import { AddProductWithUnitsComponent } from "../../graphql/generated/apollo";
-import { FormController, FormView } from "../../components/product/Form";
+import Layout from "../../../components/Layout";
+import { AddProductWithUnitsComponent } from "../../../graphql/generated/apollo";
+import { FormController, FormView } from "../../../components/product/Form";
 
 class NewProductProps {}
 

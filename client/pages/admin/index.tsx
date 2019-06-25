@@ -1,11 +1,11 @@
 import React from "react";
-import createStyled from "../faacs/Style";
-import Layout from "../components/Layout";
+import createStyled from "../../faacs/Style";
+import Layout from "../../components/Layout";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
-import { authorized } from "../lib/nextjs/authorized";
-import { Role } from "../graphql/generated/apollo";
-import { Context } from "../types/Context";
+import { authorized } from "../../lib/nextjs/authorized";
+import { Role } from "../../graphql/generated/apollo";
+import { Context } from "../../types/Context";
 
 const IndexStyled = createStyled(() => ({
   root: {},
@@ -22,9 +22,7 @@ class Index extends React.Component {
         <IndexStyled>
           {({ classes }) => (
             <Paper>
-              <Typography variant="h2">
-                Welcome to calorie counter app
-              </Typography>
+              <Typography variant="h2">Welcome to admin panel</Typography>
             </Paper>
           )}
         </IndexStyled>

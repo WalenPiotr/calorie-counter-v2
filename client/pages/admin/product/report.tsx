@@ -10,9 +10,9 @@ import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import { Formik } from "formik";
 import React from "react";
-import Layout from "../../components/Layout";
-import createStyle from "../../faacs/Style";
-import { ReportReason } from "../../graphql/generated/apollo";
+import Layout from "../../../components/Layout";
+import createStyle from "../../../faacs/Style";
+import { ReportReason } from "../../../graphql/generated/apollo";
 
 const Style = createStyle((theme: Theme) => ({
   paper: {

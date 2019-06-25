@@ -2,21 +2,21 @@ import { Formik } from "formik";
 import Router from "next/router";
 import React, { Component } from "react";
 import { Context } from "react-apollo";
-import Layout from "../../components/Layout";
-import SearchBar from "../../components/SearchBar";
-import Table from "../../components/Table";
+import Layout from "../../../components/Layout";
+import SearchBar from "../../../components/SearchBar";
+import Table from "../../../components/Table";
 import {
   Role,
   SearchProductsDocument,
   SearchProductsQuery,
-} from "../../graphql/generated/apollo";
-import { authorized } from "../../lib/nextjs/authorized";
+} from "../../../graphql/generated/apollo";
+import { authorized } from "../../../lib/nextjs/authorized";
 import {
   parsePage,
   parseRowsPerPage,
   parseString,
-} from "../../lib/nextjs/parseQueryString";
-import { redirect } from "../../lib/nextjs/redirect";
+} from "../../../lib/nextjs/parseQueryString";
+import { redirect } from "../../../lib/nextjs/redirect";
 import Paper from "@material-ui/core/Paper";
 
 interface ProductsProps {

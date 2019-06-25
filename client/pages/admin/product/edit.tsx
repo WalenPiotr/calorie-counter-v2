@@ -1,17 +1,17 @@
 import Router from "next/router";
 import React from "react";
-import Layout from "../../components/Layout";
-import { FormController, FormView } from "../../components/product/Form";
+import Layout from "../../../components/Layout";
+import { FormController, FormView } from "../../../components/product/Form";
 import {
   UpdateProductWithUnitsComponent,
   Role,
   GetProductDocument,
   GetProductQuery,
-} from "../../graphql/generated/apollo";
-import { Context } from "../../types/Context";
-import { authorized } from "../../lib/nextjs/authorized";
-import { parseString } from "../../lib/nextjs/parseQueryString";
-import { redirect } from "../../lib/nextjs/redirect";
+} from "../../../graphql/generated/apollo";
+import { Context } from "../../../types/Context";
+import { authorized } from "../../../lib/nextjs/authorized";
+import { parseString } from "../../../lib/nextjs/parseQueryString";
+import { redirect } from "../../../lib/nextjs/redirect";
 
 class ProductEditProps {
   data: GetProductQuery;
