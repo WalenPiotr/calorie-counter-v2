@@ -19,6 +19,7 @@ export class Meal extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
   @Field()
   name: string;
 
