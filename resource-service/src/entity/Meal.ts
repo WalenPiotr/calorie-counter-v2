@@ -7,18 +7,19 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Unique,
 } from "typeorm";
 import { Entry } from "./Entry";
 
 @ObjectType()
 @Entity()
+@Unique(["createdById", "date", "name"])
 export class Meal extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
   @Field()
-  @Column({ unique: true })
   name: string;
 
   @ManyToOne(() => Entry, e => e.meal)
