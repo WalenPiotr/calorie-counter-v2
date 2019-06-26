@@ -1,6 +1,6 @@
 import gql from "graphql-tag";
-import * as React from "react";
 import * as ReactApollo from "react-apollo";
+import * as React from "react";
 export type Maybe<T> = T | null;
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 /** All built-in and custom scalars, mapped to their actual values */
@@ -575,6 +575,20 @@ export type ValidateReportInput = {
   id: Scalars["Float"];
   status: ReportStatus;
 };
+export type AddEntryMutationVariables = {
+  unitId: Scalars["ID"];
+  mealId: Scalars["ID"];
+  quantity: Scalars["Float"];
+};
+
+export type AddEntryMutation = { __typename?: "Mutation" } & {
+  addEntry: { __typename?: "Entry" } & Pick<Entry, "id" | "quantity"> & {
+      unit: { __typename?: "Unit" } & Pick<Unit, "id" | "name" | "energy"> & {
+          product: { __typename?: "Product" } & Pick<Product, "id" | "name">;
+        };
+    };
+};
+
 export type MeQueryVariables = {};
 
 export type MeQuery = { __typename?: "Query" } & {
@@ -584,6 +598,25 @@ export type MeQuery = { __typename?: "Query" } & {
       "id" | "email" | "displayName" | "role"
     >
   >;
+};
+
+export type GetMealsByDateQueryVariables = {
+  date: Scalars["DateTime"];
+};
+
+export type GetMealsByDateQuery = { __typename?: "Query" } & {
+  getMealsByDate: { __typename?: "MealsWithCount" } & {
+    items: Array<{ __typename?: "Meal" } & Pick<Meal, "id" | "name" | "date">>;
+  };
+};
+
+export type AddMealMutationVariables = {
+  name: Scalars["String"];
+  date: Scalars["DateTime"];
+};
+
+export type AddMealMutation = { __typename?: "Mutation" } & {
+  addMeal: { __typename?: "Meal" } & Pick<Meal, "id" | "name" | "date">;
 };
 
 export type SearchProductsQueryVariables = {
@@ -812,6 +845,65 @@ export type GetUserQuery = { __typename?: "Query" } & {
     };
 };
 
+export const AddEntryDocument = gql`
+  mutation addEntry($unitId: ID!, $mealId: ID!, $quantity: Float!) {
+    addEntry(
+      data: {
+        newEntry: { unitId: $unitId, mealId: $mealId, quantity: $quantity }
+      }
+    ) {
+      id
+      unit {
+        id
+        name
+        energy
+        product {
+          id
+          name
+        }
+      }
+      quantity
+    }
+  }
+`;
+export type AddEntryMutationFn = ReactApollo.MutationFn<
+  AddEntryMutation,
+  AddEntryMutationVariables
+>;
+export type AddEntryComponentProps = Omit<
+  ReactApollo.MutationProps<AddEntryMutation, AddEntryMutationVariables>,
+  "mutation"
+>;
+
+export const AddEntryComponent = (props: AddEntryComponentProps) => (
+  <ReactApollo.Mutation<AddEntryMutation, AddEntryMutationVariables>
+    mutation={AddEntryDocument}
+    {...props}
+  />
+);
+
+export type AddEntryProps<TChildProps = {}> = Partial<
+  ReactApollo.MutateProps<AddEntryMutation, AddEntryMutationVariables>
+> &
+  TChildProps;
+export function withAddEntry<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    AddEntryMutation,
+    AddEntryMutationVariables,
+    AddEntryProps<TChildProps>
+  >
+) {
+  return ReactApollo.withMutation<
+    TProps,
+    AddEntryMutation,
+    AddEntryMutationVariables,
+    AddEntryProps<TChildProps>
+  >(AddEntryDocument, {
+    alias: "withAddEntry",
+    ...operationOptions
+  });
+}
 export const MeDocument = gql`
   query Me {
     me {
@@ -850,6 +942,101 @@ export function withMe<TProps, TChildProps = {}>(
     MeProps<TChildProps>
   >(MeDocument, {
     alias: "withMe",
+    ...operationOptions
+  });
+}
+export const GetMealsByDateDocument = gql`
+  query getMealsByDate($date: DateTime!) {
+    getMealsByDate(data: { date: $date }) {
+      items {
+        id
+        name
+        date
+      }
+    }
+  }
+`;
+export type GetMealsByDateComponentProps = Omit<
+  ReactApollo.QueryProps<GetMealsByDateQuery, GetMealsByDateQueryVariables>,
+  "query"
+> &
+  ({ variables: GetMealsByDateQueryVariables; skip?: false } | { skip: true });
+
+export const GetMealsByDateComponent = (
+  props: GetMealsByDateComponentProps
+) => (
+  <ReactApollo.Query<GetMealsByDateQuery, GetMealsByDateQueryVariables>
+    query={GetMealsByDateDocument}
+    {...props}
+  />
+);
+
+export type GetMealsByDateProps<TChildProps = {}> = Partial<
+  ReactApollo.DataProps<GetMealsByDateQuery, GetMealsByDateQueryVariables>
+> &
+  TChildProps;
+export function withGetMealsByDate<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    GetMealsByDateQuery,
+    GetMealsByDateQueryVariables,
+    GetMealsByDateProps<TChildProps>
+  >
+) {
+  return ReactApollo.withQuery<
+    TProps,
+    GetMealsByDateQuery,
+    GetMealsByDateQueryVariables,
+    GetMealsByDateProps<TChildProps>
+  >(GetMealsByDateDocument, {
+    alias: "withGetMealsByDate",
+    ...operationOptions
+  });
+}
+export const AddMealDocument = gql`
+  mutation addMeal($name: String!, $date: DateTime!) {
+    addMeal(data: { newMeal: { name: $name, date: $date } }) {
+      id
+      name
+      date
+    }
+  }
+`;
+export type AddMealMutationFn = ReactApollo.MutationFn<
+  AddMealMutation,
+  AddMealMutationVariables
+>;
+export type AddMealComponentProps = Omit<
+  ReactApollo.MutationProps<AddMealMutation, AddMealMutationVariables>,
+  "mutation"
+>;
+
+export const AddMealComponent = (props: AddMealComponentProps) => (
+  <ReactApollo.Mutation<AddMealMutation, AddMealMutationVariables>
+    mutation={AddMealDocument}
+    {...props}
+  />
+);
+
+export type AddMealProps<TChildProps = {}> = Partial<
+  ReactApollo.MutateProps<AddMealMutation, AddMealMutationVariables>
+> &
+  TChildProps;
+export function withAddMeal<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    AddMealMutation,
+    AddMealMutationVariables,
+    AddMealProps<TChildProps>
+  >
+) {
+  return ReactApollo.withMutation<
+    TProps,
+    AddMealMutation,
+    AddMealMutationVariables,
+    AddMealProps<TChildProps>
+  >(AddMealDocument, {
+    alias: "withAddMeal",
     ...operationOptions
   });
 }

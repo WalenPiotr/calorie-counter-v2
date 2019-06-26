@@ -148,9 +148,15 @@ interface TableProps {
       event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => void;
   };
+  onRowClick?: (event: React.MouseEvent, index: number) => void;
 }
 
-export default function EntityTable({ rows, headers, pagination }: TableProps) {
+export default function EntityTable({
+  rows,
+  headers,
+  pagination,
+  onRowClick,
+}: TableProps) {
   return (
     <Style>
       {({ classes }) => (
@@ -170,7 +176,15 @@ export default function EntityTable({ rows, headers, pagination }: TableProps) {
             </TableHead>
             <TableBody>
               {rows.map((row, i) => (
-                <TableRow key={i} hover>
+                <TableRow
+                  key={i}
+                  hover
+                  onClick={event => {
+                    if (onRowClick) {
+                      onRowClick(event, i);
+                    }
+                  }}
+                >
                   {row.map((field, j) => (
                     <TableCell align={j === 0 ? "inherit" : "right"} key={j}>
                       {field.link ? (

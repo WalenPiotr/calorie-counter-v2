@@ -1,15 +1,8 @@
-import DateFnsUtils from "@date-io/date-fns";
 import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
 import Paper from "@material-ui/core/Paper";
-import {
-  KeyboardDatePicker,
-  MuiPickersUtilsProvider,
-} from "@material-ui/pickers";
 import { Formik } from "formik";
 import Router from "next/router";
-import React, { Component } from "react";
+import React from "react";
 import { Context } from "react-apollo";
 import Layout from "../../components/common/Layout";
 import SearchBar from "../../components/common/SearchBar";
@@ -26,7 +19,43 @@ import {
   parseString,
 } from "../../lib/nextjs/parseQueryString";
 import { redirect } from "../../lib/nextjs/redirect";
-import Field from "@material-ui/core/Input";
+import AddDialog from "../../components/default/product/AddEntryDialog";
+import Toggle from "../../faacs/Toggle";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+
+interface IdControllerPassedProps {
+  set: (id: string) => void;
+  id: string | null;
+  clear: () => void;
+}
+interface IdControllerProps {
+  children: (props: IdControllerPassedProps) => React.ReactNode;
+}
+interface IdControllerState {
+  id: string | null;
+}
+class IdController extends React.Component<
+  IdControllerProps,
+  IdControllerState
+> {
+  state: IdControllerState = {
+    id: null,
+  };
+  set = (id: string) => {
+    this.setState({ id });
+  };
+  clear = () => {
+    this.setState({ id: null });
+  };
+  render() {
+    return this.props.children({
+      id: this.state.id,
+      set: this.set,
+      clear: this.clear,
+    });
+  }
+}
 
 interface ProductsProps {
   authData: AuthData;
@@ -37,86 +66,7 @@ interface ProductsProps {
   rowsOptions: number[];
 }
 
-export interface SimpleDialogProps {
-  open: boolean;
-  handleClose: (value: string) => void;
-}
-interface AddEntryControllerPassedProps {
-  handleDateChange: (date: Date | null) => void;
-  handleQuantityChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  date: Date | null;
-  quantity: string;
-}
-interface AddEntryControllerProps {
-  children: (props: AddEntryControllerPassedProps) => React.ReactNode;
-}
-interface AddEntryControllerState {
-  date: Date | null;
-  quantity: string;
-}
-class AddEntryController extends React.Component<
-  AddEntryControllerProps,
-  AddEntryControllerState
-> {
-  state = {
-    date: null,
-    quantity: "",
-  };
-  handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    event.persist();
-    this.setState({ quantity: event.target.value });
-  };
-  handleDateChange = (date: Date | null) => {
-    this.setState({ date });
-  };
-  render() {
-    return this.props.children({
-      date: this.state.date,
-      quantity: this.state.quantity,
-      handleDateChange: this.handleDateChange,
-      handleQuantityChange: this.handleQuantityChange,
-    });
-  }
-}
-
-
-
-const AddDialog = ({ handleClose, open }: SimpleDialogProps) => {
-  const selectedDate = new Date("2014-08-18T00:00:00Z");
-  return (
-    <MuiPickersUtilsProvider utils={DateFnsUtils}>
-      <AddEntryController>
-        {({ date, handleDateChange, quantity, handleQuantityChange }) => (
-          <Dialog
-            onClose={handleClose}
-            aria-labelledby="simple-dialog-title"
-            open={open}
-          >
-            <DialogTitle id="simple-dialog-title">Add entry</DialogTitle>
-            <KeyboardDatePicker
-              margin="normal"
-              id="mui-pickers-date"
-              label="Date picker"
-              value={date}
-              onChange={handleDateChange}
-              KeyboardButtonProps={{
-                "aria-label": "change date",
-              }}
-            />
-            <Field
-              value={quantity}
-              onChange={handleQuantityChange}
-              name="quantity"
-              label="quantity"
-            />
-          </Dialog>
-        )}
-      </AddEntryController>
-    </MuiPickersUtilsProvider>
-  );
-};
-
-class Products extends Component<ProductsProps> {
+class Products extends React.Component<ProductsProps> {
   static async getInitialProps(props: Context) {
     const authData = await authorized(props, [Role.Admin]);
     if (!authData.isLoggedIn) {
@@ -179,82 +129,92 @@ class Products extends Component<ProductsProps> {
   render() {
     const { data, authData } = this.props;
     return (
-      <Layout authData={authData}>
-        <Formik
-          initialValues={{ name: this.props.name }}
-          onSubmit={async ({ name }, { setSubmitting }) => {
-            setSubmitting(true);
-            Router.push({
-              pathname: "/food",
-              query: { name },
-            });
-            setSubmitting(false);
-          }}
-        >
-          {({ values, handleChange, handleSubmit, isSubmitting }) => (
-            <SearchBar
-              text="Search product by name"
-              name="name"
-              value={values.name}
-              onChange={handleChange}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-            />
-          )}
-        </Formik>
-        <Paper>
-          {data && data.searchProducts && data.searchProducts.items ? (
-            <>
-              <Table
-                headers={[
-                  { text: "id" },
-                  { text: "name" },
-                  { text: "unit name" },
-                  { text: "unit energy [kcal]" },
-                  { text: "available units count" },
-                  { text: "add" },
-                ]}
-                rows={data.searchProducts.items.map(i => [
-                  { value: i.id },
-                  { value: i.name },
-                  {
-                    value:
-                      i.units.items.length > 0 ? i.units.items[0].name : "None",
-                  },
-                  {
-                    value:
-                      i.units.items.length > 0
-                        ? i.units.items[0].energy.toString()
-                        : "None",
-                  },
-                  { value: i.units.count.toString() },
-                  {
-                    value: "add",
-                    component: (
-                      <Button
-                        onClick={() => {
-                          console.log("click");
-                        }}
-                      >
-                        Add
-                      </Button>
-                    ),
-                  },
-                ])}
-                pagination={{
-                  count: data.searchProducts.count,
-                  page: this.props.page,
-                  rowsPerPage: this.props.rowsPerPage,
-                  handleChangePage: this.handleChangePage,
-                  handleChangeRowsPerPage: this.handleChangeRowsPerPage,
-                  rowsOptions: this.props.rowsOptions,
+      <IdController>
+        {({ id, set, clear }) => (
+          <>
+            <Layout authData={authData}>
+              <Formik
+                initialValues={{ name: this.props.name }}
+                onSubmit={async ({ name }, { setSubmitting }) => {
+                  setSubmitting(true);
+                  Router.push({
+                    pathname: "/food",
+                    query: { name },
+                  });
+                  setSubmitting(false);
                 }}
+              >
+                {({ values, handleChange, handleSubmit, isSubmitting }) => (
+                  <SearchBar
+                    text="Search product by name"
+                    name="name"
+                    value={values.name}
+                    onChange={handleChange}
+                    onSubmit={handleSubmit}
+                    isSubmitting={isSubmitting}
+                  />
+                )}
+              </Formik>
+              <Paper>
+                {data && data.searchProducts && data.searchProducts.items ? (
+                  <>
+                    <Toolbar>
+                      <Typography variant="h6" id="tableTitle">
+                        Click product to add to food dairy
+                      </Typography>
+                    </Toolbar>
+                    <Table
+                      hover
+                      headers={[
+                        { text: "id" },
+                        { text: "name" },
+                        { text: "unit name" },
+                        { text: "unit energy [kcal]" },
+                        { text: "available units count" },
+                      ]}
+                      rows={data.searchProducts.items.map(i => [
+                        { value: i.id },
+                        { value: i.name },
+                        {
+                          value:
+                            i.units.items.length > 0
+                              ? i.units.items[0].name
+                              : "None",
+                        },
+                        {
+                          value:
+                            i.units.items.length > 0
+                              ? i.units.items[0].energy.toString()
+                              : "None",
+                        },
+                        { value: i.units.count.toString() },
+                      ])}
+                      onRowClick={(event, index) => {
+                        set(data.searchProducts.items[index].id);
+                      }}
+                      pagination={{
+                        count: data.searchProducts.count,
+                        page: this.props.page,
+                        rowsPerPage: this.props.rowsPerPage,
+                        handleChangePage: this.handleChangePage,
+                        handleChangeRowsPerPage: this.handleChangeRowsPerPage,
+                        rowsOptions: this.props.rowsOptions,
+                      }}
+                    />
+                  </>
+                ) : null}
+              </Paper>
+            </Layout>
+            {id ? (
+              <AddDialog
+                open={Boolean(id)}
+                handleClose={clear}
+                productId={id}
               />
-            </>
-          ) : null}
-          <AddDialog open={true} handleClose={() => console.log("close")} />
-        </Paper>
-      </Layout>
+            ) : null}
+          </>
+        )}
+      </IdController>
     );
   }
 }
