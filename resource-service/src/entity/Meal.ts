@@ -10,6 +10,7 @@ import {
   Unique,
 } from "typeorm";
 import { Entry } from "./Entry";
+import { MinLength } from "class-validator";
 
 @ObjectType()
 @Entity()
@@ -20,6 +21,7 @@ export class Meal extends BaseEntity {
   id: number;
 
   @Column()
+  @MinLength(1)
   @Field()
   name: string;
 

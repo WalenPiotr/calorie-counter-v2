@@ -11,6 +11,7 @@ import {
 } from "typeorm";
 import { Meal } from "./Meal";
 import { Unit } from "./Unit";
+import { Min } from "class-validator";
 
 @ObjectType()
 @Entity()
@@ -26,6 +27,7 @@ export class Entry extends BaseEntity {
 
   @Field()
   @Column({ type: "float" })
+  @Min(0)
   quantity: number;
 
   @Field(() => Meal)
