@@ -18,7 +18,7 @@ class NewProductProps {
 }
 
 class ProductNew extends React.PureComponent<NewProductProps> {
-  async getInitialProps(props: Context) {
+  static async getInitialProps(props: Context) {
     const authData = await authorized(props, [Role.Admin]);
     if (!authData.isLoggedIn) {
       redirect(props, "/access-denied");

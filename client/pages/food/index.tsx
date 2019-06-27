@@ -1,5 +1,6 @@
-import Button from "@material-ui/core/Button";
 import Paper from "@material-ui/core/Paper";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
 import { Formik } from "formik";
 import Router from "next/router";
 import React from "react";
@@ -7,6 +8,7 @@ import { Context } from "react-apollo";
 import Layout from "../../components/common/Layout";
 import SearchBar from "../../components/common/SearchBar";
 import Table from "../../components/common/Table";
+import AddDialog from "../../components/default/product/AddEntryDialog";
 import {
   Role,
   SearchFoodsDocument,
@@ -19,10 +21,6 @@ import {
   parseString,
 } from "../../lib/nextjs/parseQueryString";
 import { redirect } from "../../lib/nextjs/redirect";
-import AddDialog from "../../components/default/product/AddEntryDialog";
-import Toggle from "../../faacs/Toggle";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
 
 interface IdControllerPassedProps {
   set: (id: string) => void;
@@ -164,7 +162,6 @@ class Products extends React.Component<ProductsProps> {
                       </Typography>
                     </Toolbar>
                     <Table
-                      hover
                       headers={[
                         { text: "id" },
                         { text: "name" },

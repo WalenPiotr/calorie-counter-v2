@@ -11,7 +11,7 @@ import createStyle from "../../../faacs/Style";
 import {
   ProductInputWithValidation,
   UnitInputWithValidation,
-} from "../../../graphql/generated/withValidation";
+} from "../../../graphql/withValidation";
 
 interface FormControllerPassedProps {
   unitFormValues: UnitFormValues[];
@@ -104,15 +104,22 @@ const validate = (values: FormValues): FormErrors => {
   return errors;
 };
 
+const initializeErrors = (values: FormValues) => {
+  const formErrors = new FormErrors();
+  const unitErrors = values.units.map(u => new UnitFormError());
+  formErrors.units = unitErrors;
+  return formErrors;
+};
+
 export class FormController extends React.PureComponent<
   FormControllerProps,
   FormControllerState
 > {
   static defaultProps = new FormControllerProps();
 
-  state = {
+  state: FormControllerState = {
     values: this.props.initialValues,
-    errors: validate(this.props.initialValues),
+    errors: new FormErrors(),
   };
 
   handleProductChange = async (
@@ -127,7 +134,7 @@ export class FormController extends React.PureComponent<
           [event.target.name]: event.target.value,
         },
       };
-      const errors = validate(values);
+      const errors = initializeErrors(values);
       return {
         ...prevState,
         errors,
@@ -150,7 +157,7 @@ export class FormController extends React.PureComponent<
         ...prevState.values,
         units: unitFormValues,
       };
-      const errors = validate(values);
+      const errors = initializeErrors(values);
       return {
         ...prevState,
         values,
@@ -164,7 +171,8 @@ export class FormController extends React.PureComponent<
         ...prevState.values,
         units: [...prevState.values.units, new UnitFormValues()],
       };
-      const errors = validate(values);
+      const errors = initializeErrors(values);
+
       return {
         ...prevState,
         values,
@@ -181,7 +189,7 @@ export class FormController extends React.PureComponent<
           ...prevState.values,
           units: unitFormValues,
         };
-        const errors = validate(values);
+        const errors = initializeErrors(values);
         return {
           ...prevState,
           values,
@@ -200,19 +208,22 @@ export class FormController extends React.PureComponent<
   };
 
   handleSubmit = () => {
-    if (this.areValuesValid()) {
+    const errors = validate(this.state.values);
+    if (this.areValuesValid(errors)) {
       this.props.handleSubmit(this.state.values, this.setErrors);
+    } else {
+      this.setState({ errors });
     }
   };
 
-  areValuesValid = (): boolean => {
-    for (const e of Object.entries(this.state.errors.product)) {
+  areValuesValid = (errors: FormErrors): boolean => {
+    for (const e of Object.entries(errors.product)) {
       const [_, v] = e;
       if (v.length > 0) {
         return false;
       }
     }
-    for (const unitErrors of this.state.errors.units) {
+    for (const unitErrors of errors.units) {
       for (const e of Object.entries(unitErrors)) {
         const [_, v] = e;
         if (v.length > 0) {
@@ -236,7 +247,7 @@ export class FormController extends React.PureComponent<
       isDeleteButtonDisabled: this.state.values.units.length <= 1,
       isAddUnitButtonDisabled:
         this.state.values.units.length >= this.props.maxUnits,
-      isSubmitButtonDisabled: !this.areValuesValid(),
+      isSubmitButtonDisabled: false,
       handleSubmit: this.handleSubmit,
     });
   }
@@ -272,12 +283,16 @@ const Style = createStyle((theme: Theme) => ({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: theme.spacing(4),
   },
   deleteIcon: {
     color: theme.palette.error.main,
   },
   title: {
     textTransform: "uppercase",
+  },
+  submitButton: {
+    marginTop: theme.spacing(2),
   },
 }));
 
@@ -308,11 +323,11 @@ export const FormView = ({
         <Typography variant="h6" className={classes.title}>
           {titleText}
         </Typography>
-        <Divider variant="fullWidth" className={classes.mainDivider} />
+        {/* <Divider variant="fullWidth" className={classes.mainDivider} /> */}
         <Typography variant="subtitle1">Please enter product's data</Typography>
         <TextField
-          label="name"
-          name="name"
+          label="product name"
+          name="product name"
           value={productFormValues.name}
           error={productErrorValues.name.length > 0}
           helperText={
@@ -322,11 +337,11 @@ export const FormView = ({
           }
           onChange={handleProductChange}
           margin="normal"
-          variant="outlined"
+          // variant="outlined"
           fullWidth
           className={classes.field}
         />
-        <Divider variant="fullWidth" className={classes.mainDivider} />
+        {/* <Divider variant="fullWidth" className={classes.mainDivider} /> */}
         <div className={classes.titleGroup}>
           <Typography variant="subtitle1">
             Please enter product's units
@@ -341,7 +356,7 @@ export const FormView = ({
         </div>
         {unitFormValues.map((values, i) => (
           <div key={i}>
-            <Divider variant="fullWidth" className={classes.divider} />
+            {/* <Divider variant="fullWidth" className={classes.divider} /> */}
             <div className={classes.titleGroup}>
               <Typography>Please enter unit's data</Typography>
               <Button
@@ -354,10 +369,10 @@ export const FormView = ({
             </div>
             <TextField
               value={values.name}
-              label="name"
+              label="unit's name"
               name="name"
               fullWidth
-              variant="outlined"
+              // variant="outlined"
               className={classes.field}
               onChange={handleUnitChange(i)}
               error={unitErrorValues[i].name.length > 0}
@@ -369,11 +384,11 @@ export const FormView = ({
             />
             <TextField
               value={values.energy}
-              label="energy"
+              label="unit's energy"
               name="energy"
               type="number"
               fullWidth
-              variant="outlined"
+              // variant="outlined"
               className={classes.field}
               onChange={handleUnitChange(i)}
               error={unitErrorValues[i].energy.length > 0}
@@ -385,7 +400,7 @@ export const FormView = ({
             />
           </div>
         ))}
-        <Divider variant="fullWidth" className={classes.mainDivider} />
+        {/* <Divider variant="fullWidth" className={classes.mainDivider} /> */}
         <Button
           variant="contained"
           size="large"
@@ -393,6 +408,7 @@ export const FormView = ({
           fullWidth
           disabled={isSubmitButtonDisabled}
           onClick={handleSubmit}
+          className={classes.submitButton}
         >
           {submitText}
         </Button>

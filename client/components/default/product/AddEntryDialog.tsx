@@ -1,44 +1,50 @@
 import DateFnsUtils from "@date-io/date-fns";
 import Button from "@material-ui/core/Button";
+import Checkbox from "@material-ui/core/Checkbox";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Tab from "@material-ui/core/Tab";
 import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import Tabs from "@material-ui/core/Tabs";
 import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
 import {
   KeyboardDatePicker,
   MuiPickersUtilsProvider,
 } from "@material-ui/pickers";
 import React from "react";
+import { MutationFn } from "react-apollo";
 import createStyle from "../../../faacs/Style";
 import {
-  GetMealsByDateComponent,
-  GetProductComponent,
   AddEntryComponent,
   AddEntryMutation,
   AddEntryMutationVariables,
+  AddMealComponent,
   AddMealMutation,
   AddMealMutationVariables,
-  AddMealComponent,
-  GetMealsByDateQueryVariables,
-  GetMealsByDateQuery,
+  GetMealsByDateComponent,
+  GetProductComponent,
 } from "../../../graphql/generated/apollo";
-import Checkbox from "@material-ui/core/Checkbox";
-import { MutationFn } from "react-apollo";
-import TableBody from "@material-ui/core/TableBody";
-import { ApolloQueryResult } from "apollo-boost";
+import { validateSync, ValidationError, Min, MinLength } from "class-validator";
+import { plainToClass } from "class-transformer";
+
+class EntryValidator {
+  @Min(0)
+  quantity: number;
+}
+
+class EntryWithNewMealValidator extends EntryValidator {
+  @MinLength(3)
+  newMeal: string;
+  @Min(0)
+  quantity: number;
+}
 
 const DialogStyle = createStyle((theme: Theme) => ({
   dialog: {
@@ -75,15 +81,22 @@ const DialogStyle = createStyle((theme: Theme) => ({
     paddingTop: 0,
     color: theme.palette.primary,
   },
+  tableMargin: {
+    marginTop: theme.spacing(3),
+    marginBottom: theme.spacing(3),
+  },
 }));
 
 interface AddEntryControllerPassedProps {
   handleQuantityChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   quantity: string;
+  quantityError: string | null;
 
   tab: string;
   handleTabChange: (event: React.ChangeEvent<any>, newValue: TabOption) => void;
+
   newMeal: string;
+  newMealError: string | null;
   handleNewMealChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 
   unitId: string | null;
@@ -101,6 +114,7 @@ interface AddEntryControllerProps {
   addEntry: MutationFn<AddEntryMutation, AddEntryMutationVariables>;
   initialUnitId: string | null;
   initialMealId: string | null;
+  handleClose: () => void;
 }
 
 enum TabOption {
@@ -110,8 +124,10 @@ enum TabOption {
 
 interface AddEntryControllerState {
   quantity: string;
+  quantityError: string | null;
   tab: TabOption;
   newMeal: string;
+  newMealError: string | null;
   unitId: string | null;
   mealId: string | null;
 }
@@ -120,9 +136,13 @@ class AddEntryController extends React.Component<
   AddEntryControllerState
 > {
   state: AddEntryControllerState = {
-    tab: TabOption.SelectExisting,
+    tab: this.props.initialMealId
+      ? TabOption.SelectExisting
+      : TabOption.NewMeal,
     quantity: "",
+    quantityError: null,
     newMeal: "",
+    newMealError: null,
     mealId: this.props.initialMealId,
     unitId: this.props.initialUnitId,
   };
@@ -153,16 +173,35 @@ class AddEntryController extends React.Component<
 
   handleSubmit = async () => {
     if (this.state.tab === TabOption.NewMeal) {
+      const quantity = parseFloat(this.state.quantity);
+      const newMeal = this.state.newMeal;
+      const errors = validateSync(
+        plainToClass(EntryWithNewMealValidator, { quantity, newMeal }),
+      );
+      if (errors.length > 0) {
+        const newMealErrors = errors.filter(e => e.property === "newMeal");
+        const newMealError =
+          newMealErrors.length > 0
+            ? Object.values(newMealErrors[0].constraints)[0]
+            : null;
+        const quantityErrors = errors.filter(e => e.property === "quantity");
+        const quantityError =
+          quantityErrors.length > 0
+            ? Object.values(quantityErrors[0].constraints)[0]
+            : null;
+
+        this.setState({ newMealError, quantityError });
+        return;
+      }
       const result = await this.props.addMeal({
         variables: { name: this.state.newMeal, date: this.props.date },
       });
       if (result && result.data && this.state.unitId) {
-        const { unitId } = this.state;
         const quantity = parseFloat(this.state.quantity);
         await this.props.addEntry({
           variables: {
             mealId: result.data.addMeal.id,
-            unitId: unitId,
+            unitId: this.state.unitId,
             quantity,
           },
         });
@@ -173,6 +212,17 @@ class AddEntryController extends React.Component<
       this.state.unitId
     ) {
       const quantity = parseFloat(this.state.quantity);
+      const errors = validateSync(plainToClass(EntryValidator, { quantity }));
+      if (errors.length > 0) {
+        const quantityErrors = errors.filter(e => e.property === "quantity");
+        const quantityError =
+          quantityErrors.length > 0
+            ? Object.values(quantityErrors[0].constraints)[0]
+            : null;
+
+        this.setState({ quantityError });
+        return;
+      }
       await this.props.addEntry({
         variables: {
           mealId: this.state.mealId,
@@ -180,16 +230,20 @@ class AddEntryController extends React.Component<
           quantity,
         },
       });
+      this.props.handleClose();
     }
   };
 
   render() {
+    console.log(this.state);
     return this.props.children({
       quantity: this.state.quantity,
+      quantityError: this.state.quantityError,
       tab: this.state.tab,
       handleQuantityChange: this.handleQuantityChange,
       handleTabChange: this.handleTabChange,
       newMeal: this.state.newMeal,
+      newMealError: this.state.newMealError,
       handleNewMealChange: this.handleNewMealChange,
       unitId: this.state.unitId,
       handleUnitRowClick: this.handleUnitRowClick,
@@ -224,7 +278,7 @@ const AddDialog = ({ handleClose, open, productId }: AddDialogProps) => (
               if (renderProduct) {
                 return (
                   <GetMealsByDateComponent variables={{ date: Date() }}>
-                    {({ data: mealData, loading, refetch }) => {
+                    {({ data: mealData, loading, refetch, variables }) => {
                       const renderOptions = Boolean(
                         !loading &&
                           mealData &&
@@ -234,10 +288,8 @@ const AddDialog = ({ handleClose, open, productId }: AddDialogProps) => (
                       const meals = renderOptions
                         ? mealData!.getMealsByDate.items
                         : [];
+                      const date = variables.date;
                       if (!loading && mealData) {
-                        const date = mealData!.getMealsByDate.items[0]
-                          ? mealData!.getMealsByDate.items[0].date
-                          : new Date();
                         return (
                           <MuiPickersUtilsProvider utils={DateFnsUtils}>
                             <AddEntryController
@@ -250,13 +302,16 @@ const AddDialog = ({ handleClose, open, productId }: AddDialogProps) => (
                                   : null
                               }
                               date={date}
+                              handleClose={handleClose}
                             >
                               {({
                                 quantity,
+                                quantityError,
                                 handleQuantityChange,
                                 tab,
                                 handleTabChange,
                                 newMeal,
+                                newMealError,
                                 handleNewMealChange,
                                 unitId,
                                 handleUnitRowClick,
@@ -334,6 +389,12 @@ const AddDialog = ({ handleClose, open, productId }: AddDialogProps) => (
                                             name="quantity"
                                             label="Enter product quantity"
                                             type="number"
+                                            error={Boolean(quantityError)}
+                                            helperText={
+                                              Boolean(quantityError)
+                                                ? quantityError
+                                                : ""
+                                            }
                                           />
 
                                           <KeyboardDatePicker
@@ -349,7 +410,6 @@ const AddDialog = ({ handleClose, open, productId }: AddDialogProps) => (
                                             }}
                                             className={classes.dateInput}
                                           />
-
                                           <>
                                             <Tabs
                                               value={tab}
@@ -369,7 +429,9 @@ const AddDialog = ({ handleClose, open, productId }: AddDialogProps) => (
                                             </Tabs>
                                             {tab === TabOption.SelectExisting &&
                                             renderOptions ? (
-                                              <Table>
+                                              <Table
+                                                className={classes.tableMargin}
+                                              >
                                                 <TableBody>
                                                   {meals.map((meal, index) => (
                                                     <TableRow
@@ -413,19 +475,21 @@ const AddDialog = ({ handleClose, open, productId }: AddDialogProps) => (
                                                 name="Add new meal"
                                                 label="Enter new meal's name"
                                                 type="text"
+                                                error={Boolean(newMealError)}
+                                                helperText={
+                                                  Boolean(newMealError)
+                                                    ? newMealError
+                                                    : ""
+                                                }
                                               />
                                             ) : null}
                                           </>
-
                                           <Button
                                             color="primary"
                                             fullWidth
                                             variant="contained"
                                             size="large"
-                                            onClick={() => {
-                                              handleSubmit();
-                                              handleClose();
-                                            }}
+                                            onClick={handleSubmit}
                                           >
                                             Add entry
                                           </Button>
