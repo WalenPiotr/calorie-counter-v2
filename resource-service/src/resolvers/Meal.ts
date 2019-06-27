@@ -69,12 +69,21 @@ class GetMealsByUpdatedById {
 // class GetDaysWithMyMeals {}
 
 @ObjectType()
+class DaysWithCount {
+  @Field()
+  count: number;
+
+  @Field(() => [Day])
+  items: Day[];
+}
+
+@ObjectType()
 class Day {
   @Field(() => Date)
   date: Date;
 
   @Field()
-  count: number;
+  mealCount: number;
 
   @Field()
   total: number;
@@ -83,32 +92,41 @@ class Day {
 @Resolver(Meal)
 export class MealResolver {
   @Authorized()
-  @Query(() => [Day])
+  @Query(() => DaysWithCount)
   async getDaysWithMyMeals(
     // @Arg("data") _: GetDaysWithMyMeals,
     @Ctx() ctx: ContextType,
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
-  ): Promise<Day[]> {
+  ): Promise<DaysWithCount> {
     const { take, skip } = pagination
       ? await transformValidate(PaginationInput, pagination)
       : new PaginationInput();
     const userId = ctx.req.session!.passport.user.id;
     const results = await Meal.query(
       `
-        SELECT "date", COUNT(*)
+        (SELECT 
+          "date" as date, 
+          COUNT(*) as mealCount
         FROM Meal
         WHERE "createdById"=$1
         GROUP BY "date"
         ORDER BY "date"
         OFFSET $2 
-        LIMIT $3;
+        LIMIT $3);
       `,
       [userId, skip, take],
     );
+    const { count } = await Meal.createQueryBuilder()
+      .select(`COUNT(DISTINCT("date"))`, "count")
+      .where({
+        createdById: userId,
+      })
+      .getRawOne();
+
     let newResults: Day[] = [];
     for (const r of results) {
       const date = new Date(r.date);
-      const count = parseInt(r.count);
+      const mealCount = parseInt(r.mealcount);
       const meals = await Meal.getRepository().find({
         where: {
           date: r.date,
@@ -133,13 +151,13 @@ export class MealResolver {
       newResults = [
         ...newResults,
         {
-          count,
+          mealCount,
           date,
           total,
         },
       ];
     }
-    return newResults;
+    return { items: newResults, count };
   }
 
   @Authorized()
