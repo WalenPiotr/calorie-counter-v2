@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Unique,
+  OneToMany,
 } from "typeorm";
 import { Entry } from "./Entry";
 import { MinLength } from "class-validator";
@@ -25,7 +26,7 @@ export class Meal extends BaseEntity {
   @Field()
   name: string;
 
-  @ManyToOne(() => Entry, e => e.meal)
+  @OneToMany(() => Entry, e => e.meal)
   entries: Entry[];
 
   @Field(() => Date)

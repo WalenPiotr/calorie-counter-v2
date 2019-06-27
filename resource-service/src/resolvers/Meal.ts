@@ -65,9 +65,83 @@ class GetMealsByUpdatedById {
   @Field(() => ID)
   id: number;
 }
+// @InputType()
+// class GetDaysWithMyMeals {}
+
+@ObjectType()
+class Day {
+  @Field(() => Date)
+  date: Date;
+
+  @Field()
+  count: number;
+
+  @Field()
+  total: number;
+}
 
 @Resolver(Meal)
 export class MealResolver {
+  @Authorized()
+  @Query(() => [Day])
+  async getDaysWithMyMeals(
+    // @Arg("data") _: GetDaysWithMyMeals,
+    @Ctx() ctx: ContextType,
+    @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
+  ): Promise<Day[]> {
+    const { take, skip } = pagination
+      ? await transformValidate(PaginationInput, pagination)
+      : new PaginationInput();
+    const userId = ctx.req.session!.passport.user.id;
+    const results = await Meal.query(
+      `
+        SELECT "date", COUNT(*)
+        FROM Meal
+        WHERE "createdById"=$1
+        GROUP BY "date"
+        ORDER BY "date"
+        OFFSET $2 
+        LIMIT $3;
+      `,
+      [userId, skip, take],
+    );
+    let newResults: Day[] = [];
+    for (const r of results) {
+      const date = new Date(r.date);
+      const count = parseInt(r.count);
+      const meals = await Meal.getRepository().find({
+        where: {
+          date: r.date,
+          createdById: userId,
+        },
+        relations: ["entries", "entries.unit"],
+        take: 100,
+        skip: 0,
+      });
+      const total = meals.reduce(
+        (subtotal: number, curr: Meal) =>
+          subtotal +
+          (curr.entries
+            ? curr.entries.reduce(
+                (partialSum: number, curr: Entry) =>
+                  partialSum + curr.unit.energy * curr.quantity,
+                0,
+              )
+            : 0),
+        0,
+      );
+      newResults = [
+        ...newResults,
+        {
+          count,
+          date,
+          total,
+        },
+      ];
+    }
+    return newResults;
+  }
+
   @Authorized()
   @Query(() => MealsWithCount)
   async getMealsByDate(
@@ -76,7 +150,9 @@ export class MealResolver {
     @Arg("pagination", { nullable: true }) pagination?: PaginationInput,
   ): Promise<MealsWithCount> {
     const userId = ctx.req.session!.passport.user.id;
-    const { take, skip } = pagination ? pagination : new PaginationInput();
+    const { take, skip } = pagination
+      ? await transformValidate(PaginationInput, pagination)
+      : new PaginationInput();
     const { date } = data;
     const [items, count] = await Meal.findAndCount({
       where: {
