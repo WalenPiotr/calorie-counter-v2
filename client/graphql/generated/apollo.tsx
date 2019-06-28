@@ -36,6 +36,19 @@ export type AddUnitInput = {
   productId: Scalars["ID"];
 };
 
+export type Day = {
+  __typename?: "Day";
+  date: Scalars["DateTime"];
+  mealCount: Scalars["Float"];
+  total: Scalars["Float"];
+};
+
+export type DaysWithCount = {
+  __typename?: "DaysWithCount";
+  count: Scalars["Float"];
+  items: Array<Day>;
+};
+
 export type DeleteProductInput = {
   id: Scalars["ID"];
 };
@@ -285,6 +298,8 @@ export type Query = {
   getMyEntriesByMealId: EntriesWithCount;
   getEntriesByCreatedById: EntriesWithCount;
   getEntriesByUpdatedById: EntriesWithCount;
+  getMyEnergyValue: Scalars["Float"];
+  getDaysWithMyMeals: DaysWithCount;
   getMealsByDate: MealsWithCount;
   getMealsByCreatedById: MealsWithCount;
   getMealsByUpdatedById: MealsWithCount;
@@ -315,6 +330,10 @@ export type QueryGetEntriesByCreatedByIdArgs = {
 export type QueryGetEntriesByUpdatedByIdArgs = {
   pagination?: Maybe<PaginationInput>;
   data: GetEntriesByUpdatedById;
+};
+
+export type QueryGetDaysWithMyMealsArgs = {
+  pagination?: Maybe<PaginationInput>;
 };
 
 export type QueryGetMealsByDateArgs = {
@@ -606,7 +625,28 @@ export type GetMealsByDateQueryVariables = {
 
 export type GetMealsByDateQuery = { __typename?: "Query" } & {
   getMealsByDate: { __typename?: "MealsWithCount" } & {
-    items: Array<{ __typename?: "Meal" } & Pick<Meal, "id" | "name" | "date">>;
+    items: Array<
+      { __typename?: "Meal" } & Pick<Meal, "id" | "name" | "date"> & {
+          entries: { __typename?: "EntriesWithCount" } & Pick<
+            EntriesWithCount,
+            "count"
+          > & {
+              items: Array<
+                { __typename?: "Entry" } & Pick<Entry, "id" | "quantity"> & {
+                    unit: { __typename?: "Unit" } & Pick<
+                      Unit,
+                      "name" | "energy"
+                    > & {
+                        product: { __typename?: "Product" } & Pick<
+                          Product,
+                          "name"
+                        >;
+                      };
+                  }
+              >;
+            };
+        }
+    >;
   };
 };
 
@@ -618,6 +658,28 @@ export type AddMealMutationVariables = {
 export type AddMealMutation = { __typename?: "Mutation" } & {
   addMeal: { __typename?: "Meal" } & Pick<Meal, "id" | "name" | "date">;
 };
+
+export type GetDaysWithMealsQueryVariables = {
+  pagination?: Maybe<PaginationInput>;
+};
+
+export type GetDaysWithMealsQuery = { __typename?: "Query" } & {
+  getDaysWithMyMeals: { __typename?: "DaysWithCount" } & Pick<
+    DaysWithCount,
+    "count"
+  > & {
+      items: Array<
+        { __typename?: "Day" } & Pick<Day, "date" | "mealCount" | "total">
+      >;
+    };
+};
+
+export type GetMyEnergyValueQueryVariables = {};
+
+export type GetMyEnergyValueQuery = { __typename?: "Query" } & Pick<
+  Query,
+  "getMyEnergyValue"
+>;
 
 export type SearchProductsQueryVariables = {
   name: Scalars["String"];
@@ -952,6 +1014,20 @@ export const GetMealsByDateDocument = gql`
         id
         name
         date
+        entries {
+          count
+          items {
+            id
+            quantity
+            unit {
+              name
+              energy
+              product {
+                name
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -1037,6 +1113,95 @@ export function withAddMeal<TProps, TChildProps = {}>(
     AddMealProps<TChildProps>
   >(AddMealDocument, {
     alias: "withAddMeal",
+    ...operationOptions
+  });
+}
+export const GetDaysWithMealsDocument = gql`
+  query getDaysWithMeals($pagination: PaginationInput) {
+    getDaysWithMyMeals(pagination: $pagination) {
+      count
+      items {
+        date
+        mealCount
+        total
+      }
+    }
+  }
+`;
+export type GetDaysWithMealsComponentProps = Omit<
+  ReactApollo.QueryProps<GetDaysWithMealsQuery, GetDaysWithMealsQueryVariables>,
+  "query"
+>;
+
+export const GetDaysWithMealsComponent = (
+  props: GetDaysWithMealsComponentProps
+) => (
+  <ReactApollo.Query<GetDaysWithMealsQuery, GetDaysWithMealsQueryVariables>
+    query={GetDaysWithMealsDocument}
+    {...props}
+  />
+);
+
+export type GetDaysWithMealsProps<TChildProps = {}> = Partial<
+  ReactApollo.DataProps<GetDaysWithMealsQuery, GetDaysWithMealsQueryVariables>
+> &
+  TChildProps;
+export function withGetDaysWithMeals<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    GetDaysWithMealsQuery,
+    GetDaysWithMealsQueryVariables,
+    GetDaysWithMealsProps<TChildProps>
+  >
+) {
+  return ReactApollo.withQuery<
+    TProps,
+    GetDaysWithMealsQuery,
+    GetDaysWithMealsQueryVariables,
+    GetDaysWithMealsProps<TChildProps>
+  >(GetDaysWithMealsDocument, {
+    alias: "withGetDaysWithMeals",
+    ...operationOptions
+  });
+}
+export const GetMyEnergyValueDocument = gql`
+  query getMyEnergyValue {
+    getMyEnergyValue
+  }
+`;
+export type GetMyEnergyValueComponentProps = Omit<
+  ReactApollo.QueryProps<GetMyEnergyValueQuery, GetMyEnergyValueQueryVariables>,
+  "query"
+>;
+
+export const GetMyEnergyValueComponent = (
+  props: GetMyEnergyValueComponentProps
+) => (
+  <ReactApollo.Query<GetMyEnergyValueQuery, GetMyEnergyValueQueryVariables>
+    query={GetMyEnergyValueDocument}
+    {...props}
+  />
+);
+
+export type GetMyEnergyValueProps<TChildProps = {}> = Partial<
+  ReactApollo.DataProps<GetMyEnergyValueQuery, GetMyEnergyValueQueryVariables>
+> &
+  TChildProps;
+export function withGetMyEnergyValue<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    GetMyEnergyValueQuery,
+    GetMyEnergyValueQueryVariables,
+    GetMyEnergyValueProps<TChildProps>
+  >
+) {
+  return ReactApollo.withQuery<
+    TProps,
+    GetMyEnergyValueQuery,
+    GetMyEnergyValueQueryVariables,
+    GetMyEnergyValueProps<TChildProps>
+  >(GetMyEnergyValueDocument, {
+    alias: "withGetMyEnergyValue",
     ...operationOptions
   });
 }

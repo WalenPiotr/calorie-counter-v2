@@ -7,6 +7,20 @@ export const getMealsByDate = gql`
         id
         name
         date
+        entries {
+          count
+          items {
+            id
+            quantity
+            unit {
+              name
+              energy
+              product {
+                name
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -19,5 +33,24 @@ export const addMeal = gql`
       name
       date
     }
+  }
+`;
+
+export const getDaysWithMeals = gql`
+  query getDaysWithMeals($pagination: PaginationInput) {
+    getDaysWithMyMeals(pagination: $pagination) {
+      count
+      items {
+        date
+        mealCount
+        total
+      }
+    }
+  }
+`;
+
+export const getMyEnergyValue = gql`
+  query getMyEnergyValue {
+    getMyEnergyValue
   }
 `;
