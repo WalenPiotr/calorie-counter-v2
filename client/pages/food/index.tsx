@@ -8,7 +8,6 @@ import { Context } from "react-apollo";
 import Layout from "../../components/common/Layout";
 import SearchBar from "../../components/common/SearchBar";
 import Table from "../../components/common/Table";
-import AddDialog from "../../components/default/product/AddEntryDialog";
 import {
   Role,
   SearchFoodsDocument,
@@ -22,39 +21,6 @@ import {
 } from "../../lib/nextjs/parseQueryString";
 import { redirect } from "../../lib/nextjs/redirect";
 
-interface IdControllerPassedProps {
-  set: (id: string) => void;
-  id: string | null;
-  clear: () => void;
-}
-interface IdControllerProps {
-  children: (props: IdControllerPassedProps) => React.ReactNode;
-}
-interface IdControllerState {
-  id: string | null;
-}
-class IdController extends React.Component<
-  IdControllerProps,
-  IdControllerState
-> {
-  state: IdControllerState = {
-    id: null,
-  };
-  set = (id: string) => {
-    this.setState({ id });
-  };
-  clear = () => {
-    this.setState({ id: null });
-  };
-  render() {
-    return this.props.children({
-      id: this.state.id,
-      set: this.set,
-      clear: this.clear,
-    });
-  }
-}
-
 interface ProductsProps {
   authData: AuthData;
   data: SearchFoodsQuery;
@@ -66,7 +32,7 @@ interface ProductsProps {
 
 class Products extends React.Component<ProductsProps> {
   static async getInitialProps(props: Context) {
-    const authData = await authorized(props, [Role.Admin]);
+    const authData = await authorized(props, [Role.User, Role.Admin]);
     if (!authData.isLoggedIn) {
       redirect(props, "/access-denied");
       return;
@@ -127,91 +93,81 @@ class Products extends React.Component<ProductsProps> {
   render() {
     const { data, authData } = this.props;
     return (
-      <IdController>
-        {({ id, set, clear }) => (
-          <>
-            <Layout authData={authData}>
-              <Formik
-                initialValues={{ name: this.props.name }}
-                onSubmit={async ({ name }, { setSubmitting }) => {
-                  setSubmitting(true);
+      <Layout authData={authData}>
+        <Formik
+          initialValues={{ name: this.props.name }}
+          onSubmit={async ({ name }, { setSubmitting }) => {
+            setSubmitting(true);
+            Router.push({
+              pathname: "/food",
+              query: { name },
+            });
+            setSubmitting(false);
+          }}
+        >
+          {({ values, handleChange, handleSubmit, isSubmitting }) => (
+            <SearchBar
+              text="Search product by name"
+              name="name"
+              value={values.name}
+              onChange={handleChange}
+              onSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+            />
+          )}
+        </Formik>
+        <Paper>
+          {data && data.searchProducts && data.searchProducts.items ? (
+            <>
+              <Toolbar>
+                <Typography variant="h6" id="tableTitle">
+                  Click product to add to food dairy
+                </Typography>
+              </Toolbar>
+              <Table
+                headers={[
+                  { text: "id" },
+                  { text: "name" },
+                  { text: "unit name" },
+                  { text: "unit energy [kcal]" },
+                  { text: "available units count" },
+                ]}
+                rows={data.searchProducts.items.map(i => [
+                  { value: i.id },
+                  { value: i.name },
+                  {
+                    value:
+                      i.units.items.length > 0 ? i.units.items[0].name : "None",
+                  },
+                  {
+                    value:
+                      i.units.items.length > 0
+                        ? i.units.items[0].energy.toString()
+                        : "None",
+                  },
+                  { value: i.units.count.toString() },
+                ])}
+                onRowClick={(event, index) => {
                   Router.push({
-                    pathname: "/food",
-                    query: { name },
+                    pathname: "/food/add",
+                    query: {
+                      id: data.searchProducts.items[index].id,
+                    },
                   });
-                  setSubmitting(false);
                 }}
-              >
-                {({ values, handleChange, handleSubmit, isSubmitting }) => (
-                  <SearchBar
-                    text="Search product by name"
-                    name="name"
-                    value={values.name}
-                    onChange={handleChange}
-                    onSubmit={handleSubmit}
-                    isSubmitting={isSubmitting}
-                  />
-                )}
-              </Formik>
-              <Paper>
-                {data && data.searchProducts && data.searchProducts.items ? (
-                  <>
-                    <Toolbar>
-                      <Typography variant="h6" id="tableTitle">
-                        Click product to add to food dairy
-                      </Typography>
-                    </Toolbar>
-                    <Table
-                      headers={[
-                        { text: "id" },
-                        { text: "name" },
-                        { text: "unit name" },
-                        { text: "unit energy [kcal]" },
-                        { text: "available units count" },
-                      ]}
-                      rows={data.searchProducts.items.map(i => [
-                        { value: i.id },
-                        { value: i.name },
-                        {
-                          value:
-                            i.units.items.length > 0
-                              ? i.units.items[0].name
-                              : "None",
-                        },
-                        {
-                          value:
-                            i.units.items.length > 0
-                              ? i.units.items[0].energy.toString()
-                              : "None",
-                        },
-                        { value: i.units.count.toString() },
-                      ])}
-                      onRowClick={(event, index) => {
-                        set(data.searchProducts.items[index].id);
-                      }}
-                      pagination={{
-                        count: data.searchProducts.count,
-                        page: this.props.page,
-                        rowsPerPage: this.props.rowsPerPage,
-                        handleChangePage: this.handleChangePage,
-                        handleChangeRowsPerPage: this.handleChangeRowsPerPage,
-                        rowsOptions: this.props.rowsOptions,
-                      }}
-                    />
-                  </>
-                ) : null}
-              </Paper>
-            </Layout>
-            {id ? (
-              <AddDialog
-                open={Boolean(id)}
-                handleClose={clear}
-                productId={id}
+                pagination={{
+                  count: data.searchProducts.count,
+                  page: this.props.page,
+                  rowsPerPage: this.props.rowsPerPage,
+                  handleChangePage: this.handleChangePage,
+                  handleChangeRowsPerPage: this.handleChangeRowsPerPage,
+                  rowsOptions: this.props.rowsOptions,
+                }}
               />
-            ) : null}
-          </>
-        )}
-      </IdController>
+            </>
+          ) : null}
+        </Paper>
+      </Layout>
     );
   }
 }
