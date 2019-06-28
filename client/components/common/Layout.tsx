@@ -22,8 +22,15 @@ import React from "react";
 import MenuController from "../../faacs/Menu";
 import createStyle from "../../faacs/Style";
 import Toggle from "../../faacs/Toggle";
-import { Role } from "../../graphql/generated/apollo";
+import {
+  Role,
+  GetMyEnergyValueComponent,
+} from "../../graphql/generated/apollo";
 import { AuthData } from "../../lib/nextjs/authorized";
+import Badge from "@material-ui/core/Badge";
+import FastFoodIcon from "@material-ui/icons/Fastfood";
+import Router from "next/router";
+import AddIcon from "@material-ui/icons/AddCircle";
 
 const loginURI = "http://localhost:8080/auth/google/login";
 const logoutURI = "http://localhost:8080/auth/logout";
@@ -48,8 +55,13 @@ const LayoutBarStyle = createStyle(theme => ({
   menuButton: {
     marginRight: theme.spacing(2),
   },
-  loggedAs: {
+  nextBarItems: {
     margin: 0,
+    marginRight: theme.spacing(1),
+  },
+  firstBarItem: {
+    margin: 0,
+    marginRight: theme.spacing(1),
     marginLeft: "auto",
   },
   link: {
@@ -95,13 +107,60 @@ const LayoutBar = ({ toggle, isOpen, isLoggedIn, role }: LayoutBarProps) => (
             <MenuController>
               {({ anchorEl, handleClose, handleMenu }) => (
                 <>
+                  <GetMyEnergyValueComponent>
+                    {({ data, loading }) =>
+                      !loading && data ? (
+                        <IconButton
+                          className={classes.firstBarItem}
+                          color="inherit"
+                          onClick={() => {
+                            const now = new Date();
+                            const date = new Date(
+                              Date.UTC(
+                                now.getFullYear(),
+                                now.getMonth(),
+                                now.getDate(),
+                              ),
+                            ).toISOString();
+                            Router.push({
+                              pathname: "/logs/view",
+                              query: {
+                                date,
+                              },
+                            });
+                          }}
+                        >
+                          <Badge
+                            badgeContent={data.getMyEnergyValue}
+                            color={
+                              role === Role.Admin ? "primary" : "secondary"
+                            }
+                            max={9999}
+                          >
+                            <FastFoodIcon />
+                          </Badge>
+                        </IconButton>
+                      ) : null
+                    }
+                  </GetMyEnergyValueComponent>
+                  <IconButton
+                    className={classes.nextBarItems}
+                    color="inherit"
+                    onClick={() => {
+                      Router.push({
+                        pathname: "/food",
+                      });
+                    }}
+                  >
+                    <AddIcon />
+                  </IconButton>
                   <IconButton
                     edge="end"
                     aria-label="Account of current user"
                     aria-controls="account-menu"
                     aria-haspopup="true"
                     color="inherit"
-                    className={classes.loggedAs}
+                    className={classes.nextBarItems}
                     onClick={handleMenu}
                   >
                     <AccountCircle />
@@ -137,7 +196,7 @@ const LayoutBar = ({ toggle, isOpen, isLoggedIn, role }: LayoutBarProps) => (
             </MenuController>
           ) : (
             <Button
-              className={classes.loggedAs}
+              className={classes.firstBarItem}
               variant="outlined"
               color="inherit"
               href={loginURI}
