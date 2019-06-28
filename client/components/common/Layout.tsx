@@ -107,7 +107,7 @@ const LayoutBar = ({ toggle, isOpen, isLoggedIn, role }: LayoutBarProps) => (
             <MenuController>
               {({ anchorEl, handleClose, handleMenu }) => (
                 <>
-                  <GetMyEnergyValueComponent>
+                  <GetMyEnergyValueComponent fetchPolicy="network-only">
                     {({ data, loading }) =>
                       !loading && data ? (
                         <IconButton
@@ -131,7 +131,7 @@ const LayoutBar = ({ toggle, isOpen, isLoggedIn, role }: LayoutBarProps) => (
                           }}
                         >
                           <Badge
-                            badgeContent={data.getMyEnergyValue}
+                            badgeContent={data.getMyEnergyValue.toString()}
                             color={
                               role === Role.Admin ? "primary" : "secondary"
                             }

@@ -14,6 +14,8 @@ const styles = {
     width: 500,
     marginTop: 16,
     marginBottom: 16,
+    border: `1px solid rgba(224, 224, 224, 1)`,
+    borderRadius: "4px",
   },
   input: {
     marginLeft: 8,
@@ -49,7 +51,7 @@ const SearchBar = ({
   name,
 }: SearchBarProps) => {
   return (
-    <Paper className={classes.root} elevation={1}>
+    <div className={classes.root}>
       <InputBase
         className={classes.input}
         placeholder={text}
@@ -69,7 +71,7 @@ const SearchBar = ({
       >
         <SearchIcon />
       </IconButton>
-    </Paper>
+    </div>
   );
 };
 

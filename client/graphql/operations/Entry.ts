@@ -21,3 +21,20 @@ export const addEntry = gql`
     }
   }
 `;
+
+export const removeEntry = gql`
+  mutation removeEntry($id: ID!) {
+    removeEntry(data: { id: $id })
+  }
+`;
+
+export const updateEntry = gql`
+  mutation updateEntry($id: ID!, $newEntry: EntryInput!) {
+    updateEntry(
+      data: {
+        id: $id,
+        newEntry: $newEntry
+      }
+    ) 
+  }
+`;

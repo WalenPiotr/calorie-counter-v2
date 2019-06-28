@@ -38,6 +38,7 @@ import { authorized, AuthData } from "../../lib/nextjs/authorized";
 import { Context } from "../../types/Context";
 import { parseString } from "../../lib/nextjs/parseQueryString";
 import Layout from "../../components/common/Layout";
+import Router from "next/router";
 
 class EntryValidator {
   @Min(0)
@@ -235,11 +236,11 @@ class AddEntryController extends React.Component<
           quantity,
         },
       });
+      Router.push("/food");
     }
   };
 
   render() {
-    console.log(this.state);
     return this.props.children({
       quantity: this.state.quantity,
       quantityError: this.state.quantityError,

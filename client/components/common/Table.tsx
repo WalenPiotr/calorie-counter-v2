@@ -120,12 +120,14 @@ const Style = createStyle((theme: Theme) => ({
 }));
 
 interface Field {
-  value: string;
+  value?: string;
   link?: string;
   component?: React.ReactNode;
+  align?: "left" | "right" | "center" | "justify" | "inherit";
 }
 interface Header {
   text: string;
+  align?: "left" | "right" | "center" | "justify" | "inherit";
 }
 
 export class Pagination {
@@ -173,7 +175,9 @@ export default function EntityTable({
               <TableRow>
                 {headers.map((header, i) => (
                   <TableCell
-                    align={i === 0 ? "inherit" : "right"}
+                    align={
+                      header.align ? header.align : i === 0 ? "left" : "right"
+                    }
                     key={header.text}
                   >
                     {header.text}
@@ -193,7 +197,12 @@ export default function EntityTable({
                   }}
                 >
                   {row.map((field, j) => (
-                    <TableCell align={j === 0 ? "inherit" : "right"} key={j}>
+                    <TableCell
+                      align={
+                        field.align ? field.align : j === 0 ? "left" : "right"
+                      }
+                      key={j}
+                    >
                       {field.link ? (
                         <Link href={field.link}>
                           <a>{field.value}</a>

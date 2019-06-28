@@ -175,6 +175,7 @@ export type MeInput = {
 export type Mutation = {
   __typename?: "Mutation";
   addEntry: Entry;
+  updateEntry: Scalars["Boolean"];
   removeEntry: Scalars["Boolean"];
   addMeal: Meal;
   removeMeal: Scalars["Boolean"];
@@ -193,6 +194,10 @@ export type Mutation = {
 
 export type MutationAddEntryArgs = {
   data: AddEntryInput;
+};
+
+export type MutationUpdateEntryArgs = {
+  data: UpdateEntryInput;
 };
 
 export type MutationRemoveEntryArgs = {
@@ -501,6 +506,11 @@ export type UnitsWithCount = {
   count: Scalars["Float"];
 };
 
+export type UpdateEntryInput = {
+  id: Scalars["ID"];
+  newEntry: EntryInput;
+};
+
 export type UpdateMeInput = {
   me: MeInput;
 };
@@ -608,6 +618,25 @@ export type AddEntryMutation = { __typename?: "Mutation" } & {
     };
 };
 
+export type RemoveEntryMutationVariables = {
+  id: Scalars["ID"];
+};
+
+export type RemoveEntryMutation = { __typename?: "Mutation" } & Pick<
+  Mutation,
+  "removeEntry"
+>;
+
+export type UpdateEntryMutationVariables = {
+  id: Scalars["ID"];
+  newEntry: EntryInput;
+};
+
+export type UpdateEntryMutation = { __typename?: "Mutation" } & Pick<
+  Mutation,
+  "updateEntry"
+>;
+
 export type MeQueryVariables = {};
 
 export type MeQuery = { __typename?: "Query" } & {
@@ -635,12 +664,21 @@ export type GetMealsByDateQuery = { __typename?: "Query" } & {
                 { __typename?: "Entry" } & Pick<Entry, "id" | "quantity"> & {
                     unit: { __typename?: "Unit" } & Pick<
                       Unit,
-                      "name" | "energy"
+                      "id" | "name" | "energy"
                     > & {
                         product: { __typename?: "Product" } & Pick<
                           Product,
-                          "name"
-                        >;
+                          "id" | "name"
+                        > & {
+                            units: { __typename?: "UnitsWithCount" } & {
+                              items: Array<
+                                { __typename?: "Unit" } & Pick<
+                                  Unit,
+                                  "id" | "name" | "energy"
+                                >
+                              >;
+                            };
+                          };
                       };
                   }
               >;
@@ -966,6 +1004,92 @@ export function withAddEntry<TProps, TChildProps = {}>(
     ...operationOptions
   });
 }
+export const RemoveEntryDocument = gql`
+  mutation removeEntry($id: ID!) {
+    removeEntry(data: { id: $id })
+  }
+`;
+export type RemoveEntryMutationFn = ReactApollo.MutationFn<
+  RemoveEntryMutation,
+  RemoveEntryMutationVariables
+>;
+export type RemoveEntryComponentProps = Omit<
+  ReactApollo.MutationProps<RemoveEntryMutation, RemoveEntryMutationVariables>,
+  "mutation"
+>;
+
+export const RemoveEntryComponent = (props: RemoveEntryComponentProps) => (
+  <ReactApollo.Mutation<RemoveEntryMutation, RemoveEntryMutationVariables>
+    mutation={RemoveEntryDocument}
+    {...props}
+  />
+);
+
+export type RemoveEntryProps<TChildProps = {}> = Partial<
+  ReactApollo.MutateProps<RemoveEntryMutation, RemoveEntryMutationVariables>
+> &
+  TChildProps;
+export function withRemoveEntry<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    RemoveEntryMutation,
+    RemoveEntryMutationVariables,
+    RemoveEntryProps<TChildProps>
+  >
+) {
+  return ReactApollo.withMutation<
+    TProps,
+    RemoveEntryMutation,
+    RemoveEntryMutationVariables,
+    RemoveEntryProps<TChildProps>
+  >(RemoveEntryDocument, {
+    alias: "withRemoveEntry",
+    ...operationOptions
+  });
+}
+export const UpdateEntryDocument = gql`
+  mutation updateEntry($id: ID!, $newEntry: EntryInput!) {
+    updateEntry(data: { id: $id, newEntry: $newEntry })
+  }
+`;
+export type UpdateEntryMutationFn = ReactApollo.MutationFn<
+  UpdateEntryMutation,
+  UpdateEntryMutationVariables
+>;
+export type UpdateEntryComponentProps = Omit<
+  ReactApollo.MutationProps<UpdateEntryMutation, UpdateEntryMutationVariables>,
+  "mutation"
+>;
+
+export const UpdateEntryComponent = (props: UpdateEntryComponentProps) => (
+  <ReactApollo.Mutation<UpdateEntryMutation, UpdateEntryMutationVariables>
+    mutation={UpdateEntryDocument}
+    {...props}
+  />
+);
+
+export type UpdateEntryProps<TChildProps = {}> = Partial<
+  ReactApollo.MutateProps<UpdateEntryMutation, UpdateEntryMutationVariables>
+> &
+  TChildProps;
+export function withUpdateEntry<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    UpdateEntryMutation,
+    UpdateEntryMutationVariables,
+    UpdateEntryProps<TChildProps>
+  >
+) {
+  return ReactApollo.withMutation<
+    TProps,
+    UpdateEntryMutation,
+    UpdateEntryMutationVariables,
+    UpdateEntryProps<TChildProps>
+  >(UpdateEntryDocument, {
+    alias: "withUpdateEntry",
+    ...operationOptions
+  });
+}
 export const MeDocument = gql`
   query Me {
     me {
@@ -1020,10 +1144,19 @@ export const GetMealsByDateDocument = gql`
             id
             quantity
             unit {
+              id
               name
               energy
               product {
+                id
                 name
+                units {
+                  items {
+                    id
+                    name
+                    energy
+                  }
+                }
               }
             }
           }

@@ -16,7 +16,7 @@ const checkMe = (apolloClient: ApolloClient<any>) =>
           }
         }
       `,
-      fetchPolicy: "no-cache",
+      fetchPolicy: "network-only",
     })
     .then(({ data }) => {
       return data;

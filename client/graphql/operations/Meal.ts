@@ -13,10 +13,19 @@ export const getMealsByDate = gql`
             id
             quantity
             unit {
+              id
               name
               energy
               product {
+                id
                 name
+                units {
+                  items {
+                    id
+                    name
+                    energy
+                  }
+                }
               }
             }
           }

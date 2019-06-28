@@ -20,6 +20,15 @@ import {
   parseString,
 } from "../../lib/nextjs/parseQueryString";
 import { redirect } from "../../lib/nextjs/redirect";
+import AddIcon from "@material-ui/icons/AddCircle";
+import IconButton from "@material-ui/core/IconButton";
+import createStyle from "../../faacs/Style";
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+const Style = createStyle((theme: Theme) => ({
+  paper: {
+    padding: theme.spacing(3),
+  },
+}));
 
 interface ProductsProps {
   authData: AuthData;
@@ -94,79 +103,88 @@ class Products extends React.Component<ProductsProps> {
     const { data, authData } = this.props;
     return (
       <Layout authData={authData}>
-        <Formik
-          initialValues={{ name: this.props.name }}
-          onSubmit={async ({ name }, { setSubmitting }) => {
-            setSubmitting(true);
-            Router.push({
-              pathname: "/food",
-              query: { name },
-            });
-            setSubmitting(false);
-          }}
-        >
-          {({ values, handleChange, handleSubmit, isSubmitting }) => (
-            <SearchBar
-              text="Search product by name"
-              name="name"
-              value={values.name}
-              onChange={handleChange}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-            />
-          )}
-        </Formik>
-        <Paper>
-          {data && data.searchProducts && data.searchProducts.items ? (
-            <>
-              <Toolbar>
-                <Typography variant="h6" id="tableTitle">
-                  Click product to add to food dairy
-                </Typography>
-              </Toolbar>
-              <Table
-                headers={[
-                  { text: "id" },
-                  { text: "name" },
-                  { text: "unit name" },
-                  { text: "unit energy [kcal]" },
-                  { text: "available units count" },
-                ]}
-                rows={data.searchProducts.items.map(i => [
-                  { value: i.id },
-                  { value: i.name },
-                  {
-                    value:
-                      i.units.items.length > 0 ? i.units.items[0].name : "None",
-                  },
-                  {
-                    value:
-                      i.units.items.length > 0
-                        ? i.units.items[0].energy.toString()
-                        : "None",
-                  },
-                  { value: i.units.count.toString() },
-                ])}
-                onRowClick={(event, index) => {
+        <Style>
+          {({ classes }) => (
+            <Paper className={classes.paper}>
+              <Formik
+                initialValues={{ name: this.props.name }}
+                onSubmit={async ({ name }, { setSubmitting }) => {
+                  setSubmitting(true);
                   Router.push({
-                    pathname: "/food/add",
-                    query: {
-                      id: data.searchProducts.items[index].id,
-                    },
+                    pathname: "/food",
+                    query: { name },
                   });
+                  setSubmitting(false);
                 }}
-                pagination={{
-                  count: data.searchProducts.count,
-                  page: this.props.page,
-                  rowsPerPage: this.props.rowsPerPage,
-                  handleChangePage: this.handleChangePage,
-                  handleChangeRowsPerPage: this.handleChangeRowsPerPage,
-                  rowsOptions: this.props.rowsOptions,
-                }}
-              />
-            </>
-          ) : null}
-        </Paper>
+              >
+                {({ values, handleChange, handleSubmit, isSubmitting }) => (
+                  <SearchBar
+                    text="Search product by name"
+                    name="name"
+                    value={values.name}
+                    onChange={handleChange}
+                    onSubmit={handleSubmit}
+                    isSubmitting={isSubmitting}
+                  />
+                )}
+              </Formik>
+              {data && data.searchProducts && data.searchProducts.items ? (
+                <>
+                  <Table
+                    headers={[
+                      { text: "name" },
+                      { text: "unit name" },
+                      { text: "unit energy [kcal]" },
+                      { text: "available units count" },
+                      { text: "" },
+                    ]}
+                    rows={data.searchProducts.items.map(i => [
+                      { value: i.name },
+                      {
+                        value:
+                          i.units.items.length > 0
+                            ? i.units.items[0].name
+                            : "None",
+                      },
+                      {
+                        value:
+                          i.units.items.length > 0
+                            ? i.units.items[0].energy.toString()
+                            : "None",
+                      },
+                      { value: i.units.count.toString() },
+                      {
+                        component: (
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              Router.push({
+                                pathname: "/food/add",
+                                query: {
+                                  id: i.id,
+                                },
+                              });
+                            }}
+                          >
+                            <AddIcon />
+                          </IconButton>
+                        ),
+                      },
+                    ])}
+                    pagination={{
+                      count: data.searchProducts.count,
+                      page: this.props.page,
+                      rowsPerPage: this.props.rowsPerPage,
+                      handleChangePage: this.handleChangePage,
+                      handleChangeRowsPerPage: this.handleChangeRowsPerPage,
+                      rowsOptions: this.props.rowsOptions,
+                    }}
+                  />
+                </>
+              ) : null}
+            </Paper>
+          )}
+        </Style>
       </Layout>
     );
   }
