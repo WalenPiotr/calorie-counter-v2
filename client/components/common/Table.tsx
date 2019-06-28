@@ -15,6 +15,8 @@ import LastPageIcon from "@material-ui/icons/LastPage";
 import Link from "next/link";
 import React from "react";
 import createStyle from "../../faacs/Style";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
 
 interface TablePaginationActionsProps {
   count: number;
@@ -133,9 +135,11 @@ export class Pagination {
 }
 
 interface TableProps {
+  top?: React.ReactNode;
+  bottom?: React.ReactNode;
   headers: Header[];
   rows: Field[][];
-  pagination: {
+  pagination?: {
     count: number;
     page: number;
     rowsPerPage: number;
@@ -152,6 +156,8 @@ interface TableProps {
 }
 
 export default function EntityTable({
+  top,
+  bottom,
   rows,
   headers,
   pagination,
@@ -161,6 +167,7 @@ export default function EntityTable({
     <Style>
       {({ classes }) => (
         <div className={classes.root}>
+          {top ? top : null}
           <Table className={classes.table}>
             <TableHead>
               <TableRow>
@@ -203,22 +210,25 @@ export default function EntityTable({
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TablePagination
-                  rowsPerPageOptions={pagination.rowsOptions}
-                  count={pagination.count}
-                  rowsPerPage={pagination.rowsPerPage}
-                  page={pagination.page}
-                  SelectProps={{
-                    inputProps: { "aria-label": "Rows per page" },
-                    native: true,
-                  }}
-                  onChangePage={pagination.handleChangePage}
-                  onChangeRowsPerPage={pagination.handleChangeRowsPerPage}
-                  ActionsComponent={TablePaginationActions}
-                />
+                {pagination ? (
+                  <TablePagination
+                    rowsPerPageOptions={pagination.rowsOptions}
+                    count={pagination.count}
+                    rowsPerPage={pagination.rowsPerPage}
+                    page={pagination.page}
+                    SelectProps={{
+                      inputProps: { "aria-label": "Rows per page" },
+                      native: true,
+                    }}
+                    onChangePage={pagination.handleChangePage}
+                    onChangeRowsPerPage={pagination.handleChangeRowsPerPage}
+                    ActionsComponent={TablePaginationActions}
+                  />
+                ) : null}
               </TableRow>
             </TableFooter>
           </Table>
+          {bottom ? bottom : null}
         </div>
       )}
     </Style>
