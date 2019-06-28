@@ -47,6 +47,15 @@ class AddEntryInput {
 }
 
 @InputType()
+class UpdateEntryInput {
+  @Field(() => ID)
+  id: number;
+
+  @Field(() => EntryInput)
+  newEntry: EntryInput;
+}
+
+@InputType()
 class GetEntriesByMealId {
   @Field(() => ID)
   mealId: number;
@@ -155,6 +164,30 @@ export class EntryResolver {
     };
     await transformValidate(Entry, entry);
     return Entry.create(entry).save();
+  }
+
+  @Authorized()
+  @Mutation(() => Boolean)
+  async updateEntry(
+    @Arg("data") data: UpdateEntryInput,
+    @Ctx() ctx: ContextType,
+  ): Promise<Boolean> {
+    const userId = ctx.req.session!.passport.user.id;
+    const { newEntry, id } = data;
+    const entry = {
+      quantity: newEntry.quantity,
+      createdById: userId,
+      updatedById: userId,
+      meal: {
+        id: newEntry.mealId,
+      },
+      unit: {
+        id: newEntry.unitId,
+      },
+    };
+    await transformValidate(Entry, entry);
+    await Entry.update({ id: id, createdById: userId }, entry);
+    return true;
   }
 
   @Authorized()
