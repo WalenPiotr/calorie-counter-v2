@@ -92,6 +92,36 @@ class Day {
 @Resolver(Meal)
 export class MealResolver {
   @Authorized()
+  @Query(() => Number)
+  async getMyEnergyValue(@Ctx() ctx: ContextType): Promise<number> {
+    const userId = ctx.req.session!.passport.user.id;
+    const date = new Date();
+    const meals = await Meal.getRepository().find({
+      where: {
+        date: new Date(
+          Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+        ),
+        createdById: userId,
+      },
+      relations: ["entries", "entries.unit"],
+      take: 100,
+      skip: 0,
+    });
+    return meals.reduce(
+      (subtotal: number, curr: Meal) =>
+        subtotal +
+        (curr.entries
+          ? curr.entries.reduce(
+              (partialSum: number, curr: Entry) =>
+                partialSum + curr.unit.energy * curr.quantity,
+              0,
+            )
+          : 0),
+      0,
+    );
+  }
+
+  @Authorized()
   @Query(() => DaysWithCount)
   async getDaysWithMyMeals(
     // @Arg("data") _: GetDaysWithMyMeals,
@@ -133,7 +163,7 @@ export class MealResolver {
           createdById: userId,
         },
         relations: ["entries", "entries.unit"],
-        take: 100,
+        take: 1000,
         skip: 0,
       });
       const total = meals.reduce(
