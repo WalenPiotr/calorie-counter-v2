@@ -176,7 +176,6 @@ export class EntryResolver {
     const { newEntry, id } = data;
     const entry = {
       quantity: newEntry.quantity,
-      createdById: userId,
       updatedById: userId,
       meal: {
         id: newEntry.mealId,
