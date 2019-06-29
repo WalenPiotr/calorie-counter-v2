@@ -2,9 +2,9 @@ import { Formik } from "formik";
 import Router from "next/router";
 import React, { Component } from "react";
 import { Context } from "react-apollo";
-import Layout from "../../../components/common/Layout";
-import SearchBar from "../../../components/common/SearchBar";
-import Table from "../../../components/common/Table";
+import Layout from "../../../components/Layout";
+import SearchBar from "../../../components/SearchBar";
+import Table from "../../../components/Table";
 import {
   Role,
   SearchProductsDocument,

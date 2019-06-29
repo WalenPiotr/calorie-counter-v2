@@ -103,6 +103,10 @@ export type GetMealsByUpdatedById = {
   id: Scalars["ID"];
 };
 
+export type GetMyEnergyValue = {
+  date: Scalars["DateTime"];
+};
+
 export type GetProductInput = {
   id: Scalars["ID"];
 };
@@ -335,6 +339,10 @@ export type QueryGetEntriesByCreatedByIdArgs = {
 export type QueryGetEntriesByUpdatedByIdArgs = {
   pagination?: Maybe<PaginationInput>;
   data: GetEntriesByUpdatedById;
+};
+
+export type QueryGetMyEnergyValueArgs = {
+  data: GetMyEnergyValue;
 };
 
 export type QueryGetDaysWithMyMealsArgs = {
@@ -712,7 +720,9 @@ export type GetDaysWithMealsQuery = { __typename?: "Query" } & {
     };
 };
 
-export type GetMyEnergyValueQueryVariables = {};
+export type GetMyEnergyValueQueryVariables = {
+  date: Scalars["DateTime"];
+};
 
 export type GetMyEnergyValueQuery = { __typename?: "Query" } & Pick<
   Query,
@@ -1298,14 +1308,17 @@ export function withGetDaysWithMeals<TProps, TChildProps = {}>(
   });
 }
 export const GetMyEnergyValueDocument = gql`
-  query getMyEnergyValue {
-    getMyEnergyValue
+  query getMyEnergyValue($date: DateTime!) {
+    getMyEnergyValue(data: { date: $date })
   }
 `;
 export type GetMyEnergyValueComponentProps = Omit<
   ReactApollo.QueryProps<GetMyEnergyValueQuery, GetMyEnergyValueQueryVariables>,
   "query"
->;
+> &
+  (
+    | { variables: GetMyEnergyValueQueryVariables; skip?: false }
+    | { skip: true });
 
 export const GetMyEnergyValueComponent = (
   props: GetMyEnergyValueComponentProps

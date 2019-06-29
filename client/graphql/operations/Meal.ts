@@ -59,7 +59,7 @@ export const getDaysWithMeals = gql`
 `;
 
 export const getMyEnergyValue = gql`
-  query getMyEnergyValue {
-    getMyEnergyValue
+  query getMyEnergyValue($date: DateTime!) {
+    getMyEnergyValue(data: { date: $date })
   }
 `;

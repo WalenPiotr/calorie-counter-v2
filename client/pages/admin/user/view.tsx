@@ -4,10 +4,10 @@ import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Typography from "@material-ui/core/Typography";
 import Router from "next/router";
 import React from "react";
-import BaseInfo from "../../../components/common/BaseInfo";
-import Layout from "../../../components/common/Layout";
-import EntityTable, { Pagination } from "../../../components/common/Table";
-import createStyle from "../../../faacs/Style";
+import BaseInfo from "../../../components/BaseInfo";
+import Layout from "../../../components/Layout";
+import EntityTable, { Pagination } from "../../../components/Table";
+import createStyle from "../../../controllers/Style";
 import {
   GetUserDocument,
   GetUserQuery,

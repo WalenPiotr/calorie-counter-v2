@@ -5,9 +5,9 @@ import { Formik } from "formik";
 import Router from "next/router";
 import React from "react";
 import { Context } from "react-apollo";
-import Layout from "../../components/common/Layout";
-import SearchBar from "../../components/common/SearchBar";
-import Table from "../../components/common/Table";
+import Layout from "../../components/Layout";
+import SearchBar from "../../components/SearchBar";
+import Table from "../../components/Table";
 import {
   Role,
   SearchFoodsDocument,
@@ -22,7 +22,7 @@ import {
 import { redirect } from "../../lib/nextjs/redirect";
 import AddIcon from "@material-ui/icons/AddCircle";
 import IconButton from "@material-ui/core/IconButton";
-import createStyle from "../../faacs/Style";
+import createStyle from "../../controllers/Style";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 const Style = createStyle((theme: Theme) => ({
   paper: {

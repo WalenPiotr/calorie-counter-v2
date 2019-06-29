@@ -3,9 +3,9 @@ import { Formik } from "formik";
 import { NextContext } from "next";
 import Router from "next/router";
 import { Component } from "react";
-import Layout from "../../../components/common/Layout";
-import SearchBar from "../../../components/common/SearchBar";
-import Table from "../../../components/common/Table";
+import Layout from "../../../components/Layout";
+import SearchBar from "../../../components/SearchBar";
+import Table from "../../../components/Table";
 import { Role, SearchUserComponent } from "../../../graphql/generated/apollo";
 import { authorized, AuthData } from "../../../lib/nextjs/authorized";
 import {

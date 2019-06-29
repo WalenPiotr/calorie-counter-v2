@@ -1,12 +1,12 @@
 import { Component } from "react";
-import createStyle from "../faacs/Style";
+import createStyle from "../controllers/Style";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import ErrorIcon from "@material-ui/icons/ErrorOutline";
 import { Role } from "../graphql/generated/apollo";
 import { Context } from "../types/Context";
 import { authorized, AuthData } from "../lib/nextjs/authorized";
-import Layout from "../components/common/Layout";
+import Layout from "../components/Layout";
 
 const Style = createStyle(theme => ({
   root: {

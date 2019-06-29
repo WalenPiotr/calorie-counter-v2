@@ -14,7 +14,7 @@ import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
 import LastPageIcon from "@material-ui/icons/LastPage";
 import Link from "next/link";
 import React from "react";
-import createStyle from "../../faacs/Style";
+import createStyle from "../controllers/Style";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 

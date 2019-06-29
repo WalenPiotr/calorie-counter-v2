@@ -10,10 +10,10 @@ import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Typography from "@material-ui/core/Typography";
 import MoreIcon from "@material-ui/icons/MoreVert";
 import React from "react";
-import Layout from "../../components/common/Layout";
-import Table from "../../components/common/Table";
-import MenuController from "../../faacs/Menu";
-import createStyle from "../../faacs/Style";
+import Layout from "../../components/Layout";
+import Table from "../../components/Table";
+import MenuController from "../../controllers/Menu";
+import createStyle from "../../controllers/Style";
 import {
   Entry,
   GetMealsByDateComponent,
@@ -30,6 +30,7 @@ import { parseString } from "../../lib/nextjs/parseQueryString";
 import { redirect } from "../../lib/nextjs/redirect";
 import { Context } from "../../types/Context";
 import Button from "@material-ui/core/Button";
+import { zeroDate } from "../../helpers/date";
 
 interface EditRowControllerPassedProps {
   id: string | null;
@@ -79,7 +80,7 @@ class EditRowController extends React.Component<
     });
   };
 
-  handleUnitChange = (event: React.ChangeEvent<HTMLInputElement<any>>) => {
+  handleUnitChange = (event: React.ChangeEvent<any>) => {
     event.persist();
     this.setState({
       currentUnitId: event.target.value,
@@ -99,37 +100,12 @@ class EditRowController extends React.Component<
 }
 
 const Style = createStyle((theme: Theme) => ({
-  topBox: {
-    display: "flex",
-    alignItems: "center",
-    padding: theme.spacing(1),
-    marginTop: theme.spacing(3),
-  },
-  bottomBox: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexDirection: "row-reverse",
-    padding: theme.spacing(2),
-    width: "100%",
-  },
-  titleBox: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: theme.spacing(1),
-  },
   paper: {
     padding: theme.spacing(3),
   },
-  actionGroup: {
-    display: "flex",
-    justifyContent: "space-around",
-    flexDirection: "row-reverse",
-    marginLeft: "auto",
-  },
-  input: {
-    width: 100,
+  notFound: {
+    marginTop: theme.spacing(5),
+    marginBottom: theme.spacing(10),
   },
 }));
 
@@ -208,7 +184,7 @@ class Log extends React.Component<LogsIndexProps> {
       redirect(props, "/access-denied");
       return;
     }
-    const date = new Date(parseString(props.query.date));
+    const date = zeroDate(new Date(parseString(props.query.date)));
     return {
       authData,
       date,
@@ -220,14 +196,18 @@ class Log extends React.Component<LogsIndexProps> {
     const date = new Date(this.props.date);
     return (
       <Layout authData={authData}>
-        <GetMyEnergyValueComponent>
-          {({ data: totalData, refetch: totalRefetch, loading }) =>
-            !loading && totalData && totalData.getMyEnergyValue ? (
+        <GetMyEnergyValueComponent variables={{ date }}>
+          {({ data: totalData, refetch: totalRefetch, loading }) => {
+            console.log(totalData);
+            return !loading &&
+              totalData &&
+              totalData.getMyEnergyValue !== null &&
+              totalData.getMyEnergyValue !== undefined ? (
               <GetMealsByDateComponent variables={{ date }}>
                 {({ data, refetch, loading }) => {
                   const refresh = () => {
                     refetch({ date });
-                    totalRefetch();
+                    totalRefetch({ date });
                   };
                   return !loading && data && data.getMealsByDate ? (
                     <Style>
@@ -237,19 +217,29 @@ class Log extends React.Component<LogsIndexProps> {
                           {data.getMealsByDate.items.map(meal =>
                             meal.entries.items.length > 0 ? (
                               <MealComponent
+                                key={meal.id}
                                 meal={meal as Meal}
                                 refresh={refresh}
                               />
                             ) : null,
                           )}
+                          {data.getMealsByDate.items.length === 0 ? (
+                            <Typography
+                              variant="h5"
+                              align="center"
+                              className={classes.notFound}
+                            >
+                              No meal found for this day
+                            </Typography>
+                          ) : null}
                         </Paper>
                       )}
                     </Style>
                   ) : null;
                 }}
               </GetMealsByDateComponent>
-            ) : null
-          }
+            ) : null;
+          }}
         </GetMyEnergyValueComponent>
       </Layout>
     );
@@ -283,7 +273,7 @@ const LogTop = ({ date, totalData }: LogIndexTopProps) => (
               year: "numeric",
               month: "long",
               day: "numeric",
-            })}{" "}
+            })}
             {isToday(date) ? " (Today)" : ""}
           </Typography>
         </div>
@@ -376,7 +366,7 @@ const MealComponent = ({ meal, refresh }: MealComponentProps) => (
                       className={classes.input}
                     />
                   ) : (
-                    <div>{entry.quantity.toString()}</div>
+                    entry.quantity.toString()
                   ),
               },
               {

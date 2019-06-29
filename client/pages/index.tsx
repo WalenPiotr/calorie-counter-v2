@@ -1,11 +1,11 @@
 import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
 import React from "react";
-import createStyled from "../faacs/Style";
+import createStyled from "../controllers/Style";
 import { Role } from "../graphql/generated/apollo";
 import { authorized, AuthData } from "../lib/nextjs/authorized";
 import { Context } from "../types/Context";
-import Layout from "../components/common/Layout";
+import Layout from "../components/Layout";
 import { parseString } from "../lib/nextjs/parseQueryString";
 
 const IndexStyled = createStyled(() => ({

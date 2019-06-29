@@ -19,18 +19,16 @@ import InboxIcon from "@material-ui/icons/MoveToInbox";
 import clsx from "clsx";
 import Link from "next/link";
 import React from "react";
-import MenuController from "../../faacs/Menu";
-import createStyle from "../../faacs/Style";
-import Toggle from "../../faacs/Toggle";
-import {
-  Role,
-  GetMyEnergyValueComponent,
-} from "../../graphql/generated/apollo";
-import { AuthData } from "../../lib/nextjs/authorized";
+import MenuController from "../controllers/Menu";
+import createStyle from "../controllers/Style";
+import Toggle from "../controllers/Toggle";
+import { Role, GetMyEnergyValueComponent } from "../graphql/generated/apollo";
+import { AuthData } from "../lib/nextjs/authorized";
 import Badge from "@material-ui/core/Badge";
 import FastFoodIcon from "@material-ui/icons/Fastfood";
 import Router from "next/router";
 import AddIcon from "@material-ui/icons/AddCircle";
+import { zeroDate } from "../helpers/date";
 
 const loginURI = "http://localhost:8080/auth/google/login";
 const logoutURI = "http://localhost:8080/auth/logout";
@@ -107,25 +105,22 @@ const LayoutBar = ({ toggle, isOpen, isLoggedIn, role }: LayoutBarProps) => (
             <MenuController>
               {({ anchorEl, handleClose, handleMenu }) => (
                 <>
-                  <GetMyEnergyValueComponent fetchPolicy="network-only">
+                  <GetMyEnergyValueComponent
+                    fetchPolicy="network-only"
+                    variables={{
+                      date: zeroDate(new Date()),
+                    }}
+                  >
                     {({ data, loading }) =>
                       !loading && data ? (
                         <IconButton
                           className={classes.firstBarItem}
                           color="inherit"
                           onClick={() => {
-                            const now = new Date();
-                            const date = new Date(
-                              Date.UTC(
-                                now.getFullYear(),
-                                now.getMonth(),
-                                now.getDate(),
-                              ),
-                            ).toISOString();
                             Router.push({
                               pathname: "/logs/view",
                               query: {
-                                date,
+                                date: zeroDate(new Date()).toISOString(),
                               },
                             });
                           }}

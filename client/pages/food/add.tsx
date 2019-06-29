@@ -21,7 +21,7 @@ import { plainToClass } from "class-transformer";
 import { Min, MinLength, validateSync } from "class-validator";
 import React from "react";
 import { MutationFn } from "react-apollo";
-import createStyle from "../../faacs/Style";
+import createStyle from "../../controllers/Style";
 import {
   AddEntryComponent,
   AddEntryMutation,
@@ -37,8 +37,9 @@ import { redirect } from "../../lib/nextjs/redirect";
 import { authorized, AuthData } from "../../lib/nextjs/authorized";
 import { Context } from "../../types/Context";
 import { parseString } from "../../lib/nextjs/parseQueryString";
-import Layout from "../../components/common/Layout";
+import Layout from "../../components/Layout";
 import Router from "next/router";
+import { zeroDate } from "../../helpers/date";
 
 class EntryValidator {
   @Min(0)
@@ -236,7 +237,10 @@ class AddEntryController extends React.Component<
           quantity,
         },
       });
-      Router.push("/food");
+      Router.push({
+        pathname: "/logs/view",
+        query: { date: zeroDate(new Date()).toISOString() },
+      });
     }
   };
 

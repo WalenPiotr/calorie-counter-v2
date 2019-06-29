@@ -1,10 +1,10 @@
 import Router from "next/router";
 import React from "react";
-import AdminLayout from "../../../components/common/Layout";
+import AdminLayout from "../../../components/Layout";
 import {
   FormController,
   FormView,
-} from "../../../components/default/product/Form";
+} from "../../../components/product/Form";
 import {
   UpdateProductWithUnitsComponent,
   Role,

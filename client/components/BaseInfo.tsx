@@ -4,7 +4,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import React from "react";
-import createStyle from "../../faacs/Style";
+import createStyle from "../controllers/Style";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Link from "next/link";
 

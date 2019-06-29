@@ -89,13 +89,22 @@ class Day {
   total: number;
 }
 
+@InputType()
+class GetMyEnergyValue {
+  @Field(() => Date)
+  date: Date;
+}
+
 @Resolver(Meal)
 export class MealResolver {
   @Authorized()
   @Query(() => Number)
-  async getMyEnergyValue(@Ctx() ctx: ContextType): Promise<number> {
+  async getMyEnergyValue(
+    @Arg("data") data: GetMyEnergyValue,
+    @Ctx() ctx: ContextType,
+  ): Promise<number> {
     const userId = ctx.req.session!.passport.user.id;
-    const date = new Date();
+    const { date } = data;
     const meals = await Meal.getRepository().find({
       where: {
         date: new Date(

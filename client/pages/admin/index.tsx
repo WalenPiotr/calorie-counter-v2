@@ -1,8 +1,8 @@
 import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
 import React from "react";
-import Layout from "../../components/common/Layout";
-import createStyled from "../../faacs/Style";
+import Layout from "../../components/Layout";
+import createStyled from "../../controllers/Style";
 import { Context } from "../../types/Context";
 import { redirect } from "../../lib/nextjs/redirect";
 import { authorized, AuthData } from "../../lib/nextjs/authorized";

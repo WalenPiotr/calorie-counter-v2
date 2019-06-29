@@ -1,6 +1,6 @@
 import React from "react";
 import { Context } from "../../types/Context";
-import Layout from "../../components/common/Layout";
+import Layout from "../../components/Layout";
 import { redirect } from "../../lib/nextjs/redirect";
 import { AuthData, authorized } from "../../lib/nextjs/authorized";
 import { parsePage } from "../../lib/nextjs/parseQueryString";
@@ -9,7 +9,7 @@ import {
   GetDaysWithMealsDocument,
   GetDaysWithMealsQuery,
 } from "../../graphql/generated/apollo";
-import Table from "../../components/common/Table";
+import Table from "../../components/Table";
 import Router from "next/router";
 
 interface LogsIndexProps {

@@ -1,6 +1,6 @@
 import Router from "next/router";
 import React from "react";
-import Layout from "../../components/common/Layout";
+import Layout from "../../components/Layout";
 import {
   AddProductWithUnitsComponent,
   Role,
@@ -8,7 +8,7 @@ import {
 import {
   FormController,
   FormView,
-} from "../../components/default/product/Form";
+} from "../../components/product/Form";
 import { authorized, AuthData } from "../../lib/nextjs/authorized";
 import { Context } from "../../types/Context";
 import { redirect } from "../../lib/nextjs/redirect";
