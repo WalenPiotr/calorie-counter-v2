@@ -43,6 +43,15 @@ class AddMealInput {
 }
 
 @InputType()
+class UpdateMealInput {
+  @Field(() => ID)
+  id: number;
+
+  @Field(() => MealInput)
+  newMeal: MealInput;
+}
+
+@InputType()
 class GetMealByDateArgs {
   @Field()
   date: Date;
@@ -287,6 +296,27 @@ export class MealResolver {
     };
     await transformValidate(Meal, meal);
     return Meal.create(meal).save();
+  }
+
+  @Authorized()
+  @Mutation(() => Boolean)
+  async updateMeal(
+    @Arg("data") data: UpdateMealInput,
+    @Ctx() ctx: ContextType,
+  ): Promise<Boolean> {
+    const userId = ctx.req.session!.passport.user.id;
+    const { newMeal, id } = data;
+    const { date } = newMeal;
+    const meal = {
+      ...newMeal,
+      date: new Date(
+        Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+      ),
+      updatedById: userId,
+    };
+    await transformValidate(Meal, meal);
+    await Meal.update({ id: id, createdById: userId }, meal);
+    return true;
   }
 
   @Authorized()
