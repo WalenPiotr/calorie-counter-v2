@@ -44,6 +44,17 @@ export const addMeal = gql`
     }
   }
 `;
+export const updateMeal = gql`
+  mutation updateMeal($data: UpdateMealInput!) {
+    updateMeal(data: $data)
+  }
+`;
+
+export const removeMeal = gql`
+  mutation removeMeal($data: RemoveMealInput!) {
+    removeMeal(data: $data)
+  }
+`;
 
 export const getDaysWithMeals = gql`
   query getDaysWithMeals($pagination: PaginationInput) {

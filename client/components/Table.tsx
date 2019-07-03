@@ -124,10 +124,13 @@ interface Field {
   link?: string;
   component?: React.ReactNode;
   align?: "left" | "right" | "center" | "justify" | "inherit";
+  padding?: "default" | "checkbox" | "none";
 }
 interface Header {
   text: string;
   align?: "left" | "right" | "center" | "justify" | "inherit";
+  width?: string | number;
+  padding?: "default" | "checkbox" | "none";
 }
 
 export class Pagination {
@@ -179,6 +182,8 @@ export default function EntityTable({
                       header.align ? header.align : i === 0 ? "left" : "right"
                     }
                     key={header.text}
+                    width={header.width}
+                    padding={header.padding}
                   >
                     {header.text}
                   </TableCell>
@@ -202,6 +207,7 @@ export default function EntityTable({
                         field.align ? field.align : j === 0 ? "left" : "right"
                       }
                       key={j}
+                      padding={field.padding}
                     >
                       {field.link ? (
                         <Link href={field.link}>

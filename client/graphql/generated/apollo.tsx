@@ -182,6 +182,7 @@ export type Mutation = {
   updateEntry: Scalars["Boolean"];
   removeEntry: Scalars["Boolean"];
   addMeal: Meal;
+  updateMeal: Scalars["Boolean"];
   removeMeal: Scalars["Boolean"];
   setReportStatus: Scalars["Boolean"];
   reportProduct: Scalars["Boolean"];
@@ -210,6 +211,10 @@ export type MutationRemoveEntryArgs = {
 
 export type MutationAddMealArgs = {
   data: AddMealInput;
+};
+
+export type MutationUpdateMealArgs = {
+  data: UpdateMealInput;
 };
 
 export type MutationRemoveMealArgs = {
@@ -519,6 +524,11 @@ export type UpdateEntryInput = {
   newEntry: EntryInput;
 };
 
+export type UpdateMealInput = {
+  id: Scalars["ID"];
+  newMeal: MealInput;
+};
+
 export type UpdateMeInput = {
   me: MeInput;
 };
@@ -704,6 +714,24 @@ export type AddMealMutationVariables = {
 export type AddMealMutation = { __typename?: "Mutation" } & {
   addMeal: { __typename?: "Meal" } & Pick<Meal, "id" | "name" | "date">;
 };
+
+export type UpdateMealMutationVariables = {
+  data: UpdateMealInput;
+};
+
+export type UpdateMealMutation = { __typename?: "Mutation" } & Pick<
+  Mutation,
+  "updateMeal"
+>;
+
+export type RemoveMealMutationVariables = {
+  data: RemoveMealInput;
+};
+
+export type RemoveMealMutation = { __typename?: "Mutation" } & Pick<
+  Mutation,
+  "removeMeal"
+>;
 
 export type GetDaysWithMealsQueryVariables = {
   pagination?: Maybe<PaginationInput>;
@@ -1256,6 +1284,92 @@ export function withAddMeal<TProps, TChildProps = {}>(
     AddMealProps<TChildProps>
   >(AddMealDocument, {
     alias: "withAddMeal",
+    ...operationOptions
+  });
+}
+export const UpdateMealDocument = gql`
+  mutation updateMeal($data: UpdateMealInput!) {
+    updateMeal(data: $data)
+  }
+`;
+export type UpdateMealMutationFn = ReactApollo.MutationFn<
+  UpdateMealMutation,
+  UpdateMealMutationVariables
+>;
+export type UpdateMealComponentProps = Omit<
+  ReactApollo.MutationProps<UpdateMealMutation, UpdateMealMutationVariables>,
+  "mutation"
+>;
+
+export const UpdateMealComponent = (props: UpdateMealComponentProps) => (
+  <ReactApollo.Mutation<UpdateMealMutation, UpdateMealMutationVariables>
+    mutation={UpdateMealDocument}
+    {...props}
+  />
+);
+
+export type UpdateMealProps<TChildProps = {}> = Partial<
+  ReactApollo.MutateProps<UpdateMealMutation, UpdateMealMutationVariables>
+> &
+  TChildProps;
+export function withUpdateMeal<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    UpdateMealMutation,
+    UpdateMealMutationVariables,
+    UpdateMealProps<TChildProps>
+  >
+) {
+  return ReactApollo.withMutation<
+    TProps,
+    UpdateMealMutation,
+    UpdateMealMutationVariables,
+    UpdateMealProps<TChildProps>
+  >(UpdateMealDocument, {
+    alias: "withUpdateMeal",
+    ...operationOptions
+  });
+}
+export const RemoveMealDocument = gql`
+  mutation removeMeal($data: RemoveMealInput!) {
+    removeMeal(data: $data)
+  }
+`;
+export type RemoveMealMutationFn = ReactApollo.MutationFn<
+  RemoveMealMutation,
+  RemoveMealMutationVariables
+>;
+export type RemoveMealComponentProps = Omit<
+  ReactApollo.MutationProps<RemoveMealMutation, RemoveMealMutationVariables>,
+  "mutation"
+>;
+
+export const RemoveMealComponent = (props: RemoveMealComponentProps) => (
+  <ReactApollo.Mutation<RemoveMealMutation, RemoveMealMutationVariables>
+    mutation={RemoveMealDocument}
+    {...props}
+  />
+);
+
+export type RemoveMealProps<TChildProps = {}> = Partial<
+  ReactApollo.MutateProps<RemoveMealMutation, RemoveMealMutationVariables>
+> &
+  TChildProps;
+export function withRemoveMeal<TProps, TChildProps = {}>(
+  operationOptions?: ReactApollo.OperationOption<
+    TProps,
+    RemoveMealMutation,
+    RemoveMealMutationVariables,
+    RemoveMealProps<TChildProps>
+  >
+) {
+  return ReactApollo.withMutation<
+    TProps,
+    RemoveMealMutation,
+    RemoveMealMutationVariables,
+    RemoveMealProps<TChildProps>
+  >(RemoveMealDocument, {
+    alias: "withRemoveMeal",
     ...operationOptions
   });
 }

@@ -5,10 +5,7 @@ import {
   AddProductWithUnitsComponent,
   Role,
 } from "../../graphql/generated/apollo";
-import {
-  FormController,
-  FormView,
-} from "../../components/product/Form";
+import { FormController, FormView } from "../../components/product/Form";
 import { authorized, AuthData } from "../../lib/nextjs/authorized";
 import { Context } from "../../types/Context";
 import { redirect } from "../../lib/nextjs/redirect";
@@ -19,9 +16,9 @@ class NewProductProps {
 
 class ProductNew extends React.PureComponent<NewProductProps> {
   static async getInitialProps(props: Context) {
-    const authData = await authorized(props, [Role.Admin]);
+    const authData = await authorized(props, [Role.User, Role.Admin]);
     if (!authData.isLoggedIn) {
-      redirect(props, "/access-denied");
+      redirect(props, "/please-login");
       return;
     }
     return { authData };

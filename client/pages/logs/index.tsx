@@ -26,7 +26,7 @@ class LogsIndex extends React.Component<LogsIndexProps> {
   static async getInitialProps(props: Context) {
     const authData = await authorized(props, [Role.User, Role.Admin]);
     if (!authData.isLoggedIn) {
-      redirect(props, "/access-denied");
+      redirect(props, "/please-login");
       return;
     }
     const page = parsePage(props.query.page);

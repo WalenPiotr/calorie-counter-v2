@@ -1,7 +1,6 @@
 import { TextField } from "@material-ui/core";
 import FormControl from "@material-ui/core/FormControl";
 import IconButton from "@material-ui/core/IconButton";
-import InputLabel from "@material-ui/core/InputLabel";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
@@ -24,6 +23,8 @@ import {
   RemoveEntryComponent,
   Role,
   UpdateEntryComponent,
+  RemoveMealComponent,
+  UpdateMealComponent,
 } from "../../graphql/generated/apollo";
 import { AuthData, authorized } from "../../lib/nextjs/authorized";
 import { parseString } from "../../lib/nextjs/parseQueryString";
@@ -31,73 +32,15 @@ import { redirect } from "../../lib/nextjs/redirect";
 import { Context } from "../../types/Context";
 import Button from "@material-ui/core/Button";
 import { zeroDate } from "../../helpers/date";
-
-interface EditRowControllerPassedProps {
-  id: string | null;
-  inputQuantity: string | null;
-  currentUnitId: string | null;
-  handleQuantityChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  handleUnitChange: (event: React.ChangeEvent<HTMLInputElement<any>>) => void;
-  set: (
-    id: string | null,
-    initalQuantity: number | null,
-    currentUnitId: string | null,
-  ) => void;
-}
-interface EditRowControllerState {
-  id: string | null;
-  inputQuantity: string | null;
-  currentUnitId: string | null;
-}
-interface EditRowControllerProps {
-  children: (props: EditRowControllerPassedProps) => React.ReactNode;
-}
-class EditRowController extends React.Component<
-  EditRowControllerProps,
-  EditRowControllerState
-> {
-  state: EditRowControllerState = {
-    id: null,
-    inputQuantity: null,
-    currentUnitId: null,
-  };
-  set = (
-    id: string | null,
-    initialQuantity: number | null,
-    initialUnitId: string | null,
-  ) => {
-    this.setState({
-      id,
-      inputQuantity:
-        initialQuantity === null ? initialQuantity : initialQuantity.toString(),
-      currentUnitId: initialUnitId,
-    });
-  };
-  handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    event.persist();
-    this.setState({
-      inputQuantity: event.target.value,
-    });
-  };
-
-  handleUnitChange = (event: React.ChangeEvent<any>) => {
-    event.persist();
-    this.setState({
-      currentUnitId: event.target.value,
-    });
-  };
-
-  render() {
-    return this.props.children({
-      id: this.state.id,
-      inputQuantity: this.state.inputQuantity,
-      currentUnitId: this.state.currentUnitId,
-      set: this.set,
-      handleQuantityChange: this.handleQuantityChange,
-      handleUnitChange: this.handleUnitChange,
-    });
-  }
-}
+import ToggleController from "../../controllers/Toggle";
+import { Formik } from "formik";
+import { plainToClass } from "class-transformer";
+import {
+  EntryInputWithValidation,
+  MealInputWithValidation,
+} from "../../graphql/withValidation";
+import { validateSync } from "class-validator";
+import StateController from "../../controllers/StateController";
 
 const Style = createStyle((theme: Theme) => ({
   paper: {
@@ -112,21 +55,24 @@ const Style = createStyle((theme: Theme) => ({
 const mealTotal = (
   meal: Meal,
   id: string | null,
-  inputQuantity: string | null,
-  currentUnitId: string | null,
+  quantity: string,
+  unitId: string,
 ): number => {
   const base = meal.entries.items.reduce(
     (prev: number, curr: Entry) => prev + curr.unit.energy * curr.quantity,
     0,
   );
-  if (id === null || inputQuantity === null || currentUnitId === null) {
+  if (id === null || quantity === "" || unitId === "") {
     return base;
   }
   const updatedEntry = meal.entries.items.filter(e => e.id === id)[0];
   const newUnit = updatedEntry.unit.product.units.items.filter(
-    u => u.id === currentUnitId,
+    u => u.id === unitId,
   )[0];
-  const newQuantity = parseFloat(inputQuantity);
+  if (!newUnit) {
+    return NaN;
+  }
+  const newQuantity = parseFloat(quantity);
   const update =
     -updatedEntry.quantity * updatedEntry.unit.energy +
     newUnit.energy * newQuantity;
@@ -143,25 +89,25 @@ const isToday = (someDate: Date) => {
 
 const dynamicEntryUnit = (
   id: string | null,
-  currentUnitId: string | null,
+  unitId: string,
   entry: Entry,
 ): string =>
-  id === entry.id
+  id === entry.id && unitId !== ""
     ? entry.unit.product.units.items
-        .filter(u => u.id === currentUnitId)[0]
+        .filter(u => u.id === unitId)[0]
         .energy.toString() + " kcal"
     : entry.unit.energy.toString() + " kcal";
 
 const dynamicEntryValue = (
   id: string | null,
-  currentUnitId: string | null,
-  inputQuantity: string | null,
+  unitId: string,
+  quantity: string,
   entry: Entry,
 ) =>
-  id === entry.id && inputQuantity !== null
+  id === entry.id && quantity !== "" && unitId !== ""
     ? (
-        entry.unit.product.units.items.filter(u => u.id === currentUnitId)[0]
-          .energy * parseFloat(inputQuantity)
+        entry.unit.product.units.items.filter(u => u.id === unitId)[0].energy *
+        parseFloat(quantity)
       ).toString() + " kcal"
     : (entry.unit.energy * entry.quantity).toString() + " kcal";
 
@@ -181,7 +127,7 @@ class Log extends React.Component<LogsIndexProps> {
   static async getInitialProps(props: Context) {
     const authData = await authorized(props, [Role.User, Role.Admin]);
     if (!authData.isLoggedIn) {
-      redirect(props, "/access-denied");
+      redirect(props, "/please-login");
       return;
     }
     const date = zeroDate(new Date(parseString(props.query.date)));
@@ -196,14 +142,19 @@ class Log extends React.Component<LogsIndexProps> {
     const date = new Date(this.props.date);
     return (
       <Layout authData={authData}>
-        <GetMyEnergyValueComponent variables={{ date }}>
+        <GetMyEnergyValueComponent
+          variables={{ date }}
+          fetchPolicy="network-only"
+        >
           {({ data: totalData, refetch: totalRefetch, loading }) => {
-            console.log(totalData);
             return !loading &&
               totalData &&
               totalData.getMyEnergyValue !== null &&
               totalData.getMyEnergyValue !== undefined ? (
-              <GetMealsByDateComponent variables={{ date }}>
+              <GetMealsByDateComponent
+                variables={{ date }}
+                fetchPolicy="network-only"
+              >
                 {({ data, refetch, loading }) => {
                   const refresh = () => {
                     refetch({ date });
@@ -214,15 +165,13 @@ class Log extends React.Component<LogsIndexProps> {
                       {({ classes }) => (
                         <Paper className={classes.paper}>
                           <LogTop date={date} totalData={totalData} />
-                          {data.getMealsByDate.items.map(meal =>
-                            meal.entries.items.length > 0 ? (
-                              <MealComponent
-                                key={meal.id}
-                                meal={meal as Meal}
-                                refresh={refresh}
-                              />
-                            ) : null,
-                          )}
+                          {data.getMealsByDate.items.map(meal => (
+                            <MealComponent
+                              key={meal.id}
+                              meal={meal as Meal}
+                              refresh={refresh}
+                            />
+                          ))}
                           {data.getMealsByDate.items.length === 0 ? (
                             <Typography
                               variant="h5"
@@ -291,12 +240,6 @@ const LogTop = ({ date, totalData }: LogIndexTopProps) => (
 );
 
 const MealComponentStyle = createStyle((theme: Theme) => ({
-  topBox: {
-    display: "flex",
-    alignItems: "center",
-    padding: theme.spacing(1),
-    marginTop: theme.spacing(3),
-  },
   bottomBox: {
     display: "flex",
     justifyContent: "space-between",
@@ -316,119 +259,309 @@ interface MealComponentProps {
 }
 
 const MealComponent = ({ meal, refresh }: MealComponentProps) => (
-  <EditRowController>
-    {({
-      id,
-      inputQuantity,
-      currentUnitId,
-      handleQuantityChange,
-      handleUnitChange,
-      set,
-    }) => (
-      <MealComponentStyle>
-        {({ classes }) => (
-          <Table
-            top={
-              <div className={classes.topBox}>
-                <IconButton>
-                  <MoreIcon />
-                </IconButton>
-                <Typography variant="h6">{meal.name}</Typography>
-              </div>
-            }
-            bottom={
-              <div className={classes.bottomBox}>
-                <Typography variant="subtitle2">
-                  {meal.name}'s total ={" "}
-                  {mealTotal(meal as Meal, id, inputQuantity, currentUnitId)}{" "}
-                  kcal
-                </Typography>
-              </div>
-            }
-            key={meal.id}
-            headers={[
-              { text: "product name" },
-              { text: "quantity" },
-              { text: "unit name" },
-              { text: "unit energy" },
-              { text: "entry energy" },
-              { text: "" },
-            ]}
-            rows={meal.entries.items.map(entry => [
-              { value: entry.unit.product.name },
-              {
-                component:
-                  id === entry.id ? (
-                    <TextField
-                      value={inputQuantity}
-                      type="number"
-                      onChange={handleQuantityChange}
-                      className={classes.input}
-                    />
-                  ) : (
-                    entry.quantity.toString()
-                  ),
-              },
-              {
-                value:
-                  id === entry.id ? (
-                    <FormControl className={classes.input}>
-                      <Select
-                        value={currentUnitId}
-                        onChange={handleUnitChange}
-                        inputProps={{
-                          name: "",
-                          id: "unit-simple",
-                        }}
-                      >
-                        {entry.unit.product.units.items.map(u => (
-                          <MenuItem value={u.id}>{u.name}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  ) : (
-                    entry.unit.name
-                  ),
-              },
-              {
-                value: dynamicEntryUnit(id, currentUnitId, entry as Entry),
-              },
-              {
-                value: dynamicEntryValue(
-                  id,
-                  currentUnitId,
-                  inputQuantity,
-                  entry as Entry,
-                ),
-              },
-              {
-                align: "right",
-                component: (
-                  <OptionMenu
-                    meal={meal as Meal}
-                    entry={entry as Entry}
-                    refresh={refresh}
-                    id={id}
-                    inputQuantity={inputQuantity}
-                    currentUnitId={currentUnitId}
-                    set={set}
+  <StateController<{ id: string | null }> initialState={{ id: null }}>
+    {({ set: setId, state: { id } }) => (
+      <UpdateEntryComponent>
+        {update => (
+          <Formik
+            initialValues={{
+              quantity: "",
+              unit: "",
+            }}
+            onSubmit={async (
+              { quantity, unit },
+              { setErrors, setSubmitting },
+            ) => {
+              if (id !== null) {
+                setSubmitting(true);
+                const newEntry = {
+                  quantity: parseFloat(quantity),
+                  unitId: unit,
+                  mealId: meal.id,
+                };
+                const errors = validateSync(
+                  plainToClass(EntryInputWithValidation, newEntry),
+                );
+                if (errors.length > 0) {
+                  setSubmitting(false);
+                  close();
+                  setErrors(
+                    errors.reduce(
+                      (prev, curr) => ({
+                        ...prev,
+                        [curr.property]: Object.values(curr.constraints)[0],
+                      }),
+                      {},
+                    ),
+                  );
+                  return;
+                }
+                await update({
+                  variables: {
+                    id: id,
+                    newEntry,
+                  },
+                });
+                setId({ id: null });
+                setSubmitting(false);
+                refresh();
+              }
+            }}
+          >
+            {({ values, errors, handleChange, handleSubmit, setValues }) => (
+              <MealComponentStyle>
+                {({ classes }) => (
+                  <Table
+                    top={<TopComponent meal={meal} refresh={refresh} />}
+                    bottom={
+                      <div className={classes.bottomBox}>
+                        <Typography variant="subtitle2">
+                          {meal.name}
+                          {"'s total = "}
+                          {mealTotal(
+                            meal as Meal,
+                            id,
+                            values.quantity,
+                            values.unit,
+                          )}
+                          {" kcal"}
+                        </Typography>
+                      </div>
+                    }
+                    key={meal.id}
+                    headers={[
+                      { text: "", align: "right", padding: "checkbox" },
+                      { text: "product name", align: "left" },
+                      { text: "quantity" },
+                      { text: "unit name" },
+                      { text: "unit energy" },
+                      { text: "entry energy" },
+                    ]}
+                    rows={meal.entries.items.map(entry => [
+                      {
+                        align: "right",
+                        padding: "checkbox",
+                        component: (
+                          <OptionMenu
+                            meal={meal as Meal}
+                            entry={entry as Entry}
+                            refresh={refresh}
+                            id={id}
+                            setId={({ id }) => {
+                              setValues({
+                                quantity: entry.quantity.toString(),
+                                unit: entry.unit.id,
+                              });
+                              setId({ id });
+                            }}
+                            handleSubmit={handleSubmit}
+                          />
+                        ),
+                      },
+                      { value: entry.unit.product.name, align: "left" },
+                      {
+                        component:
+                          id === entry.id ? (
+                            <TextField
+                              value={values.quantity}
+                              name="quantity"
+                              type="number"
+                              onChange={handleChange}
+                              className={classes.input}
+                              error={Boolean(errors.quantity)}
+                              helperText={
+                                Boolean(errors.quantity) ? errors.quantity : ""
+                              }
+                            />
+                          ) : (
+                            entry.quantity.toString()
+                          ),
+                      },
+                      {
+                        value:
+                          id === entry.id ? (
+                            <FormControl className={classes.input}>
+                              <Select
+                                value={values.unit}
+                                onChange={handleChange}
+                                inputProps={{
+                                  name: "unit",
+                                  id: "unit-simple",
+                                }}
+                              >
+                                {entry.unit.product.units.items.map(u => (
+                                  <MenuItem key={u.id} value={u.id}>
+                                    {u.name}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          ) : (
+                            entry.unit.name
+                          ),
+                      },
+                      {
+                        value: dynamicEntryUnit(id, values.unit, entry),
+                      },
+                      {
+                        value: dynamicEntryValue(
+                          id,
+                          values.unit,
+                          values.quantity,
+                          entry,
+                        ),
+                      },
+                    ])}
                   />
-                ),
-              },
-            ])}
-          />
+                )}
+              </MealComponentStyle>
+            )}
+          </Formik>
         )}
-      </MealComponentStyle>
+      </UpdateEntryComponent>
     )}
-  </EditRowController>
+  </StateController>
+);
+
+interface TopComponentProps {
+  meal: Pick<Meal, "id" | "name" | "date">;
+  refresh: () => void;
+}
+
+const TopComponentStyle = createStyle((theme: Theme) => ({
+  topBox: {
+    display: "flex",
+    alignItems: "center",
+    padding: theme.spacing(1),
+    marginTop: theme.spacing(3),
+  },
+}));
+
+const TopComponent = ({ meal, refresh }: TopComponentProps) => (
+  <UpdateMealComponent>
+    {update => (
+      <ToggleController>
+        {({ isOpen, open, close, toggle }) => (
+          <Formik
+            initialValues={{
+              name: meal.name,
+            }}
+            onSubmit={async ({ name }, { setSubmitting, setErrors }) => {
+              setSubmitting(true);
+              const newMeal = {
+                name,
+                date: new Date(meal.date),
+              };
+              const errors = validateSync(
+                plainToClass(MealInputWithValidation, newMeal),
+              );
+              if (errors.length > 0) {
+                setSubmitting(false);
+                close();
+                setErrors(
+                  errors.reduce(
+                    (prev, curr) => ({
+                      ...prev,
+                      [curr.property]: Object.values(curr.constraints)[0],
+                    }),
+                    {},
+                  ),
+                );
+                return;
+              }
+              await update({
+                variables: { data: { newMeal, id: meal.id } },
+              });
+              setSubmitting(false);
+              close();
+              refresh();
+            }}
+          >
+            {({ handleChange, values, handleSubmit, errors }) => (
+              <TopComponentStyle>
+                {({ classes }) => (
+                  <MenuController>
+                    {({ anchorEl, handleClose, handleMenu }) => (
+                      <div className={classes.topBox}>
+                        <>
+                          <IconButton onClick={handleMenu}>
+                            <MoreIcon />
+                          </IconButton>
+                          <Menu
+                            id="menu-appbar"
+                            anchorEl={anchorEl}
+                            anchorOrigin={{
+                              vertical: "top",
+                              horizontal: "right",
+                            }}
+                            keepMounted
+                            transformOrigin={{
+                              vertical: "top",
+                              horizontal: "right",
+                            }}
+                            open={Boolean(anchorEl)}
+                            onClose={handleClose}
+                          >
+                            <MenuItem
+                              onClick={async () => {
+                                open();
+                              }}
+                            >
+                              Edit
+                            </MenuItem>
+                            <RemoveMealComponent>
+                              {remove => (
+                                <MenuItem
+                                  onClick={async () => {
+                                    await remove({
+                                      variables: {
+                                        data: { id: meal.id },
+                                      },
+                                    });
+                                    handleClose();
+                                    refresh();
+                                  }}
+                                >
+                                  Delete
+                                </MenuItem>
+                              )}
+                            </RemoveMealComponent>
+                          </Menu>
+                        </>
+                        {isOpen ? (
+                          <>
+                            <TextField
+                              label="meal name"
+                              name="name"
+                              value={values.name}
+                              onChange={handleChange}
+                              error={Boolean(errors.name)}
+                              helperText={
+                                Boolean(errors.name) ? errors.name : ""
+                              }
+                            />
+                            <Button onClick={() => handleSubmit()}>Save</Button>
+                          </>
+                        ) : (
+                          <Typography variant="h6">{meal.name}</Typography>
+                        )}
+                      </div>
+                    )}
+                  </MenuController>
+                )}
+              </TopComponentStyle>
+            )}
+          </Formik>
+        )}
+      </ToggleController>
+    )}
+  </UpdateMealComponent>
 );
 
 const OptionMenuStyle = createStyle((theme: Theme) => ({
   actionGroup: {
-    display: "flex",
-    justifyContent: "space-around",
-    flexDirection: "row-reverse",
-    marginLeft: "auto",
+    width: 50,
+    margin: "0 auto",
   },
 }));
 
@@ -437,23 +570,16 @@ interface OptionMenuProps {
   entry: Entry;
   refresh: () => void;
   id: string | null;
-  inputQuantity: string | null;
-  currentUnitId: string | null;
-  set: (
-    id: string | null,
-    initalQuantity: number | null,
-    currentUnitId: string | null,
-  ) => void;
+  setId: (state: { id: string | null }) => void;
+  handleSubmit: () => void;
 }
 
 const OptionMenu = ({
-  meal,
   entry,
   refresh,
   id,
-  inputQuantity,
-  currentUnitId,
-  set,
+  setId,
+  handleSubmit,
 }: OptionMenuProps) => (
   <MenuController>
     {({ anchorEl, handleClose, handleMenu }) => (
@@ -468,38 +594,8 @@ const OptionMenu = ({
               </div>
             ) : id === entry.id ? (
               <div className={classes.actionGroup}>
-                <UpdateEntryComponent>
-                  {update => (
-                    <Button
-                      size={"small"}
-                      onClick={async () => {
-                        if (inputQuantity && currentUnitId) {
-                          await update({
-                            variables: {
-                              id: id,
-                              newEntry: {
-                                quantity: parseFloat(inputQuantity),
-                                unitId: currentUnitId,
-                                mealId: meal.id,
-                              },
-                            },
-                          });
-                          refresh();
-                        }
-                      }}
-                    >
-                      Save
-                    </Button>
-                  )}
-                </UpdateEntryComponent>
-
-                <Button
-                  size={"small"}
-                  onClick={() => {
-                    set(null, null, null);
-                  }}
-                >
-                  Cancel
+                <Button size={"small"} onClick={handleSubmit}>
+                  Save
                 </Button>
               </div>
             ) : null}
@@ -521,7 +617,7 @@ const OptionMenu = ({
             >
               <MenuItem
                 onClick={async () => {
-                  set(entry.id, entry.quantity, entry.unit.id);
+                  setId({ id: entry.id });
                   handleClose();
                 }}
               >
