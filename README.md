@@ -14,11 +14,15 @@ The app is organized into separate microservices as shown on following chart.
 <img src="https://raw.githubusercontent.com/WalenPiotr/calorie-counter-v2/master/cc-system-chart.png"/>
 </p>
 
-The app is composed of:
- - Resource service, which handles CRUD operation food and user daily logs (Node, GraphQL)
- - Resource database, which stores food data and user daily logs (PostgreSQL)
- - Auth service, which handles user authentication and authorization (Node, REST, GraphQL)
- - Auth database, which stores user data (PostgreSQL)
- - Session storage, which shares session between auth service and resource service
- - Gateway service, which stiches resource and auth service GraphQL schema, for convienient usage with client apps
- - Frontend app, which serves dual role of admin panel and client app
+The app is composed of following microservices:
+
+- Resource service, which handles CRUD operation food and user daily logs (Node, GraphQL)
+- Resource database, which stores food data and user daily logs (PostgreSQL)
+- Auth service, which handles user authentication and authorization (Node, REST, GraphQL)
+- Auth database, which stores user data (PostgreSQL)
+- Session storage, which shares session between auth service and resource service
+- Gateway service, which stiches resource and auth service GraphQL schema, for convienient usage with client apps
+- Frontend app, which serves dual role of admin panel and client app
+- NGinX instance, for reverse proxy
+
+Every microservice is deployed using docker and the whole app is composed using docker-compose
