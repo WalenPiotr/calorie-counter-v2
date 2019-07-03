@@ -16,7 +16,7 @@ The app is organized into separate microservices as shown on following chart.
 
 The app is composed of following microservices:
 
-- Resource service, which handles CRUD operation food and user daily logs (Node, GraphQL)
+- Resource service, which handles CRUD operation for food and user daily logs (Node, GraphQL)
 - Resource database, which stores food data and user daily logs (PostgreSQL)
 - Auth service, which handles user authentication and authorization (Node, REST, GraphQL)
 - Auth database, which stores user data (PostgreSQL)
