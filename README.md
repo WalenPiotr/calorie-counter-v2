@@ -20,9 +20,9 @@ The app is composed of following microservices:
 - Resource database, which stores food data and user daily logs (PostgreSQL)
 - Auth service, which handles user authentication and authorization (Node, REST, GraphQL)
 - Auth database, which stores user data (PostgreSQL)
-- Session storage, which shares session between auth service and resource service
-- Gateway service, which stiches resource and auth service GraphQL schema, for convienient usage with client apps
-- Frontend app, which serves dual role of admin panel and client app
-- NGinX instance, for reverse proxy
+- Session storage, which shares session between auth service and resource service (Redis)
+- Gateway service, which stiches resource and auth service GraphQL schema, for convienient usage with client apps (Node, GraphQL)
+- Frontend app, which serves dual role of admin panel and client app (NextJS)
+- Reverse proxy (Nginx)
 
 Every microservice is deployed using docker and the whole app is composed using docker-compose
