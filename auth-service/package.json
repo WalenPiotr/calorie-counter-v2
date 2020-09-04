@@ -21,7 +21,7 @@
     "passport-google-oauth": "^2.0.0",
     "pg": "^7.11.0",
     "reflect-metadata": "^0.1.13",
-    "type-graphql": "^0.17.4",
+    "type-graphql": "^0.17.6",
     "typeorm": "^0.2.16"
   },
   "devDependencies": {
